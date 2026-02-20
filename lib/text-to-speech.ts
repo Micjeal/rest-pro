@@ -10,11 +10,18 @@ export class TextToSpeech {
   private voices: SpeechSynthesisVoice[] = [];
 
   constructor() {
-    this.synth = window.speechSynthesis;
-    this.loadVoices();
+    if (typeof window !== 'undefined') {
+      this.synth = window.speechSynthesis;
+      this.loadVoices();
+    } else {
+      // Fallback for SSR
+      this.synth = {} as SpeechSynthesis;
+    }
   }
 
   private loadVoices() {
+    if (typeof window === 'undefined') return;
+    
     this.voices = this.synth.getVoices();
     
     // Reload voices when they change (some browsers load voices asynchronously)
@@ -71,7 +78,7 @@ export class TextToSpeech {
   }
 
   public isSupported(): boolean {
-    return 'speechSynthesis' in window;
+  return typeof window !== 'undefined' && 'speechSynthesis' in window;
   }
 }
 
