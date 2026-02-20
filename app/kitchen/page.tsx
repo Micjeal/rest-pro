@@ -17,6 +17,9 @@ import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { getRolesByCategory } from '@/components/users/role-definitions'
 
+// Force dynamic rendering to avoid SSR issues
+export const dynamic = 'force-dynamic'
+
 export default function KitchenPage() {
   const [userRole, setUserRole] = useState<string>('')
   const [selectedRestaurant, setSelectedRestaurant] = useState<string | undefined>(undefined)
