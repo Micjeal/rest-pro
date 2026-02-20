@@ -33,18 +33,21 @@ export default function KitchenPage() {
   const { orders } = useKitchenOrders(selectedRestaurant)
 
   useEffect(() => {
-    const role = localStorage.getItem('userRole')
-    setUserRole(role || '')
+    // Only access localStorage on client side
+    if (typeof window !== 'undefined') {
+      const role = localStorage.getItem('userRole')
+      setUserRole(role || '')
 
-    // Only allow kitchen staff and management roles to access kitchen
-    if (![...kitchenRoles, ...managementRoles].includes(role as any)) {
-      toast({
-        title: 'Access Denied',
-        description: 'Only kitchen staff can access the kitchen display.',
-        variant: 'destructive'
-      })
-      router.push('/dashboard')
-      return
+      // Only allow kitchen staff and management roles to access kitchen
+      if (![...kitchenRoles, ...managementRoles].includes(role as any)) {
+        toast({
+          title: 'Access Denied',
+          description: 'Only kitchen staff can access the kitchen display.',
+          variant: 'destructive'
+        })
+        router.push('/dashboard')
+        return
+      }
     }
 
     // Set default restaurant when data loads

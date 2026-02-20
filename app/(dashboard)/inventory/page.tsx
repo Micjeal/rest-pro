@@ -61,8 +61,11 @@ export default function InventoryPage() {
 
   // Check user role on mount
   useEffect(() => {
-    const role = localStorage.getItem('userRole')
-    setUserRole(role || '')
+    let role = ''
+    if (typeof window !== 'undefined') {
+      role = localStorage.getItem('userRole') || ''
+      setUserRole(role)
+    }
 
     // Redirect non-managers and non-admins
     if (role !== 'manager' && role !== 'admin') {
@@ -112,7 +115,7 @@ export default function InventoryPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('auth_token') : ''}`
         },
         body: JSON.stringify(itemData)
       })
@@ -160,7 +163,7 @@ export default function InventoryPage() {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('auth_token') : ''}`
         },
         body: JSON.stringify(updateData)
       })
@@ -185,7 +188,7 @@ export default function InventoryPage() {
       const response = await fetch(`/api/inventory/${id}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('auth_token') : ''}`
         }
       })
 
@@ -210,7 +213,7 @@ export default function InventoryPage() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+            'Authorization': `Bearer ${typeof window !== 'undefined' ? localStorage.getItem('auth_token') : ''}`
           },
           body: JSON.stringify({ quantity: restockAmount })
         })
