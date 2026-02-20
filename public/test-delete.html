@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Delete Restaurant</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #c82333;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .warning {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Restaurant Deletion</h1>
+    <p>This page allows you to test the restaurant deletion API endpoint.</p>
+    
+    <div class="form-group">
+        <label for="restaurantId">Restaurant ID:</label>
+        <input type="text" id="restaurantId" placeholder="Enter restaurant UUID">
+    </div>
+    
+    <div class="form-group">
+        <label for="authToken">Authorization Token:</label>
+        <input type="text" id="authToken" placeholder="Enter JWT token">
+    </div>
+    
+    <button onclick="deleteRestaurant()">Delete Restaurant</button>
+    
+    <div id="result"></div>
+
+    <script>
+        async function deleteRestaurant() {
+            const restaurantId = document.getElementById('restaurantId').value;
+            const authToken = document.getElementById('authToken').value;
+            const resultDiv = document.getElementById('result');
+            
+            if (!restaurantId || !authToken) {
+                resultDiv.innerHTML = '<div class="error">Please enter both Restaurant ID and Authorization Token</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="warning">Deleting restaurant...</div>';
+            
+            try {
+                const response = await fetch(`/api/restaurants/${restaurantId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <div class="success">
+                            <h3>Deletion Successful!</h3>
+                            <p>${data.message}</p>
+                            <pre>${JSON.stringify(data.deleted, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <div class="error">
+                            <h3>Deletion Failed</h3>
+                            <p>Status: ${response.status}</p>
+                            <p>Error: ${data.error}</p>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">
+                        <h3>Request Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
