@@ -31,6 +31,8 @@ export const SidebarProvider: React.FC<{ children: ReactNode }> = ({ children })
   // Handle responsive behavior
   useEffect(() => {
     console.log('[SidebarProvider] Resize effect running')
+    if (typeof window === 'undefined') return
+    
     const handleResize = () => {
       if (window.innerWidth >= 1024) {
         // On desktop, close mobile sidebar
@@ -67,6 +69,8 @@ export const SidebarProvider: React.FC<{ children: ReactNode }> = ({ children })
 
   // Handle keyboard shortcuts
   useEffect(() => {
+    if (typeof window === 'undefined') return
+    
     const handleKeyDown = (event: KeyboardEvent) => {
       // Ctrl/Cmd + B to toggle desktop sidebar
       if ((event.ctrlKey || event.metaKey) && event.key === 'b') {
