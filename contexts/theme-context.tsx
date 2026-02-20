@@ -24,16 +24,20 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('kitchen-light')
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('kitchen-theme') as Theme
-    if (savedTheme) {
-      setThemeState(savedTheme)
-      applyTheme(savedTheme)
+    if (typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('kitchen-theme') as Theme
+      if (savedTheme) {
+        setThemeState(savedTheme)
+        applyTheme(savedTheme)
+      }
     }
   }, [])
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme)
-    localStorage.setItem('kitchen-theme', newTheme)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('kitchen-theme', newTheme)
+    }
     applyTheme(newTheme)
   }
 
@@ -45,6 +49,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }
 
   const applyTheme = (theme: Theme) => {
+    if (typeof window === 'undefined') return
+    
     const root = document.documentElement
     
     // Remove all theme classes
