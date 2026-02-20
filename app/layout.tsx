@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 
 import './globals.css'
-// import { SidebarProvider } from '@/hooks/use-sidebar'
+import { SidebarProvider } from '@/hooks/use-sidebar'
 
 const _geist = Geist({ subsets: ['latin'] })
 const _geistMono = Geist_Mono({ subsets: ['latin'] })
@@ -23,9 +23,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        {/* <SidebarProvider> */}
+        <SidebarProvider>
           {children}
-        {/* </SidebarProvider> */}
+        </SidebarProvider>
       </body>
     </html>
   )
