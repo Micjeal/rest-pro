@@ -134,7 +134,7 @@ export function OrderForm({ restaurantId }: OrderFormProps) {
             </Select>
           </div>
           <div>
-            <Label htmlFor="total_amount">Total Amount (USD) *</Label>
+            <Label htmlFor="total_amount">Total Amount (UGX) *</Label>
             <Input
               id="total_amount"
               name="total_amount"

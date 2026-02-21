@@ -352,12 +352,12 @@ export function getCurrency(code: string): Currency | undefined {
 }
 
 // Format currency amount
-export function formatCurrency(amount: number, currencyCode: string = 'USD'): string {
+export function formatCurrency(amount: number, currencyCode: string = 'UGX'): string {
   const currency = getCurrency(currencyCode)
   if (!currency) {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD'
+      currency: 'UGX'
     }).format(amount)
   }
 

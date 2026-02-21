@@ -99,7 +99,7 @@ export function MenuItemForm({ restaurantId, menuId }: MenuItemFormProps) {
             />
           </div>
           <div>
-            <Label htmlFor="price">Price (USD) *</Label>
+            <Label htmlFor="price">Price (UGX) *</Label>
             <Input
               id="price"
               name="price"
