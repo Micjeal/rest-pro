@@ -70,6 +70,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+-- Drop existing trigger if it exists
+DROP TRIGGER IF EXISTS update_restaurant_settings_updated_at ON restaurant_settings;
+
+-- Create new trigger
 CREATE TRIGGER update_restaurant_settings_updated_at
     BEFORE UPDATE ON restaurant_settings
     FOR EACH ROW
