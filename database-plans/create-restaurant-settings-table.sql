@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS restaurant_settings (
 ALTER TABLE restaurant_settings ENABLE ROW LEVEL SECURITY;
 
 -- RLS Policies for restaurant_settings
-CREATE POLICY "Users can view settings of their restaurants"
+CREATE POLICY IF NOT EXISTS "Users can view settings of their restaurants"
   ON restaurant_settings FOR SELECT
   USING (
     restaurant_id IN (
@@ -27,7 +27,7 @@ CREATE POLICY "Users can view settings of their restaurants"
     )
   );
 
-CREATE POLICY "Users can insert settings for their restaurants"
+CREATE POLICY IF NOT EXISTS "Users can insert settings for their restaurants"
   ON restaurant_settings FOR INSERT
   WITH CHECK (
     restaurant_id IN (
@@ -35,7 +35,7 @@ CREATE POLICY "Users can insert settings for their restaurants"
     )
   );
 
-CREATE POLICY "Users can update settings of their restaurants"
+CREATE POLICY IF NOT EXISTS "Users can update settings of their restaurants"
   ON restaurant_settings FOR UPDATE
   USING (
     restaurant_id IN (
@@ -43,7 +43,7 @@ CREATE POLICY "Users can update settings of their restaurants"
     )
   );
 
-CREATE POLICY "Users can delete settings of their restaurants"
+CREATE POLICY IF NOT EXISTS "Users can delete settings of their restaurants"
   ON restaurant_settings FOR DELETE
   USING (
     restaurant_id IN (
