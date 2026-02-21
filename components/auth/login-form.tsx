@@ -126,28 +126,6 @@ export function LoginForm() {
             )}
           </Button>
         </form>
-
-        <div className="mt-6 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 p-4 border border-blue-100">
-          <p className="text-sm font-semibold text-blue-900 mb-3">Demo Credentials:</p>
-          <div className="space-y-2">
-            <div className="bg-white/50 rounded-lg p-2">
-              <p className="text-xs font-medium text-blue-800">👑 Administrator</p>
-              <p className="text-xs text-blue-700"><span className="font-medium">Email:</span> admin@restaurant.com</p>
-              <p className="text-xs text-blue-700"><span className="font-medium">Password:</span> demo123</p>
-            </div>
-            <div className="bg-white/50 rounded-lg p-2">
-              <p className="text-xs font-medium text-blue-800">👨‍🍳 Head Chef</p>
-              <p className="text-xs text-blue-700"><span className="font-medium">Email:</span> chef@restaurant.com</p>
-              <p className="text-xs text-blue-700"><span className="font-medium">Password:</span> demo123</p>
-            </div>
-            <div className="bg-white/50 rounded-lg p-2">
-              <p className="text-xs font-medium text-blue-800">🍽 Server</p>
-              <p className="text-xs text-blue-700"><span className="font-medium">Email:</span> server@restaurant.com</p>
-              <p className="text-xs text-blue-700"><span className="font-medium">Password:</span> demo123</p>
-            </div>
-          </div>
-          <p className="text-xs text-blue-600 mt-2 italic">Each role redirects to their specific workspace</p>
-        </div>
       </CardContent>
     </Card>
   )
