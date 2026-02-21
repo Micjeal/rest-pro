@@ -248,14 +248,9 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
             createNavItem('/receipts', <Receipt className="h-5 w-5 flex-shrink-0" />, 'Receipts', isActive('/receipts'))
           )}
 
-          {/* Menus - Available to all except chef */}
-          {userRole !== 'chef' && firstRestaurantId && (
-            createNavItem(
-              `/dashboard/${firstRestaurantId}/menus`,
-              <ChefHat className="h-5 w-5 flex-shrink-0" />,
-              'Menus',
-              pathname.includes('/menus')
-            )
+          {/* Menu Management - Available to all except chef */}
+          {userRole !== 'chef' && (
+            createNavItem('/menu', <ChefHat className="h-5 w-5 flex-shrink-0" />, 'Menu', isActive('/menu'))
           )}
 
           {/* Orders - Available to all except chef */}
