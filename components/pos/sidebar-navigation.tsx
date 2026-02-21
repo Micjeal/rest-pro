@@ -219,17 +219,22 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
           )}
 
           {/* POS - Front of House & Support Staff */}
-          {[...frontOfHouseRoles, ...supportRoles].includes(userRole as RestaurantRole) && (
-            createNavItem('/pos', <ShoppingCart className="h-5 w-5 flex-shrink-0" />, 'POS', isActive('/pos'))
+          {[...frontOfHouseRoles, ...supportRoles].includes(userRole as RestaurantRole) && firstRestaurantId && (
+            createNavItem(
+              `/dashboard/${firstRestaurantId}/pos`,
+              <ShoppingCart className="h-5 w-5 flex-shrink-0" />,
+              'POS',
+              pathname.includes('/pos')
+            )
           )}
 
           {/* Kitchen Display - Kitchen & Management Staff */}
           {[...kitchenRoles, ...managementRoles].includes(userRole as RestaurantRole) && (
             createNavItem(
-              userRole === 'chef' ? '/dashboard' : '/kitchen', 
+              userRole === 'chef' ? `/dashboard/${firstRestaurantId}/kitchen` : `/dashboard/${firstRestaurantId}/kitchen`, 
               <ChefHat className="h-5 w-5 flex-shrink-0" />, 
               userRole === 'chef' ? 'Dashboard' : 'Kitchen', 
-              isActive(userRole === 'chef' ? '/dashboard' : '/kitchen')
+              pathname.includes('/kitchen')
             )
           )}
 
@@ -244,43 +249,23 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
           )}
 
           {/* Receipts - Front of House & Support Staff */}
-          {[...frontOfHouseRoles, ...supportRoles].includes(userRole as RestaurantRole) && (
-            createNavItem('/receipts', <Receipt className="h-5 w-5 flex-shrink-0" />, 'Receipts', isActive('/receipts'))
+          {[...frontOfHouseRoles, ...supportRoles].includes(userRole as RestaurantRole) && firstRestaurantId && (
+            createNavItem(`/dashboard/${firstRestaurantId}/receipts`, <Receipt className="h-5 w-5 flex-shrink-0" />, 'Receipts', pathname.includes('/receipts'))
           )}
 
           {/* Menu Management - Available to all except chef */}
-          {userRole !== 'chef' && (
-            createNavItem('/menu', <ChefHat className="h-5 w-5 flex-shrink-0" />, 'Menu', isActive('/menu'))
-          )}
-
-          {/* Orders - Available to all except chef */}
           {userRole !== 'chef' && firstRestaurantId && (
-            createNavItem(
-              `/dashboard/${firstRestaurantId}/orders`,
-              <ShoppingCart className="h-5 w-5 flex-shrink-0" />,
-              'Orders',
-              pathname.includes('/orders')
-            )
-          )}
-
-          {/* Reservations - Available to all except chef */}
-          {userRole !== 'chef' && firstRestaurantId && (
-            createNavItem(
-              `/dashboard/${firstRestaurantId}/reservations`,
-              <Users className="h-5 w-5 flex-shrink-0" />,
-              'Reservations',
-              pathname.includes('/reservations')
-            )
+            createNavItem(`/dashboard/${firstRestaurantId}/menu`, <ChefHat className="h-5 w-5 flex-shrink-0" />, 'Menu', pathname.includes('/menu'))
           )}
 
           {/* Inventory - Manager & Admin only */}
-          {(userRole === 'manager' || userRole === 'admin') && (
-            createNavItem('/inventory', <Package className="h-5 w-5 flex-shrink-0" />, 'Inventory', isActive('/inventory'))
+          {(userRole === 'manager' || userRole === 'admin') && firstRestaurantId && (
+            createNavItem(`/dashboard/${firstRestaurantId}/inventory`, <Package className="h-5 w-5 flex-shrink-0" />, 'Inventory', pathname.includes('/inventory'))
           )}
 
           {/* Reports - Manager & Admin only */}
-          {(userRole === 'manager' || userRole === 'admin') && (
-            createNavItem('/reports', <BarChart3 className="h-5 w-5 flex-shrink-0" />, 'Reports', isActive('/reports'))
+          {(userRole === 'manager' || userRole === 'admin') && firstRestaurantId && (
+            createNavItem(`/dashboard/${firstRestaurantId}/reports`, <BarChart3 className="h-5 w-5 flex-shrink-0" />, 'Reports', pathname.includes('/reports'))
           )}
 
           {/* Users - Admin only */}
@@ -289,8 +274,8 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
           )}
 
           {/* Settings - Admin only */}
-          {userRole === 'admin' && (
-            createNavItem('/settings', <Settings className="h-5 w-5 flex-shrink-0" />, 'Settings', isActive('/settings'))
+          {userRole === 'admin' && firstRestaurantId && (
+            createNavItem(`/dashboard/${firstRestaurantId}/settings`, <Settings className="h-5 w-5 flex-shrink-0" />, 'Settings', pathname.includes('/settings'))
           )}
 
           {/* Admin Tools - Admin only */}
