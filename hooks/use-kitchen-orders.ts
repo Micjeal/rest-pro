@@ -11,6 +11,7 @@ export interface KitchenOrder extends Order {
     quantity: number
     price: number
     notes?: string
+    description?: string
   }>
 }
 
@@ -82,6 +83,7 @@ export function useKitchenOrders(restaurantId?: string) {
       quantity: item.quantity,
       price: item.unit_price,
       notes: (item as any).notes || '',
+      description: (item as any).menu_items?.description || '',
     })),
   }))
 

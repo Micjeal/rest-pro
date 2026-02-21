@@ -230,6 +230,13 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
                       <p className="font-bold text-gray-900 dark:text-white text-2xl leading-tight">
                         {item.name}
                       </p>
+                      {item.description && (
+                        <div className="mt-2 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                          <p className="text-base font-semibold text-blue-700 dark:text-blue-300">
+                            🥘 <span className="uppercase">Ingredients & Prep:</span> {item.description}
+                          </p>
+                        </div>
+                      )}
                       {item.notes && (
                         <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
                           <p className="text-base font-semibold text-yellow-700 dark:text-yellow-300">
