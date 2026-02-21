@@ -5,15 +5,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-<<<<<<< HEAD
     container_name: rest-pro-app
     ports:
-      - "3001:3000"
-=======
-    container_name: nextjs-app
-    ports:
       - "3000:3000"
->>>>>>> 06bb4558f885ab00dd2e089b97beba024855d6f3
     environment:
       - NODE_ENV=production
     restart: unless-stopped
