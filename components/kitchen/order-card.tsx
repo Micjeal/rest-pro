@@ -197,6 +197,28 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
               </div>
             </div>
           </div>
+          
+          {/* ORDER TYPE FOR CHEF - PROMINENT DISPLAY */}
+          <div className="bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 border border-orange-300 dark:border-orange-700 rounded-lg px-4 py-3 mb-3 shadow-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="bg-white dark:bg-slate-800 rounded-full p-2">
+                  <ChefHat className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+                </div>
+                <div className="text-left">
+                  <span className="font-bold text-white dark:text-orange-200 text-lg">ORDER TYPE</span>
+                  <div className="text-orange-100 dark:text-orange-300 text-2xl font-bold mt-1">
+                    {order.order_type?.toUpperCase() || 'DINE-IN'}
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white dark:bg-slate-800 rounded-full px-3 py-1">
+                <span className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+                  FOR CHEF
+                </span>
+              </div>
+            </div>
+          </div>
           <div className="flex flex-col items-end gap-2">
             {getStatusBadge(order.status || 'pending')}
             
