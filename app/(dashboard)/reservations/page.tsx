@@ -140,16 +140,22 @@ export default function ReservationsPage({ params }: ReservationsPageProps) {
     try {
       const reservationData = {
         restaurant_id: restaurantId,
-        customer_name: formData.customer_name,
-        customer_phone: formData.customer_phone,
-        customer_email: formData.customer_email || null,
+        customer_name: formData.customer_name?.trim(),
+        customer_phone: formData.customer_phone?.trim(),
+        customer_email: formData.customer_email?.trim() || null,
         party_size: parseInt(formData.party_size),
         reservation_date: new Date(`${formData.reservation_date}T${formData.reservation_time}`).toISOString(),
         status: formData.status || 'pending',
-        notes: formData.notes || null
+        notes: formData.notes?.trim() || null
+      }
+
+      // Validate required fields
+      if (!reservationData.customer_name || !reservationData.customer_phone || !reservationData.party_size || !formData.reservation_date || !formData.reservation_time) {
+        throw new Error('Missing required fields')
       }
 
       console.log('Sending reservation data:', reservationData)
+      console.log('Restaurant ID:', restaurantId)
 
       const response = await fetch('/api/reservations', {
         method: 'POST',
@@ -158,6 +164,9 @@ export default function ReservationsPage({ params }: ReservationsPageProps) {
         },
         body: JSON.stringify(reservationData),
       })
+
+      console.log('Response status:', response.status)
+      console.log('Response ok:', response.ok)
 
       if (!response.ok) {
         const errorData = await response.json()
