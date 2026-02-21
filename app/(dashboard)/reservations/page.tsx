@@ -115,8 +115,7 @@ export default function ReservationsPage({ params }: ReservationsPageProps) {
       const response = await fetch(`/api/reservations/${reservationId}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ status: newStatus })
       })
@@ -155,8 +154,7 @@ export default function ReservationsPage({ params }: ReservationsPageProps) {
       const response = await fetch('/api/reservations', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(reservationData),
       })
@@ -202,8 +200,7 @@ export default function ReservationsPage({ params }: ReservationsPageProps) {
       const response = await fetch(`/api/reservations/${editingReservation.id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(reservationData),
       })
@@ -236,7 +233,7 @@ export default function ReservationsPage({ params }: ReservationsPageProps) {
       const response = await fetch(`/api/reservations/${reservationId}`, {
         method: 'DELETE',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Content-Type': 'application/json'
         }
       })
 
