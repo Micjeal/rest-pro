@@ -155,7 +155,7 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
   }
 
   return (
-    <Card className={`bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 rounded-2xl overflow-hidden group order-card relative ${
+    <Card className={`bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 rounded-2xl overflow-hidden group order-card relative w-full max-w-2xl mx-auto ${
       timeWarning === 'critical' ? 'ring-2 ring-red-500 ring-opacity-50' : 
       timeWarning === 'warning' ? 'ring-2 ring-yellow-500 ring-opacity-50' : ''
     }`}>
@@ -176,23 +176,23 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
         />
       )}
       
-      <CardHeader className="pb-4 bg-gradient-to-br from-gray-50 to-white dark:from-slate-800 dark:to-slate-900">
+      <CardHeader className="pb-6 bg-gradient-to-br from-gray-50 to-white dark:from-slate-800 dark:to-slate-900">
         <div className="flex justify-between items-start">
-          <div className="flex items-center gap-3">
-            <div className={`h-10 w-10 rounded-full ${getStatusColor(order.status || 'pending')} bg-opacity-20 flex items-center justify-center`}>
-              {order.status === 'pending' && <Clock className="h-5 w-5 text-yellow-600 dark:text-yellow-400" />}
-              {order.status === 'preparing' && <ChefHat className="h-5 w-5 text-blue-600 dark:text-blue-400" />}
-              {order.status === 'ready' && <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />}
-              {order.status === 'completed' && <CheckCircle className="h-5 w-5 text-gray-600 dark:text-gray-400" />}
+          <div className="flex items-center gap-4">
+            <div className={`h-12 w-12 rounded-full ${getStatusColor(order.status || 'pending')} bg-opacity-20 flex items-center justify-center`}>
+              {order.status === 'pending' && <Clock className="h-6 w-6 text-yellow-600 dark:text-yellow-400" />}
+              {order.status === 'preparing' && <ChefHat className="h-6 w-6 text-blue-600 dark:text-blue-400" />}
+              {order.status === 'ready' && <CheckCircle className="h-6 w-6 text-green-600 dark:text-green-400" />}
+              {order.status === 'completed' && <CheckCircle className="h-6 w-6 text-gray-600 dark:text-gray-400" />}
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">
+              <div className="flex items-center gap-3">
+                <CardTitle className="text-2xl font-bold text-gray-900 dark:text-white">
                   Order #{order.id?.substring(0, 6) || 'N/A'}
                 </CardTitle>
                 <PriorityBadge order={order} />
               </div>
-              <div className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <div className="text-base text-gray-500 dark:text-gray-400 mt-2">
                 {formatTime(order.created_at || new Date().toISOString())}
               </div>
             </div>
