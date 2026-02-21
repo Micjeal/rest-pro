@@ -169,7 +169,7 @@ export function UserForm({ user, onSuccess, onCancel }: UserFormProps) {
               type="text"
               value={formData.name}
               onChange={(e) => handleInputChange('name', e.target.value)}
-              placeholder="John Doe"
+              placeholder="Mugisha Micheal"
               className={errors.name ? 'border-red-500' : ''}
               disabled={isLoading}
             />
