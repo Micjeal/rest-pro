@@ -78,10 +78,10 @@ export function useKitchenOrders(restaurantId?: string) {
     ...order,
     items: (order.order_items || []).map(item => ({
       id: item.id,
-      name: `Item ${item.menu_item_id.substring(0, 4)}`, // This should be replaced with actual menu item name from API
+      name: (item as any).menu_items?.name || `Item ${(item as any).menu_item_id?.substring(0, 4) || 'Unknown'}`,
       quantity: item.quantity,
       price: item.unit_price,
-      notes: '', // Add from API if available
+      notes: (item as any).notes || '',
     })),
   }))
 

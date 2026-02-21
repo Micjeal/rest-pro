@@ -218,24 +218,30 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
         <div className="space-y-8">
           {/* Order Items */}
           <div className="space-y-4">
-            <h4 className="font-semibold text-gray-900 dark:text-white text-lg uppercase tracking-wide">Order Items</h4>
+            <h4 className="font-bold text-gray-900 dark:text-white text-xl uppercase tracking-wide">Order Items</h4>
             <div className="space-y-4">
               {order.items?.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl border border-gray-100 dark:border-slate-600">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 rounded-full flex items-center justify-center">
-                      <span className="text-lg font-bold text-orange-600 dark:text-orange-400">{item.quantity}</span>
+                <div key={index} className="flex items-center justify-between p-6 bg-gray-50 dark:bg-slate-700/50 rounded-xl border-2 border-gray-200 dark:border-slate-600">
+                  <div className="flex items-center gap-6">
+                    <div className="h-16 w-16 bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 rounded-full flex items-center justify-center border-2 border-orange-300 dark:border-orange-700">
+                      <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">{item.quantity}</span>
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white text-lg">{item.name}</p>
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900 dark:text-white text-2xl leading-tight">
+                        {item.name}
+                      </p>
                       {item.notes && (
-                        <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">{item.notes}</p>
+                        <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
+                          <p className="text-base font-semibold text-yellow-700 dark:text-yellow-300">
+                            📝 <span className="uppercase">Special Instructions:</span> {item.notes}
+                          </p>
+                        </div>
                       )}
                     </div>
                   </div>
                   {item.notes && (
-                    <div className="text-sm text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-3 py-2 rounded-full border border-orange-200 dark:border-orange-800">
-                      Note
+                    <div className="text-base text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-4 py-3 rounded-full border-2 border-orange-200 dark:border-orange-800">
+                      📋 Note
                     </div>
                   )}
                 </div>
