@@ -28,7 +28,7 @@ export default function SettingsPage() {
       phone: '+1 (555) 123-4567',
       email: 'contact@restaurant.com',
       taxRate: 8.5,
-      currency: 'USD', // Default to US Dollar for international compatibility
+      currency: 'UGX', // Default to Ugandan Shilling
     },
     pos: {
       receiptHeader: 'Thank you for dining with us!',
@@ -55,7 +55,7 @@ export default function SettingsPage() {
 
   const [loading, setLoading] = useState(false)
   const [selectedRestaurant, setSelectedRestaurant] = useState<string | null>(null)
-  const [previousCurrency, setPreviousCurrency] = useState<string>('')
+  const [previousCurrency, setPreviousCurrency] = useState<string>('UGX')
   const [showCurrencyConversionDialog, setShowCurrencyConversionDialog] = useState(false)
   
   // Use real data from hooks
@@ -151,22 +151,6 @@ export default function SettingsPage() {
 
       toast.success('Settings saved successfully')
       console.log('[Settings] Settings saved to API')
-      
-      // Refresh currency data globally if currency was changed
-      if (settings.restaurant.currency !== previousCurrency) {
-        console.log('[Settings] Currency changed, refreshing globally')
-        await refreshCurrency(selectedRestaurant)
-        
-        // Trigger currency change event for immediate UI updates
-        window.dispatchEvent(new CustomEvent('currencyChanged', {
-          detail: { 
-            newCurrency: settings.restaurant.currency,
-            previousCurrency,
-            restaurantId: selectedRestaurant,
-            timestamp: Date.now()
-          }
-        }))
-      }
     } catch (error) {
       console.error('[Settings] Error saving settings:', error)
       toast.error('Failed to save settings')
@@ -266,7 +250,7 @@ export default function SettingsPage() {
         phone: '+1 (555) 123-4567',
         email: 'contact@restaurant.com',
         taxRate: 8.5,
-        currency: 'USD', // Default to US Dollar for international compatibility
+        currency: 'UGX', // Default to Ugandan Shilling
       },
       pos: {
         receiptHeader: 'Thank you for dining with us!',
@@ -295,14 +279,9 @@ export default function SettingsPage() {
   }
 
   const updateSetting = (category: string, field: string, value: any) => {
-    // Check if currency is being changed
+    // Skip currency changes since it's fixed to UGX
     if (category === 'restaurant' && field === 'currency') {
-      const currentCurrency = settings.restaurant.currency
-      if (currentCurrency && currentCurrency !== value && selectedRestaurant) {
-        setPreviousCurrency(currentCurrency)
-        setShowCurrencyConversionDialog(true)
-        return // Don't update yet, wait for user confirmation
-      }
+      return
     }
     
     setSettings(prev => ({
@@ -419,32 +398,17 @@ export default function SettingsPage() {
                 </div>
                 <div>
                   <Label htmlFor="currency">Currency</Label>
-                  <Select value={settings.restaurant.currency} onValueChange={(value) => updateSetting('restaurant', 'currency', value)}>
+                  <Select value="UGX" disabled>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {/* East African Currencies */}
-                      <div className="px-2 py-1.5 text-sm font-semibold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 rounded">
-                        East African Currencies
-                      </div>
-                      {getCurrenciesByRegion().eastAfrica.map((currency: Currency) => (
-                        <SelectItem key={`${currency.code}-${currency.country}`} value={currency.code}>
-                          {currency.code} ({currency.symbol}) - {currency.name}
-                        </SelectItem>
-                      ))}
-                      
-                      {/* International Currencies */}
-                      <div className="px-2 py-1.5 text-sm font-semibold text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-800 rounded mt-2">
-                        International Currencies
-                      </div>
-                      {getCurrenciesByRegion().international.map((currency: Currency) => (
-                        <SelectItem key={`${currency.code}-${currency.country}`} value={currency.code}>
-                          {currency.code} ({currency.symbol}) - {currency.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="UGX">
+                        UGX (USh) - Ugandan Shilling
+                      </SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-gray-500 mt-1">Currency is fixed to Ugandan Shilling</p>
                 </div>
               </div>
             </CardContent>

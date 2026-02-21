@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
           phone: '',
           email: '',
           taxRate: 8.5,
-          currency: 'USD', // Default to US Dollar for international compatibility
+          currency: 'UGX', // Default to Ugandan Shilling
         },
         pos: {
           receiptHeader: 'Thank you for dining with us!',
