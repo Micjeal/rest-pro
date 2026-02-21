@@ -25,6 +25,16 @@ interface MenuItem {
   updated_at: string
 }
 
+interface Restaurant {
+  id: string
+  name: string
+}
+
+interface Menu {
+  id: string
+  name: string
+}
+
 export default function MenuManagementPage() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<string | undefined>(undefined)
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null)
@@ -150,7 +160,7 @@ export default function MenuManagementPage() {
               <SelectValue placeholder="Select restaurant" />
             </SelectTrigger>
             <SelectContent>
-              {restaurants.map((restaurant) => (
+              {restaurants.map((restaurant: Restaurant) => (
                 <SelectItem key={restaurant.id} value={restaurant.id}>
                   {restaurant.name}
                 </SelectItem>
@@ -163,7 +173,7 @@ export default function MenuManagementPage() {
               <SelectValue placeholder="Select menu" />
             </SelectTrigger>
             <SelectContent>
-              {menus.map((menu) => (
+              {menus.map((menu: Menu) => (
                 <SelectItem key={menu.id} value={menu.id}>
                   {menu.name}
                 </SelectItem>
