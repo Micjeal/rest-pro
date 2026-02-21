@@ -212,24 +212,6 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
             </div>
           </div>
         </div>
-        
-        {/* Time Elapsed */}
-        <div className="mt-3">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-gray-400" />
-              <span className="font-medium text-gray-700 dark:text-gray-300">
-                {formatElapsedTime(elapsedTime)} elapsed
-              </span>
-            </div>
-            <div className="text-xs text-gray-500">
-              {order.status === 'pending' && 'Waiting to start'}
-              {order.status === 'preparing' && 'In progress'}
-              {order.status === 'ready' && 'Ready for pickup'}
-              {order.status === 'completed' && 'Completed'}
-            </div>
-          </div>
-        </div>
       </CardHeader>
       
       <CardContent className="p-8">
