@@ -139,29 +139,43 @@ export default function ReservationsPage({ params }: ReservationsPageProps) {
     setIsLoadingAction(true)
     
     try {
+      const reservationData = {
+        restaurant_id: restaurantId,
+        customer_name: formData.customer_name,
+        customer_phone: formData.customer_phone,
+        customer_email: formData.customer_email || null,
+        party_size: parseInt(formData.party_size),
+        reservation_date: new Date(`${formData.reservation_date}T${formData.reservation_time}`).toISOString(),
+        status: formData.status || 'pending',
+        notes: formData.notes || null
+      }
+
+      console.log('Sending reservation data:', reservationData)
+
       const response = await fetch('/api/reservations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         },
-        body: JSON.stringify({
-          ...formData,
-          restaurant_id: restaurantId,
-          reservation_date: new Date(`${formData.reservation_date}T${formData.reservation_time}`).toISOString(),
-        }),
+        body: JSON.stringify(reservationData),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to create reservation')
+        const errorData = await response.json()
+        console.error('API Error:', errorData)
+        throw new Error(errorData.error || 'Failed to create reservation')
       }
+
+      const result = await response.json()
+      console.log('Reservation created:', result)
 
       toast.success('Reservation created successfully!')
       setIsCreateModalOpen(false)
       mutate() // Refresh the reservations list
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating reservation:', error)
-      toast.error('Failed to create reservation')
+      toast.error(`Failed to create reservation: ${error.message}`)
     } finally {
       setIsLoadingAction(false)
     }
@@ -173,29 +187,43 @@ export default function ReservationsPage({ params }: ReservationsPageProps) {
     setIsLoadingAction(true)
     
     try {
+      const reservationData = {
+        customer_name: formData.customer_name,
+        customer_phone: formData.customer_phone,
+        customer_email: formData.customer_email || null,
+        party_size: parseInt(formData.party_size),
+        reservation_date: new Date(`${formData.reservation_date}T${formData.reservation_time}`).toISOString(),
+        status: formData.status || 'pending',
+        notes: formData.notes || null
+      }
+
+      console.log('Updating reservation data:', reservationData)
+
       const response = await fetch(`/api/reservations/${editingReservation.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
         },
-        body: JSON.stringify({
-          ...formData,
-          reservation_date: new Date(`${formData.reservation_date}T${formData.reservation_time}`).toISOString(),
-        }),
+        body: JSON.stringify(reservationData),
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update reservation')
+        const errorData = await response.json()
+        console.error('API Error:', errorData)
+        throw new Error(errorData.error || 'Failed to update reservation')
       }
+
+      const result = await response.json()
+      console.log('Reservation updated:', result)
 
       toast.success('Reservation updated successfully!')
       setIsEditModalOpen(false)
       setEditingReservation(null)
       mutate() // Refresh the reservations list
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating reservation:', error)
-      toast.error('Failed to update reservation')
+      toast.error(`Failed to update reservation: ${error.message}`)
     } finally {
       setIsLoadingAction(false)
     }
@@ -213,15 +241,20 @@ export default function ReservationsPage({ params }: ReservationsPageProps) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to delete reservation')
+        const errorData = await response.json()
+        console.error('API Error:', errorData)
+        throw new Error(errorData.error || 'Failed to delete reservation')
       }
+
+      const result = await response.json()
+      console.log('Reservation deleted:', result)
 
       toast.success('Reservation deleted successfully!')
       setDeletingReservation(null)
       mutate() // Refresh the reservations list
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deleting reservation:', error)
-      toast.error('Failed to delete reservation')
+      toast.error(`Failed to delete reservation: ${error.message}`)
     } finally {
       setIsLoadingAction(false)
     }
