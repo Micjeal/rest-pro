@@ -33,7 +33,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
       
       if (!effectiveRestaurantId) {
         console.log('[CurrencyContext] No restaurant available, using default')
-        setCurrency(getCurrency('USD') || getCurrency('KES') || null)
+        setCurrency(getCurrency('UGX') || null)
         setLoading(false)
         return
       }
@@ -47,17 +47,17 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
       if (response.ok) {
         const settings = await response.json()
-        const currencyCode = settings.restaurant?.currency || 'USD'
+        const currencyCode = settings.restaurant?.currency || 'UGX'
         const currencyData = getCurrency(currencyCode)
-        setCurrency(currencyData || getCurrency('USD') || getCurrency('KES') || null)
+        setCurrency(currencyData || getCurrency('UGX') || null)
         console.log('[CurrencyContext] Loaded currency:', currencyCode)
       } else {
         console.log('[CurrencyContext] Failed to fetch settings, using default')
-        setCurrency(getCurrency('USD') || getCurrency('KES') || null)
+        setCurrency(getCurrency('UGX') || null)
       }
     } catch (error) {
       console.error('[CurrencyContext] Error loading currency:', error)
-      setCurrency(getCurrency('USD') || getCurrency('KES') || null)
+      setCurrency(getCurrency('UGX') || null)
     } finally {
       setLoading(false)
     }
