@@ -41,7 +41,7 @@ async function testSettingsAPI() {
         phone: '(555) 123-4567',
         email: 'test@restaurant.com',
         taxRate: 9.0,
-        currency: 'USD'
+        currency: 'UGX'
       },
       pos: {
         receiptHeader: 'Test Header',

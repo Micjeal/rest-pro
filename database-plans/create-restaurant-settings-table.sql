@@ -75,7 +75,7 @@ SELECT
     "phone": "",
     "email": "",
     "taxRate": 8.5,
-    "currency": "USD"
+    "currency": "UGX"
   }'::jsonb,
   '{
     "receiptHeader": "Thank you for dining with us!",

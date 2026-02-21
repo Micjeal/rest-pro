@@ -31,7 +31,7 @@ class ExchangeRateService {
   /**
    * Fetch real-time exchange rates from API
    */
-  async fetchExchangeRates(baseCurrency: string = 'USD'): Promise<void> {
+  async fetchExchangeRates(baseCurrency: string = 'UGX'): Promise<void> {
     try {
       console.log('[ExchangeRateService] Fetching exchange rates for base:', baseCurrency)
       
@@ -83,50 +83,48 @@ class ExchangeRateService {
   private setFallbackRates(): void {
     console.log('[ExchangeRateService] Using fallback exchange rates')
     
-    // Fallback rates (as of recent data)
+    // Fallback rates (as of recent data) - UGX as base
     const fallbackRates = {
-      'USD-KES': 130.5,
-      'USD-UGX': 3745.0,
-      'USD-TZS': 2330.0,
-      'USD-RWF': 1285.0,
-      'USD-BIF': 2855.0,
-      'USD-SCR': 14.5,
-      'USD-MUR': 45.8,
-      'USD-SOS': 570.0,
-      'USD-DJF': 178.0,
-      'USD-ETB': 55.5,
-      'USD-ERN': 15.0,
-      'USD-SSP': 130.26,
-      'USD-ZMW': 21.5,
-      'USD-MWK': 1025.0,
-      'USD-MZN': 63.8,
-      'USD-MGA': 4450.0,
-      'USD-CDF': 2750.0,
-      'USD-AOA': 850.0,
-      'USD-NAD': 18.5,
-      'USD-BWP': 13.5,
-      'USD-SZL': 18.5,
-      'USD-LSL': 18.5,
-      'USD-ZAR': 18.5,
-      'USD-GHS': 12.5,
-      'USD-NGN': 775.0,
-      'USD-XAF': 605.0,
-      'USD-XOF': 605.0,
-      'USD-GMD': 58.5,
-      'USD-LRD': 185.0,
-      'USD-SLL': 21500.0,
-      'USD-GNF': 8750.0,
-      'USD-KMF': 460.0,
-      'USD-MRU': 38.0,
-      'USD-CVE': 102.5,
+      // UGX to other currencies (inverted from USD-based rates)
+      'UGX-USD': 0.000267,
+      'UGX-KES': 0.0348,
+      'UGX-TZS': 0.622,
+      'UGX-RWF': 0.343,
+      'UGX-BIF': 0.762,
+      'UGX-SCR': 0.00387,
+      'UGX-MUR': 0.0122,
+      'UGX-SOS': 0.152,
+      'UGX-DJF': 0.0475,
+      'UGX-ETB': 0.0148,
+      'UGX-ERN': 0.00400,
+      'UGX-SSP': 0.0348,
+      'UGX-ZMW': 0.00574,
+      'UGX-MWK': 0.274,
+      'UGX-MZN': 0.0170,
+      'UGX-MGA': 1.19,
+      'UGX-CDF': 0.734,
+      'UGX-AOA': 0.227,
+      'UGX-NAD': 0.00494,
+      'UGX-BWP': 0.00360,
+      'UGX-SZL': 0.00494,
+      'UGX-LSL': 0.00494,
+      'UGX-ZAR': 0.00494,
+      'UGX-GHS': 0.00334,
+      'UGX-NGN': 0.207,
+      'UGX-XAF': 0.162,
+      'UGX-XOF': 0.162,
+      'UGX-GMD': 0.0156,
+      'UGX-LRD': 0.0494,
+      'UGX-SLL': 5.74,
+      'UGX-GNF': 2.34,
+      'UGX-KMF': 0.123,
+      'UGX-MRU': 0.0101,
+      'UGX-CVE': 0.0274,
       
       // Cross rates for East African currencies
       'KES-UGX': 28.7,
       'KES-TZS': 17.8,
       'KES-RWF': 9.8,
-      'UGX-KES': 0.035,
-      'UGX-TZS': 0.62,
-      'UGX-RWF': 0.34,
       'TZS-KES': 0.056,
       'TZS-UGX': 1.61,
       'TZS-RWF': 0.55,
@@ -155,21 +153,21 @@ class ExchangeRateService {
       return 1 / this.rates[reverseKey]
     }
 
-    // Always try USD as intermediary for better coverage
-    const fromToUSD = this.rates[`USD-${from}`]
-    const toFromUSD = this.rates[`USD-${to}`]
+    // Always try UGX as intermediary for better coverage
+    const fromToUGX = this.rates[`UGX-${from}`]
+    const toFromUGX = this.rates[`UGX-${to}`]
     
-    if (fromToUSD && toFromUSD) {
-      return toFromUSD / fromToUSD
+    if (fromToUGX && toFromUGX) {
+      return toFromUGX / fromToUGX
     }
 
-    // If one of the currencies is USD, use direct rate
-    if (from === 'USD' && this.rates[`USD-${to}`]) {
-      return this.rates[`USD-${to}`]
+    // If one of the currencies is UGX, use direct rate
+    if (from === 'UGX' && this.rates[`UGX-${to}`]) {
+      return this.rates[`UGX-${to}`]
     }
     
-    if (to === 'USD' && this.rates[`${from}-USD`]) {
-      return this.rates[`${from}-USD`]
+    if (to === 'UGX' && this.rates[`${from}-UGX`]) {
+      return this.rates[`${from}-UGX`]
     }
 
     console.warn(`[ExchangeRateService] No exchange rate found for ${from} to ${to}`)
@@ -198,7 +196,7 @@ class ExchangeRateService {
   /**
    * Get cached rates or fetch new ones if needed
    */
-  async getRates(baseCurrency: string = 'USD'): Promise<ExchangeRates> {
+  async getRates(baseCurrency: string = 'UGX'): Promise<ExchangeRates> {
     if (this.needsUpdate() || Object.keys(this.rates).length === 0) {
       await this.fetchExchangeRates(baseCurrency)
     }
@@ -215,7 +213,7 @@ class ExchangeRateService {
   /**
    * Force refresh exchange rates
    */
-  async refreshRates(baseCurrency: string = 'USD'): Promise<void> {
+  async refreshRates(baseCurrency: string = 'UGX'): Promise<void> {
     await this.fetchExchangeRates(baseCurrency)
   }
 }
