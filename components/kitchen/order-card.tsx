@@ -199,21 +199,21 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
           </div>
           
           {/* ORDER TYPE FOR CHEF - PROMINENT DISPLAY */}
-          <div className="bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 border border-orange-300 dark:border-orange-700 rounded-lg px-4 py-3 mb-3 shadow-lg">
+          <div className="bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 border border-orange-300 dark:border-orange-700 rounded-xl px-6 py-4 mb-4 shadow-lg">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="bg-white dark:bg-slate-800 rounded-full p-2">
-                  <ChefHat className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+              <div className="flex items-center gap-4">
+                <div className="bg-white dark:bg-slate-800 rounded-full p-3">
+                  <ChefHat className="h-8 w-8 text-orange-600 dark:text-orange-400" />
                 </div>
                 <div className="text-left">
-                  <span className="font-bold text-white dark:text-orange-200 text-lg">ORDER TYPE</span>
-                  <div className="text-orange-100 dark:text-orange-300 text-2xl font-bold mt-1">
+                  <span className="font-bold text-white dark:text-orange-200 text-xl">ORDER TYPE</span>
+                  <div className="text-orange-100 dark:text-orange-300 text-3xl font-bold mt-2">
                     {order.order_type?.toUpperCase() || 'DINE-IN'}
                   </div>
                 </div>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-full px-3 py-1">
-                <span className="text-xs text-orange-600 dark:text-orange-400 font-medium">
+              <div className="bg-white dark:bg-slate-800 rounded-full px-4 py-2">
+                <span className="text-sm text-orange-600 dark:text-orange-400 font-bold">
                   FOR CHEF
                 </span>
               </div>
@@ -254,27 +254,27 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
         </div>
       </CardHeader>
       
-      <CardContent className="p-6">
-        <div className="space-y-6">
+      <CardContent className="p-8">
+        <div className="space-y-8">
           {/* Order Items */}
-          <div className="space-y-3">
-            <h4 className="font-semibold text-gray-900 dark:text-white text-sm uppercase tracking-wide">Order Items</h4>
-            <div className="space-y-3">
+          <div className="space-y-4">
+            <h4 className="font-semibold text-gray-900 dark:text-white text-lg uppercase tracking-wide">Order Items</h4>
+            <div className="space-y-4">
               {order.items?.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg border border-gray-100 dark:border-slate-600">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 rounded-full flex items-center justify-center">
-                      <span className="text-sm font-bold text-orange-600 dark:text-orange-400">{item.quantity}</span>
+                <div key={index} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-xl border border-gray-100 dark:border-slate-600">
+                  <div className="flex items-center gap-4">
+                    <div className="h-12 w-12 bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 rounded-full flex items-center justify-center">
+                      <span className="text-lg font-bold text-orange-600 dark:text-orange-400">{item.quantity}</span>
                     </div>
                     <div>
-                      <p className="font-medium text-gray-900 dark:text-white">{item.name}</p>
+                      <p className="font-medium text-gray-900 dark:text-white text-lg">{item.name}</p>
                       {item.notes && (
-                        <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">{item.notes}</p>
+                        <p className="text-sm text-orange-600 dark:text-orange-400 mt-2">{item.notes}</p>
                       )}
                     </div>
                   </div>
                   {item.notes && (
-                    <div className="text-xs text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-2 py-1 rounded-full border border-orange-200 dark:border-orange-800">
+                    <div className="text-sm text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-3 py-2 rounded-full border border-orange-200 dark:border-orange-800">
                       Note
                     </div>
                   )}
@@ -285,14 +285,14 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
 
           {/* Customer Information */}
           {order.customer_name && (
-            <div className="p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
-              <h4 className="font-semibold text-blue-900 dark:text-blue-100 text-sm uppercase tracking-wide mb-2">Customer Details</h4>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+            <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
+              <h4 className="font-semibold text-blue-900 dark:text-blue-100 text-lg uppercase tracking-wide mb-3">Customer Details</h4>
+              <div className="space-y-2">
+                <p className="text-lg font-medium text-blue-800 dark:text-blue-200">
                   {order.customer_name}
                 </p>
                 {order.customer_phone && (
-                  <p className="text-sm text-blue-700 dark:text-blue-300">
+                  <p className="text-base text-blue-700 dark:text-blue-300">
                     {order.customer_phone}
                   </p>
                 )}
@@ -302,55 +302,55 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
 
           {/* Action Buttons */}
           {(order.status === 'pending' || order.status === 'preparing' || order.status === 'ready') && (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {/* Primary Action Button */}
               {order.status === 'pending' && (
                 <Button
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
                   onClick={() => onStatusUpdate(order.id, 'pending', 'preparing')}
                 >
-                  <ChefHat className="h-5 w-5 mr-2" />
+                  <ChefHat className="h-6 w-6 mr-3" />
                   Start Preparing
                 </Button>
               )}
               
               {order.status === 'preparing' && (
                 <Button
-                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
                   onClick={() => onStatusUpdate(order.id, 'preparing', 'ready')}
                 >
-                  <CheckCircle className="h-5 w-5 mr-2" />
+                  <CheckCircle className="h-6 w-6 mr-3" />
                   Mark as Ready
                 </Button>
               )}
               
               {order.status === 'ready' && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <Button
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
                     onClick={() => onStatusUpdate(order.id, 'ready', 'completed')}
                   >
-                    <CheckCircle className="h-5 w-5 mr-2" />
+                    <CheckCircle className="h-6 w-6 mr-3" />
                     Mark as Completed
                   </Button>
                   
                   <Button
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105"
+                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-lg"
                     onClick={handleServeAnnouncement}
                     disabled={isAnnouncing}
                   >
-                    <Volume2 className="h-5 w-5 mr-2" />
+                    <Volume2 className="h-6 w-6 mr-3" />
                     {isAnnouncing ? 'Announcing...' : 'Announce Ready'}
                   </Button>
                 </div>
               )}
               
               {/* Quick Stage Navigation */}
-              <div className="grid grid-cols-3 gap-2 pt-2">
+              <div className="grid grid-cols-3 gap-3 pt-3">
                 <Button
                   variant={order.status === 'pending' ? 'default' : 'outline'}
-                  size="sm"
-                  className={`${order.status === 'pending' ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white' : 'hover:bg-yellow-50 dark:hover:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300'} rounded-lg transition-all duration-200`}
+                  size="lg"
+                  className={`${order.status === 'pending' ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white' : 'hover:bg-yellow-50 dark:hover:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300'} rounded-xl transition-all duration-200`}
                   onClick={() => onStatusUpdate(order.id, order.status, 'pending')}
                   disabled={order.status === 'pending'}
                 >
@@ -358,8 +358,8 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
                 </Button>
                 <Button
                   variant={order.status === 'preparing' ? 'default' : 'outline'}
-                  size="sm"
-                  className={`${order.status === 'preparing' ? 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white' : 'hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300'} rounded-lg transition-all duration-200`}
+                  size="lg"
+                  className={`${order.status === 'preparing' ? 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white' : 'hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300'} rounded-xl transition-all duration-200`}
                   onClick={() => onStatusUpdate(order.id, order.status, 'preparing')}
                   disabled={order.status === 'preparing'}
                 >
@@ -367,8 +367,8 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
                 </Button>
                 <Button
                   variant={order.status === 'ready' ? 'default' : 'outline'}
-                  size="sm"
-                  className={`${order.status === 'ready' ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white' : 'hover:bg-green-50 dark:hover:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'} rounded-lg transition-all duration-200`}
+                  size="lg"
+                  className={`${order.status === 'ready' ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white' : 'hover:bg-green-50 dark:hover:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'} rounded-xl transition-all duration-200`}
                   onClick={() => onStatusUpdate(order.id, order.status, 'ready')}
                   disabled={order.status === 'ready'}
                 >
