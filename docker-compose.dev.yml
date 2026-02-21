@@ -1,0 +1,20 @@
+# Local development setup with auto-rebuild on git changes
+# Usage: docker compose -f docker-compose.yml -f docker-compose.dev.yml up
+
+version: '3.8'
+
+services:
+  app:
+    # Add watch for source code changes
+    develop:
+      watch:
+        - path: ./app
+          action: rebuild
+        - path: ./components
+          action: rebuild
+        - path: ./lib
+          action: rebuild
+        - path: ./package.json
+          action: rebuild
+    volumes:
+      - .:/app/src
