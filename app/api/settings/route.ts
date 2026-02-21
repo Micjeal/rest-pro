@@ -89,7 +89,7 @@ export async function GET(request: NextRequest) {
           phone: '',
           email: '',
           taxRate: 8.5,
-          currency: 'KES', // Default to Kenyan Shilling for East Africa
+          currency: 'USD', // Default to US Dollar for international compatibility
         },
         pos: {
           receiptHeader: 'Thank you for dining with us!',

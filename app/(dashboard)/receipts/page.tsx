@@ -19,6 +19,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner'
 import { useRestaurants } from '@/hooks/use-restaurants'
 import { useCurrency } from '@/hooks/use-currency'
+import { useCurrencyEvents } from '@/hooks/use-currency-context'
 import { ReceiptGenerator } from '@/lib/receipt-generator'
 
 interface Receipt {
@@ -61,6 +62,7 @@ export default function ReceiptsPage() {
   // Use real data from hooks
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
   const { formatAmount } = useCurrency({ restaurantId: selectedRestaurant })
+  const { listenForCurrencyChanges } = useCurrencyEvents()
   
   // Set default restaurant when data loads
   useEffect(() => {
@@ -75,6 +77,17 @@ export default function ReceiptsPage() {
       loadReceipts()
     }
   }, [selectedRestaurant])
+  
+  // Listen for currency changes
+  useEffect(() => {
+    const cleanup = listenForCurrencyChanges((event) => {
+      console.log('[Receipts] Currency changed:', event.detail)
+      // Force re-render of receipts to show updated currency
+      setReceipts(prev => [...prev])
+    })
+    
+    return cleanup
+  }, [listenForCurrencyChanges])
 
   const loadReceipts = async () => {
     try {
