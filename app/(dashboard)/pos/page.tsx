@@ -15,6 +15,7 @@ import { useRestaurants } from '@/hooks/use-restaurants'
 import { useMenus } from '@/hooks/use-menus'
 import { useMenuItems } from '@/hooks/use-menu-items'
 import { useCurrency } from '@/hooks/use-currency'
+import { useCurrencyEvents } from '@/hooks/use-currency-context'
 
 interface OrderItem {
   id: string
@@ -72,6 +73,7 @@ export default function POSPage() {
   const { menus, isLoading: menusLoading } = useMenus(selectedRestaurant)
   const { items, isLoading: itemsLoading } = useMenuItems(selectedMenu)
   const { formatAmount, getCurrencySymbol, loading: currencyLoading } = useCurrency({ restaurantId: selectedRestaurant })
+  const { listenForCurrencyChanges } = useCurrencyEvents()
   
   const isLoading = restaurantsLoading || menusLoading || itemsLoading || currencyLoading
 
@@ -88,6 +90,18 @@ export default function POSPage() {
       setSelectedMenu(menus[0].id)
     }
   }, [menus, selectedMenu])
+  
+  // Listen for currency changes
+  useEffect(() => {
+    const cleanup = listenForCurrencyChanges((event) => {
+      console.log('[POS] Currency changed:', event.detail)
+      // Force re-render of components that use currency
+      // The context will automatically update, so we just need to trigger a re-render
+      setOrder(prev => ({ ...prev }))
+    })
+    
+    return cleanup
+  }, [listenForCurrencyChanges])
   
   // Tax rate (configurable per restaurant)
   const TAX_RATE = 0.1 // 10%

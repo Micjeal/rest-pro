@@ -12,6 +12,7 @@ import { toast } from 'sonner'
 import { Save, RotateCcw, Database, Printer, Bell, Shield, RefreshCw, AlertTriangle } from 'lucide-react'
 import { useRestaurants } from '@/hooks/use-restaurants'
 import { getCurrenciesByRegion, Currency } from '@/lib/currencies'
+import { useCurrencyContext } from '@/contexts/CurrencyContext'
 
 /**
  * Settings Page
@@ -27,7 +28,7 @@ export default function SettingsPage() {
       phone: '+1 (555) 123-4567',
       email: 'contact@restaurant.com',
       taxRate: 8.5,
-      currency: 'KES', // Default to Kenyan Shilling for East Africa
+      currency: 'USD', // Default to US Dollar for international compatibility
     },
     pos: {
       receiptHeader: 'Thank you for dining with us!',
@@ -54,11 +55,12 @@ export default function SettingsPage() {
 
   const [loading, setLoading] = useState(false)
   const [selectedRestaurant, setSelectedRestaurant] = useState<string | null>(null)
-  const [previousCurrency, setPreviousCurrency] = useState<string>('KES')
+  const [previousCurrency, setPreviousCurrency] = useState<string>('')
   const [showCurrencyConversionDialog, setShowCurrencyConversionDialog] = useState(false)
   
   // Use real data from hooks
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
+  const { refreshCurrency } = useCurrencyContext()
   
   // Set default restaurant when data loads
   useEffect(() => {
@@ -106,6 +108,13 @@ export default function SettingsPage() {
       }
       
       setSettings(processedSettings)
+      
+      // Set previous currency to current currency when settings are loaded
+      if (settingsData.restaurant?.currency) {
+        setPreviousCurrency(settingsData.restaurant.currency)
+        console.log('[Settings] Previous currency set to:', settingsData.restaurant.currency)
+      }
+      
       console.log('[Settings] Settings loaded from API')
     } catch (error) {
       console.error('[Settings] Error loading settings:', error)
@@ -142,6 +151,22 @@ export default function SettingsPage() {
 
       toast.success('Settings saved successfully')
       console.log('[Settings] Settings saved to API')
+      
+      // Refresh currency data globally if currency was changed
+      if (settings.restaurant.currency !== previousCurrency) {
+        console.log('[Settings] Currency changed, refreshing globally')
+        await refreshCurrency(selectedRestaurant)
+        
+        // Trigger currency change event for immediate UI updates
+        window.dispatchEvent(new CustomEvent('currencyChanged', {
+          detail: { 
+            newCurrency: settings.restaurant.currency,
+            previousCurrency,
+            restaurantId: selectedRestaurant,
+            timestamp: Date.now()
+          }
+        }))
+      }
     } catch (error) {
       console.error('[Settings] Error saving settings:', error)
       toast.error('Failed to save settings')
@@ -182,6 +207,20 @@ export default function SettingsPage() {
         
         // Refresh settings to get updated currency
         await loadSettings()
+        
+        // Refresh currency data globally
+        await refreshCurrency(selectedRestaurant)
+        
+        // Trigger currency change event for immediate UI updates
+        window.dispatchEvent(new CustomEvent('currencyChanged', {
+          detail: { 
+            newCurrency,
+            previousCurrency,
+            restaurantId: selectedRestaurant,
+            timestamp: Date.now(),
+            conversionResult: result
+          }
+        }))
       } else {
         toast.error(`Currency conversion failed: ${result.error}`)
       }
@@ -194,11 +233,29 @@ export default function SettingsPage() {
     }
   }
 
-  const confirmCurrencyChange = () => {
+  const confirmCurrencyChange = async () => {
+    if (!selectedRestaurant) {
+      toast.error('No restaurant selected')
+      return
+    }
+    
     // Update currency without converting prices
-    updateSetting('restaurant', 'currency', settings.restaurant.currency)
+    await updateSetting('restaurant', 'currency', settings.restaurant.currency)
     setShowCurrencyConversionDialog(false)
     toast.success(`Currency updated to ${settings.restaurant.currency}`)
+    
+    // Refresh currency data globally
+    await refreshCurrency(selectedRestaurant)
+    
+    // Trigger currency change event for immediate UI updates
+    window.dispatchEvent(new CustomEvent('currencyChanged', {
+      detail: { 
+        newCurrency: settings.restaurant.currency,
+        previousCurrency,
+        restaurantId: selectedRestaurant,
+        timestamp: Date.now()
+      }
+    }))
   }
 
   const resetSettings = () => {
@@ -209,7 +266,7 @@ export default function SettingsPage() {
         phone: '+1 (555) 123-4567',
         email: 'contact@restaurant.com',
         taxRate: 8.5,
-        currency: 'KES', // Default to Kenyan Shilling for East Africa
+        currency: 'USD', // Default to US Dollar for international compatibility
       },
       pos: {
         receiptHeader: 'Thank you for dining with us!',
