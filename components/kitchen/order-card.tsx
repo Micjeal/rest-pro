@@ -197,28 +197,6 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
               </div>
             </div>
           </div>
-          
-          {/* ORDER TYPE FOR CHEF - PROMINENT DISPLAY */}
-          <div className="bg-gradient-to-r from-orange-500 to-red-500 dark:from-orange-600 dark:to-red-600 border border-orange-300 dark:border-orange-700 rounded-xl px-6 py-4 mb-4 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-white dark:bg-slate-800 rounded-full p-3">
-                  <ChefHat className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-                </div>
-                <div className="text-left">
-                  <span className="font-bold text-white dark:text-orange-200 text-xl">ORDER TYPE</span>
-                  <div className="text-orange-100 dark:text-orange-300 text-3xl font-bold mt-2">
-                    {order.order_type?.toUpperCase() || 'DINE-IN'}
-                  </div>
-                </div>
-              </div>
-              <div className="bg-white dark:bg-slate-800 rounded-full px-4 py-2">
-                <span className="text-sm text-orange-600 dark:text-orange-400 font-bold">
-                  FOR CHEF
-                </span>
-              </div>
-            </div>
-          </div>
           <div className="flex flex-col items-end gap-2">
             {getStatusBadge(order.status || 'pending')}
             
@@ -282,23 +260,6 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
               ))}
             </div>
           </div>
-
-          {/* Customer Information */}
-          {order.customer_name && (
-            <div className="p-6 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-100 dark:border-blue-800">
-              <h4 className="font-semibold text-blue-900 dark:text-blue-100 text-lg uppercase tracking-wide mb-3">Customer Details</h4>
-              <div className="space-y-2">
-                <p className="text-lg font-medium text-blue-800 dark:text-blue-200">
-                  {order.customer_name}
-                </p>
-                {order.customer_phone && (
-                  <p className="text-base text-blue-700 dark:text-blue-300">
-                    {order.customer_phone}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
 
           {/* Action Buttons */}
           {(order.status === 'pending' || order.status === 'preparing' || order.status === 'ready') && (
