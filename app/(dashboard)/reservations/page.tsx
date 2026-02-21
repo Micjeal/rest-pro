@@ -135,6 +135,9 @@ export default function ReservationsPage({ params }: ReservationsPageProps) {
   }
 
   const createReservation = async (formData: any) => {
+    console.log('=== CREATE RESERVATION CALLED ===')
+    console.log('Form data received:', formData)
+    
     setIsLoadingAction(true)
     
     try {
@@ -157,12 +160,24 @@ export default function ReservationsPage({ params }: ReservationsPageProps) {
       console.log('Sending reservation data:', reservationData)
       console.log('Restaurant ID:', restaurantId)
 
+      // Simple test data
+      const testData = {
+        restaurant_id: restaurantId,
+        customer_name: "Test User",
+        customer_phone: "1234567890",
+        party_size: 2,
+        reservation_date: new Date().toISOString(),
+        status: "pending"
+      }
+
+      console.log('Sending test data:', testData)
+
       const response = await fetch('/api/reservations', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(reservationData),
+        body: JSON.stringify(testData),
       })
 
       console.log('Response status:', response.status)
