@@ -4,6 +4,7 @@ import type { Order } from '@/types/order'
 export interface KitchenOrder extends Order {
   priority?: 'low' | 'normal' | 'high' | 'urgent' | 'vip'
   assigned_to?: string | null
+  order_type?: 'dine-in' | 'takeaway' | 'delivery' | 'catering'
   items: Array<{
     id: string
     name: string

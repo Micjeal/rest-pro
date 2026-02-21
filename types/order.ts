@@ -6,6 +6,7 @@ export interface Order {
   customer_email?: string
   status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled'
   total_amount: number
+  order_type?: 'dine-in' | 'takeaway' | 'delivery' | 'catering'
   notes?: string
   created_at: string
   updated_at: string
