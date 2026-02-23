@@ -200,6 +200,7 @@ export default function ReportsPage() {
   }
 
   const handlePrint = () => {
+
     window.print()
   }
 
@@ -454,9 +455,10 @@ export default function ReportsPage() {
                             setSelectedStatuses(selectedStatuses.filter(s => s !== status))
                           }
                         }}
-                        className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
+                        aria-label={`Filter by ${status} status`}
                       />
-                      <Label htmlFor={`status-${status}`} className="text-sm text-slate-600 dark:text-slate-400">
+                      <Label htmlFor={`status-${status}`} className="text-sm text-slate-600 dark:text-slate-400 cursor-pointer">
                         {status}
                       </Label>
                     </div>
@@ -481,9 +483,10 @@ export default function ReportsPage() {
                             setSelectedPaymentMethods(selectedPaymentMethods.filter(m => m !== method))
                           }
                         }}
-                        className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
+                        aria-label={`Filter by ${method} payment method`}
                       />
-                      <Label htmlFor={`payment-${method}`} className="text-sm text-slate-600 dark:text-slate-400">
+                      <Label htmlFor={`payment-${method}`} className="text-sm text-slate-600 dark:text-slate-400 cursor-pointer">
                         {method}
                       </Label>
                     </div>
@@ -722,7 +725,7 @@ export default function ReportsPage() {
                     name="Transactions"
                   />
 <YAxis yAxisId="right" orientation="right" stroke="#10b981" fontSize={12} />
-                </LineChart>
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
@@ -898,10 +901,7 @@ export default function ReportsPage() {
               {statusData.map((item: any, index: number) => (
                 <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/50 dark:bg-slate-700/30">
                   <div className="flex items-center gap-2">
-                    <div 
-                      className="w-3 h-3 rounded-full shadow-sm" 
-                      style={{ backgroundColor: item.color }}
-                    ></div>
+                    <div className={`w-3 h-3 rounded-full shadow-sm bg-[${item.color}]`}></div>
                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.status}</span>
                   </div>
                   <div className="text-right">
@@ -930,10 +930,7 @@ export default function ReportsPage() {
                 <div key={item.method} className="space-y-3">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                      <div 
-                        className="w-4 h-4 rounded-full shadow-sm animate-pulse" 
-                        style={{ backgroundColor: item.color }}
-                      ></div>
+                      <div className={`w-4 h-4 rounded-full shadow-sm animate-pulse bg-[${item.color}]`}></div>
                       <span className="text-sm lg:text-base font-medium text-slate-700 dark:text-slate-300">{item.method}</span>
                     </div>
                     <div className="text-right">
@@ -943,7 +940,7 @@ export default function ReportsPage() {
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-5 overflow-hidden shadow-inner">
                     <div
-                      className="h-full rounded-full transition-all duration-700 ease-out shadow-lg"
+                      className={`h-full rounded-full transition-all duration-700 ease-out shadow-lg`}
                       style={{
                         width: `${(item.value / (totalRevenue / 100))}%`,
                         background: `linear-gradient(90deg, ${['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'][index % 5]}, ${['#2563eb', '#7c3aed', '#db2777', '#d97706', '#059669'][index % 5]})`,
@@ -1019,10 +1016,7 @@ export default function ReportsPage() {
               {categoryData.map((item, index) => (
                 <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-slate-50/50 dark:bg-slate-700/30 hover:bg-slate-100/70 dark:hover:bg-slate-700/50 transition-colors duration-200">
                   <div className="flex items-center gap-3">
-                    <div 
-                      className="w-4 h-4 rounded-lg shadow-sm" 
-                      style={{ backgroundColor: item.color }}
-                    ></div>
+                    <div className={`w-4 h-4 rounded-lg shadow-sm bg-[${item.color}]`}></div>
                     <span className="font-medium text-slate-700 dark:text-slate-300">{item.category}</span>
                   </div>
                   <span className="font-bold text-slate-900 dark:text-slate-100">{formatAmount(item.value)}</span>
