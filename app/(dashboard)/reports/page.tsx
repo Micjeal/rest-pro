@@ -8,11 +8,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area } from 'recharts'
-import { Calendar, Download, TrendingUp, Shield } from 'lucide-react'
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, AreaChart, Area, ComposedChart } from 'recharts'
+import { Calendar, Download, TrendingUp, Shield, Filter, FileSpreadsheet, FileText, ChevronDown, Check, X } from 'lucide-react'
 import { useRestaurants } from '@/hooks/use-restaurants'
 import { useToast } from '@/hooks/use-toast'
 import { useCurrency } from '@/hooks/use-currency'
+import { ReportExporter } from '@/lib/export-utils'
 
 /**
  * Reports Page
@@ -33,6 +34,17 @@ export default function ReportsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedRestaurant, setSelectedRestaurant] = useState<string | null>(null)
   const [userRole, setUserRole] = useState<string>('')
+  
+  // Enhanced filters
+  const [showFilters, setShowFilters] = useState(false)
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>([])
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [selectedPaymentMethods, setSelectedPaymentMethods] = useState<string[]>([])
+  const [minAmount, setMinAmount] = useState('')
+  const [maxAmount, setMaxAmount] = useState('')
+  const [chartType, setChartType] = useState<'line' | 'bar' | 'composed'>('composed')
+  const [isExporting, setIsExporting] = useState(false)
+  const [comparisonMode, setComparisonMode] = useState(false)
   
   const router = useRouter()
   const { toast } = useToast()
@@ -118,49 +130,123 @@ export default function ReportsPage() {
     }
   }
 
-  const handleExportReport = () => {
-    const reportData = {
-      generated: new Date().toISOString(),
-      dateRange: dateRange,
-      summary: {
-        totalRevenue: totalRevenue,
-        totalTransactions: totalTransactions,
-        averageTransaction: averageTransaction,
-        soldOrders: soldOrders,
-        clearedOrders: clearedOrders,
-        soldRevenue: soldRevenue,
-        totalOrderRevenue: totalOrderRevenue,
-        averageOrderValue: averageOrderValue
-      },
-      analytics: {
-        dailyData,
-        hourlyData,
-        weeklyData,
-        paymentData,
-        categoryData,
-        statusData
-      },
-      insights: {
-        bestDay: dailyData.length > 0 ? dailyData.reduce((max, day) => (day.sales > max.sales ? day : max)) : null,
-        worstDay: dailyData.length > 0 ? dailyData.reduce((min, day) => (day.sales < min.sales ? day : min)) : null,
-        peakHour: hourlyData.length > 0 ? hourlyData.reduce((max, hour) => (hour.sales > max.sales ? hour : max)) : null,
-        topCategory: categoryData.length > 0 ? categoryData.reduce((max, cat) => (cat.value > max.value ? cat : max)) : null,
-        topPaymentMethod: paymentData.length > 0 ? paymentData.reduce((max, pay) => (pay.value > max.value ? pay : max)) : null
+  const handleExportReport = async () => {
+    try {
+      const reportData = {
+        summary: {
+          totalRevenue,
+          totalTransactions,
+          averageTransaction,
+          dateRange: dateRange,
+          restaurant: restaurants.find((r: any) => r.id === selectedRestaurant)?.name || 'Unknown'
+        },
+        analytics: {
+          dailyData,
+          hourlyData,
+          weeklyData,
+          paymentData,
+          categoryData,
+          statusData
+        },
+        insights: {
+          bestDay: dailyData.length > 0 ? dailyData.reduce((max, day) => (day.sales > max.sales ? day : max)) : null,
+          worstDay: dailyData.length > 0 ? dailyData.reduce((min, day) => (day.sales < min.sales ? day : min)) : null,
+          peakHour: hourlyData.length > 0 ? hourlyData.reduce((max, hour) => (hour.sales > max.sales ? hour : max)) : null,
+          topCategory: categoryData.length > 0 ? categoryData.reduce((max, cat) => (cat.value > max.value ? cat : max)) : null,
+          topPaymentMethod: paymentData.length > 0 ? paymentData.reduce((max, pay) => (pay.value > max.value ? pay : max)) : null
+        }
       }
+      
+      const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `enhanced-reports-${new Date().toISOString().split('T')[0]}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export report data',
+        variant: 'destructive'
+      })
     }
-    
-    const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `enhanced-reports-${new Date().toISOString().split('T')[0]}.json`
-    a.click()
-    URL.revokeObjectURL(url)
+  }
+
+  const handlePDFExport = async () => {
+    try {
+      setIsExporting(true)
+      
+      const filename = `restaurant-reports-${new Date().toISOString().split('T')[0]}.pdf`
+      const success = await ReportExporter.exportToPDF('reports-content', filename)
+      
+      if (success) {
+        toast({
+          title: 'Export Successful',
+          description: 'PDF report has been downloaded',
+        })
+      } else {
+        throw new Error('PDF export failed')
+      }
+    } catch (error) {
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export PDF report',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  const handlePrint = () => {
+    window.print()
+  }
+
+  const handleExcelExport = async () => {
+    try {
+      setIsExporting(true)
+      
+      const exportData = ReportExporter.prepareExportData(
+        dailyData,
+        statusData,
+        categoryData,
+        paymentData,
+        {
+          totalRevenue,
+          totalTransactions,
+          averageTransaction,
+          dateRange: dateRange,
+          restaurant: restaurants.find((r: any) => r.id === selectedRestaurant)?.name || 'Unknown'
+        },
+        getCurrencySymbol()
+      )
+      
+      const filename = `restaurant-reports-${new Date().toISOString().split('T')[0]}.xlsx`
+      const success = await ReportExporter.exportToExcel(exportData, filename)
+      
+      if (success) {
+        toast({
+          title: 'Export Successful',
+          description: 'Excel report has been downloaded',
+        })
+      } else {
+        throw new Error('Excel export failed')
+      }
+    } catch (error) {
+      toast({
+        title: 'Export Failed',
+        description: 'Failed to export Excel report',
+        variant: 'destructive'
+      })
+    } finally {
+      setIsExporting(false)
+    }
   }
 
   const totalRevenue = dailyData.reduce((sum, day) => sum + day.sales, 0)
   const totalTransactions = dailyData.reduce((sum, day) => sum + day.transactions, 0)
-  const averageTransaction = totalTransactions > 0 ? (totalRevenue / totalTransactions).toFixed(2) : '0.00'
+  const averageTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
   
   // Calculate sold and cleared orders from status data
   const soldOrders = statusData.find((s: any) => s.status === 'Completed')?.count || 0
@@ -200,7 +286,8 @@ export default function ReportsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      {/* Header Section */}
+      <div id="reports-content" className="print:print-only">
+        {/* Header Section */}
       <div className="relative overflow-hidden bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-slate-200/60 dark:border-slate-700/60">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-indigo-500/5"></div>
         <div className="relative px-6 py-8">
@@ -218,13 +305,31 @@ export default function ReportsPage() {
                 </div>
               </div>
             </div>
-            <Button 
-              onClick={handleExportReport}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-press"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export Report
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={handleExcelExport}
+                disabled={isExporting}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-press"
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                {isExporting ? 'Exporting...' : 'Excel'}
+              </Button>
+              <Button 
+                onClick={handlePDFExport}
+                disabled={isExporting}
+                className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-press"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                {isExporting ? 'Exporting...' : 'PDF'}
+              </Button>
+              <Button 
+                onClick={handlePrint}
+                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-press"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Print
+              </Button>
+            </div>
           </div>
         </div>
       </div>
@@ -325,6 +430,147 @@ export default function ReportsPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Enhanced Filters Panel */}
+      <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center justify-between text-lg">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                <Filter className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+              </div>
+              Advanced Filters
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-200"
+            >
+              {showFilters ? <X className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        {showFilters && (
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Order Status Filter */}
+              <div>
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Order Status</Label>
+                <div className="space-y-2 mt-1">
+                  {['Pending', 'Completed', 'Cancelled', 'Preparing'].map((status) => (
+                    <div key={status} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`status-${status}`}
+                        checked={selectedStatuses.includes(status)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedStatuses([...selectedStatuses, status])
+                          } else {
+                            setSelectedStatuses(selectedStatuses.filter(s => s !== status))
+                          }
+                        }}
+                        className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <Label htmlFor={`status-${status}`} className="text-sm text-slate-600 dark:text-slate-400">
+                        {status}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Payment Method Filter */}
+              <div>
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Payment Methods</Label>
+                <div className="space-y-2 mt-1">
+                  {['Cash', 'Card', 'Mobile Money', 'Bank Transfer'].map((method) => (
+                    <div key={method} className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id={`payment-${method}`}
+                        checked={selectedPaymentMethods.includes(method)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedPaymentMethods([...selectedPaymentMethods, method])
+                          } else {
+                            setSelectedPaymentMethods(selectedPaymentMethods.filter(m => m !== method))
+                          }
+                        }}
+                        className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                      />
+                      <Label htmlFor={`payment-${method}`} className="text-sm text-slate-600 dark:text-slate-400">
+                        {method}
+                      </Label>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Amount Range Filter */}
+              <div>
+                <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Amount Range</Label>
+                <div className="grid grid-cols-2 gap-2 mt-1">
+                  <div>
+                    <Label htmlFor="minAmount" className="text-xs text-slate-600 dark:text-slate-400">Min Amount</Label>
+                    <Input
+                      id="minAmount"
+                      type="number"
+                      placeholder="0"
+                      value={minAmount}
+                      onChange={(e) => setMinAmount(e.target.value)}
+                      className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="maxAmount" className="text-xs text-slate-600 dark:text-slate-400">Max Amount</Label>
+                    <Input
+                      id="maxAmount"
+                      type="number"
+                      placeholder="1000000"
+                      value={maxAmount}
+                      onChange={(e) => setMaxAmount(e.target.value)}
+                      className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Filter Actions */}
+            <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-700">
+              <div className="text-sm text-slate-600 dark:text-slate-400">
+                {selectedStatuses.length + selectedCategories.length + selectedPaymentMethods.length > 0 && 
+                  `${selectedStatuses.length + selectedCategories.length + selectedPaymentMethods.length} filters applied`
+                }
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedStatuses([])
+                    setSelectedCategories([])
+                    setSelectedPaymentMethods([])
+                    setMinAmount('')
+                    setMaxAmount('')
+                  }}
+                >
+                  Clear All
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={loadReportData}
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  Apply Filters
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        )}
+      </Card>
 
       {/* Summary Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -434,7 +680,7 @@ export default function ReportsPage() {
           <CardContent>
             <div className="h-80">
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dailyData}>
+                <ComposedChart data={dailyData}>
                   <defs>
                     <linearGradient id="salesGradient" x1="0" y1="0" x2="1" y2="0">
                       <stop offset="0%" stopColor="#3b82f6" />
@@ -455,7 +701,8 @@ export default function ReportsPage() {
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
                   <XAxis dataKey="date" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
+                  <YAxis yAxisId="left" stroke="#64748b" />
+                  <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'rgba(255,255,255,0.95)', 
@@ -464,8 +711,8 @@ export default function ReportsPage() {
                       boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                     }}
                     formatter={(value: any, name: any) => [
-                      name === 'sales' ? `$${value}` : value,
-                      name === 'sales' ? 'Sales' : 'Transactions'
+                      name === 'sales' ? formatAmount(value) : value,
+                      name === 'sales' ? 'Revenue' : 'Transactions'
                     ]}
                   />
                   <Legend />
@@ -478,22 +725,18 @@ export default function ReportsPage() {
                     activeDot={{ r: 8, filter: 'url(#salesGlow)' }}
                     animationDuration={1500}
                     animationEasing="ease-in-out"
-                    name="Sales"
+                    yAxisId="left"
+                    name="Revenue"
                   />
-                  <Line
-                    type="monotone"
+                  <Bar
                     dataKey="transactions"
-                    stroke="url(#transactionGradient)"
-                    strokeWidth={3}
-                    dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
-                    activeDot={{ r: 6 }}
+                    fill="url(#transactionGradient)"
                     animationDuration={1200}
                     animationEasing="ease-out"
-                    name="Transactions"
                     yAxisId="right"
+                    name="Transactions"
                   />
-                  <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
-                </LineChart>
+                </ComposedChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
