@@ -10,6 +10,40 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+  
+  /* Dynamic color utilities for charts and indicators */
+  .chart-dot {
+    background-color: var(--dot-color, #3b82f6);
+  }
+  
+  .progress-bar {
+    background: var(--progress-gradient, linear-gradient(90deg, #3b82f6, #2563eb));
+    width: var(--progress-width, 0%);
+  }
+  
+  @keyframes slideIn {
+    from {
+      transform: translateX(-100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Tooltip styles for charts */
+  .chart-tooltip {
+    background-color: rgba(255,255,255,0.95) !important;
+    border: 1px solid rgba(0,0,0,0.1) !important;
+    border-radius: 12px !important;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1) !important;
+  }
+  
+  .dark .chart-tooltip {
+    background-color: rgba(30,41,59,0.95) !important;
+    border: 1px solid rgba(148,163,184,0.1) !important;
+  }
 }
 
 @layer base {

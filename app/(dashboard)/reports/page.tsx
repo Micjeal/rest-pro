@@ -462,7 +462,7 @@ export default function ReportsPage() {
                     <div key={status} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        id={`status-${status}`}
+                        id={`status-filter-${status.toLowerCase()}`}
                         checked={selectedStatuses.includes(status)}
                         onChange={(e) => {
                           if (e.target.checked) {
@@ -471,9 +471,10 @@ export default function ReportsPage() {
                             setSelectedStatuses(selectedStatuses.filter(s => s !== status))
                           }
                         }}
-                        className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        aria-label={`Filter by ${status} status`}
                       />
-                      <Label htmlFor={`status-${status}`} className="text-sm text-slate-600 dark:text-slate-400">
+                      <Label htmlFor={`status-filter-${status.toLowerCase()}`} className="text-sm text-slate-600 dark:text-slate-400">
                         {status}
                       </Label>
                     </div>
@@ -489,7 +490,7 @@ export default function ReportsPage() {
                     <div key={method} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
-                        id={`payment-${method}`}
+                        id={`payment-filter-${method.toLowerCase().replace(' ', '-')}`}
                         checked={selectedPaymentMethods.includes(method)}
                         onChange={(e) => {
                           if (e.target.checked) {
@@ -498,9 +499,10 @@ export default function ReportsPage() {
                             setSelectedPaymentMethods(selectedPaymentMethods.filter(m => m !== method))
                           }
                         }}
-                        className="rounded border-slate-300 text-purple-600 focus:ring-purple-500"
+                        className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                        aria-label={`Filter by ${method} payment method`}
                       />
-                      <Label htmlFor={`payment-${method}`} className="text-sm text-slate-600 dark:text-slate-400">
+                      <Label htmlFor={`payment-filter-${method.toLowerCase().replace(' ', '-')}`} className="text-sm text-slate-600 dark:text-slate-400">
                         {method}
                       </Label>
                     </div>
@@ -913,8 +915,8 @@ export default function ReportsPage() {
                 <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/50 dark:bg-slate-700/30">
                   <div className="flex items-center gap-2">
                     <div 
-                      className="w-3 h-3 rounded-full shadow-sm" 
-                      style={{ backgroundColor: item.color }}
+                      className="w-3 h-3 rounded-full shadow-sm chart-dot" 
+                      style={{ '--dot-color': item.color } as React.CSSProperties}
                     ></div>
                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.status}</span>
                   </div>
@@ -945,8 +947,8 @@ export default function ReportsPage() {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
                       <div 
-                        className="w-4 h-4 rounded-full shadow-sm animate-pulse" 
-                        style={{ backgroundColor: item.color }}
+                        className="w-4 h-4 rounded-full shadow-sm animate-pulse chart-dot" 
+                        style={{ '--dot-color': item.color } as React.CSSProperties}
                       ></div>
                       <span className="font-medium text-slate-700 dark:text-slate-300">{item.method}</span>
                     </div>
@@ -957,12 +959,12 @@ export default function ReportsPage() {
                   </div>
                   <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-5 overflow-hidden shadow-inner">
                     <div
-                      className="h-full rounded-full transition-all duration-700 ease-out shadow-lg"
+                      className="h-full rounded-full transition-all duration-700 ease-out shadow-lg progress-bar"
                       style={{
-                        width: `${(item.value / (totalRevenue / 100))}%`,
-                        background: `linear-gradient(90deg, ${['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'][index % 5]}, ${['#2563eb', '#7c3aed', '#db2777', '#d97706', '#059669'][index % 5]})`,
+                        '--progress-width': `${(item.value / (totalRevenue / 100))}%`,
+                        '--progress-gradient': `linear-gradient(90deg, ${['#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'][index % 5]}, ${['#2563eb', '#7c3aed', '#db2777', '#d97706', '#059669'][index % 5]})`,
                         animation: `slideIn 0.7s ease-out ${index * 0.1}s both`
-                      }}
+                      } as React.CSSProperties}
                     ></div>
                   </div>
                   <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400">
@@ -1034,8 +1036,8 @@ export default function ReportsPage() {
                 <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-slate-50/50 dark:bg-slate-700/30 hover:bg-slate-100/70 dark:hover:bg-slate-700/50 transition-colors duration-200">
                   <div className="flex items-center gap-3">
                     <div 
-                      className="w-4 h-4 rounded-lg shadow-sm" 
-                      style={{ backgroundColor: item.color }}
+                      className="w-4 h-4 rounded-lg shadow-sm chart-dot" 
+                      style={{ '--dot-color': item.color } as React.CSSProperties}
                     ></div>
                     <span className="font-medium text-slate-700 dark:text-slate-300">{item.category}</span>
                   </div>
@@ -1115,6 +1117,6 @@ export default function ReportsPage() {
         </CardContent>
       </Card>
     </div>
-    </div>
-  )
-}
+  </div>
+</div>
+)}
