@@ -11,6 +11,7 @@ import { toast } from 'sonner'
 import { useRestaurants } from '@/hooks/use-restaurants'
 import { useOrderDetails } from '@/hooks/use-order-details'
 import { announceOrderReady } from '@/lib/text-to-speech'
+import { useCurrency } from '@/hooks/use-currency'
 
 interface OrderItem {
   id: string
@@ -51,6 +52,7 @@ export default function OrderDetailPage() {
   // Use real data from hooks
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
   const { order, isLoading: orderLoading } = useOrderDetails(orderId)
+  const { formatAmount } = useCurrency({ restaurantId })
   
   // Set default restaurant when data loads
   useEffect(() => {
@@ -270,7 +272,7 @@ export default function OrderDetailPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Total Amount</p>
-                      <p className="font-medium text-lg">${parseFloat(order.total_amount).toFixed(2)}</p>
+                      <p className="font-medium text-lg">{formatAmount(order.total_amount)}</p>
                     </div>
                   </div>
                   {order.notes && (
@@ -304,8 +306,8 @@ export default function OrderDetailPage() {
                           </div>
                           <div className="text-right">
                             <div className="text-sm text-gray-600">Qty: {item.quantity}</div>
-                            <div className="font-semibold">${parseFloat(item.unit_price.toString()).toFixed(2)}</div>
-                            <div className="text-sm text-gray-600">Subtotal: ${parseFloat(item.subtotal.toString()).toFixed(2)}</div>
+                            <div className="font-semibold">{formatAmount(item.unit_price)}</div>
+                            <div className="text-sm text-gray-600">Subtotal: {formatAmount(item.subtotal)}</div>
                           </div>
                         </div>
                       ))}

@@ -12,6 +12,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, L
 import { Calendar, Download, TrendingUp, Shield } from 'lucide-react'
 import { useRestaurants } from '@/hooks/use-restaurants'
 import { useToast } from '@/hooks/use-toast'
+import { useCurrency } from '@/hooks/use-currency'
 
 /**
  * Reports Page
@@ -38,6 +39,7 @@ export default function ReportsPage() {
   
   // Use real data from hooks
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
+  const { formatAmount, getCurrencySymbol } = useCurrency({ restaurantId: selectedRestaurant || undefined })
 
   // Check user role on mount
   useEffect(() => {
@@ -336,7 +338,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">${totalRevenue.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">{formatAmount(totalRevenue)}</p>
             <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-1">Completed sales</p>
           </CardContent>
         </Card>
@@ -366,7 +368,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-700 dark:text-green-300">${soldRevenue.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-green-700 dark:text-green-300">{formatAmount(soldRevenue)}</p>
             <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Completed orders</p>
           </CardContent>
         </Card>
@@ -411,7 +413,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-pink-700 dark:text-pink-300">${totalOrderRevenue.toFixed(2)}</p>
+            <p className="text-3xl font-bold text-pink-700 dark:text-pink-300">{formatAmount(totalOrderRevenue)}</p>
             <p className="text-xs text-pink-600/70 dark:text-pink-400/70 mt-1">All orders</p>
           </CardContent>
         </Card>
@@ -636,7 +638,7 @@ export default function ReportsPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ status, percent, revenue }) => `${status} ${(percent * 100).toFixed(0)}% ($${revenue.toFixed(0)})`}
+                    label={({ status, percent, revenue }) => `${status} ${(percent * 100).toFixed(0)}% (${getCurrencySymbol()}${revenue.toFixed(0)})`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="count"
@@ -656,7 +658,7 @@ export default function ReportsPage() {
                       boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                     }}
                     formatter={(value: any, name: any, props: any) => [
-                      `${props.payload.count} orders - $${props.payload.revenue.toFixed(2)}`,
+                      `${props.payload.count} orders - ${getCurrencySymbol()}${props.payload.revenue.toFixed(2)}`,
                       props.payload.status
                     ]}
                   />
@@ -675,7 +677,7 @@ export default function ReportsPage() {
                   </div>
                   <div className="text-right">
                     <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{item.count}</span>
-                    <span className="text-xs text-slate-600 dark:text-slate-400 ml-2">${item.revenue.toFixed(2)}</span>
+                    <span className="text-xs text-slate-600 dark:text-slate-400 ml-2">{formatAmount(item.revenue)}</span>
                   </div>
                 </div>
               ))}
@@ -706,7 +708,7 @@ export default function ReportsPage() {
                       <span className="font-medium text-slate-700 dark:text-slate-300">{item.method}</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-bold text-slate-900 dark:text-slate-100">${item.value.toFixed(2)}</span>
+                      <span className="font-bold text-slate-900 dark:text-slate-100">{formatAmount(item.value)}</span>
                       <span className="text-xs text-slate-600 dark:text-slate-400 ml-2">({item.count} tx)</span>
                     </div>
                   </div>
@@ -721,7 +723,7 @@ export default function ReportsPage() {
                     ></div>
                   </div>
                   <div className="flex justify-between text-xs text-slate-600 dark:text-slate-400">
-                    <span>Avg Transaction: ${item.avgTransaction.toFixed(2)}</span>
+                    <span>Avg Transaction: {formatAmount(item.avgTransaction)}</span>
                     <span>{((item.value / totalRevenue) * 100).toFixed(1)}% of total</span>
                   </div>
                 </div>
@@ -779,7 +781,7 @@ export default function ReportsPage() {
                       borderRadius: '12px',
                       boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                     }} 
-                    formatter={(value: any) => [`$${value.toFixed(2)}`, 'Revenue']}
+                    formatter={(value: any) => [`${getCurrencySymbol()}${value.toFixed(2)}`, 'Revenue']}
                   />
                 </PieChart>
               </ResponsiveContainer>
@@ -794,7 +796,7 @@ export default function ReportsPage() {
                     ></div>
                     <span className="font-medium text-slate-700 dark:text-slate-300">{item.category}</span>
                   </div>
-                  <span className="font-bold text-slate-900 dark:text-slate-100">${item.value.toFixed(2)}</span>
+                  <span className="font-bold text-slate-900 dark:text-slate-100">{formatAmount(item.value)}</span>
                 </div>
               ))}
             </div>
@@ -834,10 +836,10 @@ export default function ReportsPage() {
                   return (
                     <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/70 dark:hover:bg-slate-700/40 transition-all duration-200 hover:scale-[1.01]">
                       <td className="py-4 px-4 font-medium text-slate-700 dark:text-slate-300">{day.date}</td>
-                      <td className="text-right py-4 px-4 font-bold text-emerald-600 dark:text-emerald-400">${day.sales.toFixed(2)}</td>
+                      <td className="text-right py-4 px-4 font-bold text-emerald-600 dark:text-emerald-400">{formatAmount(day.sales)}</td>
                       <td className="text-right py-4 px-4 text-slate-600 dark:text-slate-400">{day.transactions}</td>
                       <td className="text-right py-4 px-4 text-slate-600 dark:text-slate-400">
-                        ${avgOrderValue.toFixed(2)}
+                        {formatAmount(avgOrderValue)}
                       </td>
                       <td className="text-right py-4 px-4">
                         <div className="flex items-center justify-end gap-2">
@@ -854,9 +856,9 @@ export default function ReportsPage() {
               <tfoot>
                 <tr className="border-t-2 border-slate-200 dark:border-slate-700 bg-slate-100/50 dark:bg-slate-700/50 font-semibold">
                   <td className="py-4 px-4 text-slate-700 dark:text-slate-300">Total</td>
-                  <td className="text-right py-4 px-4 font-bold text-emerald-600 dark:text-emerald-400">${totalRevenue.toFixed(2)}</td>
+                  <td className="text-right py-4 px-4 font-bold text-emerald-600 dark:text-emerald-400">{formatAmount(totalRevenue)}</td>
                   <td className="text-right py-4 px-4 text-slate-700 dark:text-slate-300">{totalTransactions}</td>
-                  <td className="text-right py-4 px-4 text-slate-700 dark:text-slate-300">${averageTransaction}</td>
+                  <td className="text-right py-4 px-4 text-slate-700 dark:text-slate-300">{formatAmount(averageTransaction)}</td>
                   <td className="text-right py-4 px-4">
                     <div className="flex items-center justify-end gap-2">
                       <span className="font-medium text-blue-600 dark:text-blue-400">100%</span>

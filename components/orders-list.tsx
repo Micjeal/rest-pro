@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
 import { Plus } from 'lucide-react'
+import { useCurrency } from '@/hooks/use-currency'
 
 interface OrdersListProps {
   restaurantId: string
@@ -22,6 +23,7 @@ const statusColors: Record<string, string> = {
 
 export function OrdersList({ restaurantId }: OrdersListProps) {
   const { orders, isLoading, error } = useOrders(restaurantId)
+  const { formatAmount } = useCurrency({ restaurantId })
 
   if (isLoading) {
     return <div className="text-center py-8 text-gray-500">Loading orders...</div>
@@ -72,7 +74,7 @@ export function OrdersList({ restaurantId }: OrdersListProps) {
                   </div>
                   <div>
                     <p className="text-gray-600">Total</p>
-                    <p className="font-medium text-gray-900">${parseFloat(order.total_amount).toFixed(2)}</p>
+                    <p className="font-medium text-gray-900">{formatAmount(order.total_amount)}</p>
                   </div>
                 </div>
 

@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf'
 import html2canvas from 'html2canvas'
+import { getCurrency, formatCurrency } from './currencies'
 
 interface ReceiptData {
   id: string
@@ -11,6 +12,7 @@ interface ReceiptData {
   cashier: string
   customerName?: string
   tableName?: string
+  currencyCode?: string
   items?: Array<{
     name: string
     quantity: number
@@ -26,6 +28,10 @@ export class ReceiptGenerator {
       unit: 'mm',
       format: [58, 100] // Receipt printer dimensions
     })
+
+    // Get currency information
+    const currency = getCurrency(receipt.currencyCode || 'UGX')
+    const currencySymbol = currency?.symbol || 'USh'
 
     // Set font
     pdf.setFont('helvetica')
@@ -90,7 +96,7 @@ export class ReceiptGenerator {
         pdf.setFont('helvetica', 'normal')
         pdf.text(`${item.quantity}x ${item.name}`, 5, yPosition)
         yPosition += 3
-        pdf.text(`$${item.subtotal.toFixed(2)}`, 45, yPosition, { align: 'right' })
+        pdf.text(`${currencySymbol}${formatCurrency(item.subtotal, receipt.currencyCode || 'UGX').replace(/[^0-9]/g, '')}`, 45, yPosition, { align: 'right' })
         yPosition += 4
       })
     } else {
@@ -110,16 +116,16 @@ export class ReceiptGenerator {
     pdf.setFontSize(8)
     pdf.setFont('helvetica', 'bold')
     pdf.text('Subtotal:', 5, yPosition)
-    pdf.text(`$${receipt.amount.toFixed(2)}`, 45, yPosition, { align: 'right' })
+    pdf.text(`${currencySymbol}${formatCurrency(receipt.amount, receipt.currencyCode || 'UGX').replace(/[^0-9]/g, '')}`, 45, yPosition, { align: 'right' })
     yPosition += 4
 
     pdf.text('Tax (10%):', 5, yPosition)
-    pdf.text(`$${(receipt.amount * 0.1).toFixed(2)}`, 45, yPosition, { align: 'right' })
+    pdf.text(`${currencySymbol}${formatCurrency(receipt.amount * 0.1, receipt.currencyCode || 'UGX').replace(/[^0-9]/g, '')}`, 45, yPosition, { align: 'right' })
     yPosition += 4
 
     pdf.setFontSize(10)
     pdf.text('TOTAL:', 5, yPosition)
-    pdf.text(`$${(receipt.amount * 1.1).toFixed(2)}`, 45, yPosition, { align: 'right' })
+    pdf.text(`${currencySymbol}${formatCurrency(receipt.amount * 1.1, receipt.currencyCode || 'UGX').replace(/[^0-9]/g, '')}`, 45, yPosition, { align: 'right' })
     yPosition += 6
 
     // Separator line
@@ -151,6 +157,10 @@ export class ReceiptGenerator {
       unit: 'mm',
       format: 'a4'
     })
+
+    // Get currency information
+    const currency = getCurrency(receipt.currencyCode || 'UGX')
+    const currencySymbol = currency?.symbol || 'USh'
 
     // Set font
     pdf.setFont('helvetica')
@@ -236,8 +246,8 @@ export class ReceiptGenerator {
         pdf.setFont('helvetica', 'normal')
         pdf.text(item.name, 25, yPosition)
         pdf.text(item.quantity.toString(), 100, yPosition)
-        pdf.text(`$${item.price.toFixed(2)}`, 140, yPosition)
-        pdf.text(`$${item.subtotal.toFixed(2)}`, 170, yPosition)
+        pdf.text(`${currencySymbol}${formatCurrency(item.price, receipt.currencyCode || 'UGX').replace(/[^0-9]/g, '')}`, 140, yPosition)
+        pdf.text(`${currencySymbol}${formatCurrency(item.subtotal, receipt.currencyCode || 'UGX').replace(/[^0-9]/g, '')}`, 170, yPosition)
         yPosition += 6
       })
     } else {
@@ -257,17 +267,17 @@ export class ReceiptGenerator {
 
     pdf.setFont('helvetica', 'normal')
     pdf.text('Subtotal:', 140, yPosition)
-    pdf.text(`$${receipt.amount.toFixed(2)}`, 170, yPosition)
+    pdf.text(`${currencySymbol}${formatCurrency(receipt.amount, receipt.currencyCode || 'UGX').replace(/[^0-9]/g, '')}`, 170, yPosition)
     yPosition += 6
 
     pdf.text('Tax (10%):', 140, yPosition)
-    pdf.text(`$${(receipt.amount * 0.1).toFixed(2)}`, 170, yPosition)
+    pdf.text(`${currencySymbol}${formatCurrency(receipt.amount * 0.1, receipt.currencyCode || 'UGX').replace(/[^0-9]/g, '')}`, 170, yPosition)
     yPosition += 6
 
     pdf.setFontSize(14)
     pdf.setFont('helvetica', 'bold')
     pdf.text('TOTAL:', 140, yPosition)
-    pdf.text(`$${(receipt.amount * 1.1).toFixed(2)}`, 170, yPosition)
+    pdf.text(`${currencySymbol}${formatCurrency(receipt.amount * 1.1, receipt.currencyCode || 'UGX').replace(/[^0-9]/g, '')}`, 170, yPosition)
     yPosition += 10
 
     // Payment method

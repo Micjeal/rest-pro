@@ -78,18 +78,18 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
   const formatAmount = (amount: number, currencyCode?: string) => {
     const targetCurrency = currencyCode ? getCurrency(currencyCode) : currency
     if (!targetCurrency) {
-      return formatCurrency(amount, 'KES')
+      return formatCurrency(amount, 'UGX')
     }
     return formatCurrency(amount, targetCurrency.code)
   }
 
   const getCurrencySymbol = (currencyCode?: string) => {
     const targetCurrency = currencyCode ? getCurrency(currencyCode) : currency
-    return targetCurrency?.symbol || 'KSh'
+    return targetCurrency?.symbol || 'USh'
   }
 
   const getCurrencyCode = () => {
-    return currency?.code || 'KES'
+    return currency?.code || 'UGX'
   }
 
   const handleSetRestaurantId = (newRestaurantId: string) => {

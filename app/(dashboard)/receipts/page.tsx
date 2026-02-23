@@ -629,9 +629,9 @@ export default function ReceiptsPage() {
                         <div key={index} className="p-3 flex justify-between items-center">
                           <div>
                             <p className="font-medium">{item.name}</p>
-                            <p className="text-sm text-gray-500">Qty: {item.quantity} × ${item.price.toFixed(2)}</p>
+                            <p className="text-sm text-gray-500">Qty: {item.quantity} × {formatAmount(item.price)}</p>
                           </div>
-                          <p className="font-semibold">${item.subtotal.toFixed(2)}</p>
+                          <p className="font-semibold">{formatAmount(item.subtotal)}</p>
                         </div>
                       ))}
                     </div>

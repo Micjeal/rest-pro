@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { useCurrency } from '@/hooks/use-currency'
 
 interface MenuItemsListProps {
   restaurantId: string
@@ -16,6 +17,7 @@ interface MenuItemsListProps {
 export function MenuItemsList({ restaurantId, menuId }: MenuItemsListProps) {
   const { items, isLoading, mutate } = useMenuItems(menuId)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const { formatAmount } = useCurrency({ restaurantId })
 
   const handleDelete = async (id: string) => {
     setDeletingId(id)
@@ -64,7 +66,7 @@ export function MenuItemsList({ restaurantId, menuId }: MenuItemsListProps) {
                     )}
                     <div className="flex items-center gap-4 mt-2">
                       <span className="text-sm font-semibold text-gray-900">
-                        ${parseFloat(item.price).toFixed(2)}
+                        {formatAmount(item.price)}
                       </span>
                       <span className={`text-xs px-2 py-1 rounded-full ${
                         item.availability
