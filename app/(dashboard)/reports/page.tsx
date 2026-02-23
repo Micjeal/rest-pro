@@ -286,62 +286,45 @@ export default function ReportsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
-      <div id="reports-content" className="print:print-only">
-        {/* Header Section */}
+{/* Header Section - Mobile Optimized */}
       <div className="relative overflow-hidden bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-slate-200/60 dark:border-slate-700/60">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-indigo-500/5"></div>
-        <div className="relative px-6 py-8">
-          <div className="flex items-center justify-between">
+        <div className="relative px-4 py-6 lg:px-6 lg:py-8">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                  <TrendingUp className="h-6 w-6 text-white" />
+                <div className="p-2 lg:p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
+                  <TrendingUp className="h-5 w-5 lg:h-6 lg:w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+                  <h1 className="text-2xl lg:text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
                     Reports & Analytics
                   </h1>
-                  <p className="text-slate-600 dark:text-slate-400 text-lg">Sales trends and performance metrics</p>
+                  <p className="text-sm lg:text-base text-slate-600 dark:text-slate-400">Sales trends and performance metrics</p>
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button 
-                onClick={handleExcelExport}
-                disabled={isExporting}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-press"
-              >
-                <FileSpreadsheet className="h-4 w-4 mr-2" />
-                {isExporting ? 'Exporting...' : 'Excel'}
-              </Button>
-              <Button 
-                onClick={handlePDFExport}
-                disabled={isExporting}
-                className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-press"
-              >
-                <FileText className="h-4 w-4 mr-2" />
-                {isExporting ? 'Exporting...' : 'PDF'}
-              </Button>
-              <Button 
-                onClick={handlePrint}
-                className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-press"
-              >
-                <Download className="h-4 w-4 mr-2" />
-                Print
-              </Button>
-            </div>
+<Button 
+              onClick={handleExportReport}
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-press text-sm lg:text-base"
+              size="sm"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              <span className="hidden sm:inline">Export Report</span>
+              <span className="sm:hidden">Export</span>
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
 
-      {/* Controls Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Controls Section - Mobile Optimized */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         {/* Restaurant Selector */}
         <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
+          <CardHeader className="pb-3 lg:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
               <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                 <Calendar className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
@@ -366,8 +349,8 @@ export default function ReportsPage() {
 
         {/* Date Range Selector */}
         <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
+          <CardHeader className="pb-3 lg:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
               <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg">
                 <Calendar className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
               </div>
@@ -678,7 +661,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div className="h-64 lg:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={dailyData}>
                   <defs>
@@ -700,9 +683,8 @@ export default function ReportsPage() {
                     </filter>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-                  <XAxis dataKey="date" stroke="#64748b" />
-                  <YAxis yAxisId="left" stroke="#64748b" />
-                  <YAxis yAxisId="right" orientation="right" stroke="#10b981" />
+<XAxis dataKey="date" stroke="#64748b" fontSize={12} />
+                  <YAxis stroke="#64748b" fontSize={12} />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'rgba(255,255,255,0.95)', 
@@ -720,23 +702,27 @@ export default function ReportsPage() {
                     type="monotone"
                     dataKey="sales"
                     stroke="url(#salesGradient)"
-                    strokeWidth={4}
-                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 6, filter: 'url(#salesGlow)' }}
-                    activeDot={{ r: 8, filter: 'url(#salesGlow)' }}
+                    strokeWidth={3}
+                    dot={{ fill: '#3b82f6', strokeWidth: 2, r: 5, filter: 'url(#salesGlow)' }}
+                    activeDot={{ r: 7, filter: 'url(#salesGlow)' }}
                     animationDuration={1500}
                     animationEasing="ease-in-out"
                     yAxisId="left"
                     name="Revenue"
                   />
-                  <Bar
+                  <Line
                     dataKey="transactions"
-                    fill="url(#transactionGradient)"
+                    stroke="url(#transactionGradient)"
+                    strokeWidth={2}
+                    dot={{ fill: '#10b981', strokeWidth: 2, r: 3 }}
+                    activeDot={{ r: 5 }}
                     animationDuration={1200}
                     animationEasing="ease-out"
                     yAxisId="right"
                     name="Transactions"
                   />
-                </ComposedChart>
+<YAxis yAxisId="right" orientation="right" stroke="#10b981" fontSize={12} />
+                </LineChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
@@ -753,7 +739,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-80">
+            <div className="h-64 lg:h-80">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart data={hourlyData}>
                   <defs>
@@ -770,8 +756,8 @@ export default function ReportsPage() {
                     </filter>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-                  <XAxis dataKey="hour" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
+                  <XAxis dataKey="hour" stroke="#64748b" fontSize={12} />
+                  <YAxis stroke="#64748b" fontSize={12} />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'rgba(255,255,255,0.95)', 
@@ -799,11 +785,11 @@ export default function ReportsPage() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Transactions Chart */}
         <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-emerald-500/10 transition-all duration-300">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
+          <CardHeader className="pb-3 lg:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
               <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg animate-pulse">
                 <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
               </div>
@@ -811,7 +797,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-56 lg:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={dailyData}>
                   <defs>
@@ -829,8 +815,8 @@ export default function ReportsPage() {
                     </filter>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-                  <XAxis dataKey="date" stroke="#64748b" />
-                  <YAxis stroke="#64748b" />
+                  <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
+                  <YAxis stroke="#64748b" fontSize={12} />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'rgba(255,255,255,0.95)', 
@@ -842,7 +828,7 @@ export default function ReportsPage() {
                   <Bar 
                     dataKey="transactions" 
                     fill="url(#barGradient)" 
-                    radius={[12, 12, 0, 0]}
+                    radius={[8, 8, 0, 0]}
                     filter="url(#barGlow)"
                     animationDuration={1200}
                     animationEasing="ease-out"
@@ -855,8 +841,8 @@ export default function ReportsPage() {
 
         {/* Order Status Breakdown */}
         <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
+          <CardHeader className="pb-3 lg:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
               <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg animate-pulse">
                 <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               </div>
@@ -864,7 +850,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-64">
+            <div className="h-56 lg:h-64">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <defs>
@@ -882,7 +868,7 @@ export default function ReportsPage() {
                     cy="50%"
                     labelLine={false}
                     label={({ status, percent, revenue }) => `${status} ${(percent * 100).toFixed(0)}% (${getCurrencySymbol()}${revenue.toFixed(0)})`}
-                    outerRadius={80}
+                    outerRadius={60}
                     fill="#8884d8"
                     dataKey="count"
                     filter="url(#pieGlow)"
@@ -908,7 +894,7 @@ export default function ReportsPage() {
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="mt-4 space-y-2">
+            <div className="mt-3 lg:mt-4 space-y-2">
               {statusData.map((item: any, index: number) => (
                 <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/50 dark:bg-slate-700/30">
                   <div className="flex items-center gap-2">
@@ -930,8 +916,8 @@ export default function ReportsPage() {
 
         {/* Enhanced Payment Method Breakdown */}
         <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
+          <CardHeader className="pb-3 lg:pb-4">
+            <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
               <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg animate-pulse">
                 <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
               </div>
@@ -939,7 +925,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
+            <div className="space-y-4 lg:space-y-6">
               {paymentData.map((item, index) => (
                 <div key={item.method} className="space-y-3">
                   <div className="flex justify-between items-center">
@@ -948,10 +934,10 @@ export default function ReportsPage() {
                         className="w-4 h-4 rounded-full shadow-sm animate-pulse" 
                         style={{ backgroundColor: item.color }}
                       ></div>
-                      <span className="font-medium text-slate-700 dark:text-slate-300">{item.method}</span>
+                      <span className="text-sm lg:text-base font-medium text-slate-700 dark:text-slate-300">{item.method}</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-bold text-slate-900 dark:text-slate-100">{formatAmount(item.value)}</span>
+                      <span className="text-sm lg:text-base font-bold text-slate-900 dark:text-slate-100">{formatAmount(item.value)}</span>
                       <span className="text-xs text-slate-600 dark:text-slate-400 ml-2">({item.count} tx)</span>
                     </div>
                   </div>

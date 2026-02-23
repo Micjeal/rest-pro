@@ -244,7 +244,6 @@ export function AdvancedFilters({ orders, onFiltersChange }: AdvancedFiltersProp
                     mode="single"
                     selected={dateRange?.from}
                     onSelect={(date) => setDateRange({ from: date, to: date })}
-                    initialFocus
                   />
                 </PopoverContent>
               </Popover>

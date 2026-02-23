@@ -318,200 +318,167 @@ export default function POSPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       {/* Header Section */}
-      <div className="relative overflow-hidden bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border-b border-slate-200/60 dark:border-slate-700/60">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-transparent to-indigo-500/5"></div>
-        <div className="relative px-6 py-8">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-lg">
-                  <ShoppingCart className="h-6 w-6 text-white" />
+      <div className="px-4 pt-4 pb-2 space-y-3">
+        {/* Restaurant and Menu Selection */}
+        <div className="grid grid-cols-1 gap-3">
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                  <Store className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <div>
-                  <h1 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
-                    Point of Sale
-                  </h1>
-                  <p className="text-slate-600 dark:text-slate-400 text-lg">Process orders and manage transactions</p>
+                Restaurant
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <Select value={selectedRestaurant || ''} onValueChange={setSelectedRestaurant} disabled={restaurantsLoading}>
+                <SelectTrigger className="h-11 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600">
+                  <SelectValue placeholder="Select restaurant" />
+                </SelectTrigger>
+                <SelectContent>
+                  {restaurants.map((restaurant: any) => (
+                    <SelectItem key={restaurant.id} value={restaurant.id}>
+                      {restaurant.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
+                  <ChefHat className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
+                Menu
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <Select value={selectedMenu || ''} onValueChange={setSelectedMenu} disabled={menusLoading || !selectedRestaurant}>
+                <SelectTrigger className="h-11 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600">
+                  <SelectValue placeholder="Select menu" />
+                </SelectTrigger>
+                <SelectContent>
+                  {menus.map((menu: any) => (
+                    <SelectItem key={menu.id} value={menu.id}>
+                      {menu.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Customer and Table Info - Mobile Optimized */}
+        <div className="grid grid-cols-1 gap-3">
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
+                  <User className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                </div>
+                Customer
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <Label htmlFor="customerName" className="text-sm font-medium text-slate-700 dark:text-slate-300">Name</Label>
+                <Input
+                  id="customerName"
+                  placeholder="Customer name"
+                  value={order.customer.name}
+                  onChange={(e) => updateCustomer('name', e.target.value)}
+                  className="mt-1 h-11 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600"
+                />
               </div>
-            </div>
-          </div>
+              <div>
+                <Label htmlFor="customerPhone" className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone</Label>
+                <Input
+                  id="customerPhone"
+                  placeholder="Phone number"
+                  value={order.customer.phone}
+                  onChange={(e) => updateCustomer('phone', e.target.value)}
+                  className="mt-1 h-11 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600"
+                />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
+                  <MapPin className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                </div>
+                Table & Notes
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div>
+                <Label htmlFor="tableNumber" className="text-sm font-medium text-slate-700 dark:text-slate-300">Table</Label>
+                <Select value={order.tableNumber} onValueChange={updateTable}>
+                  <SelectTrigger className="mt-1 h-11 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600">
+                    <SelectValue placeholder="Select table" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 20 }, (_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()}>
+                        Table {i + 1}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
-
-      {/* Restaurant and Menu Selection */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <Store className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              </div>
-              Restaurant
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Select value={selectedRestaurant || ''} onValueChange={setSelectedRestaurant} disabled={restaurantsLoading}>
-              <SelectTrigger className="h-12 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600">
-                <SelectValue placeholder="Select restaurant" />
-              </SelectTrigger>
-              <SelectContent>
-                {restaurants.map((restaurant: any) => (
-                  <SelectItem key={restaurant.id} value={restaurant.id}>
-                    {restaurant.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg">
-                <ChefHat className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              </div>
-              Menu
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Select value={selectedMenu || ''} onValueChange={setSelectedMenu} disabled={menusLoading || !selectedRestaurant}>
-              <SelectTrigger className="h-12 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600">
-                <SelectValue placeholder="Select menu" />
-              </SelectTrigger>
-              <SelectContent>
-                {menus.map((menu: any) => (
-                  <SelectItem key={menu.id} value={menu.id}>
-                    {menu.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Customer and Table Info */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg">
-                <User className="h-4 w-4 text-purple-600 dark:text-purple-400" />
-              </div>
-              Customer
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="customerName" className="text-sm font-medium text-slate-700 dark:text-slate-300">Name</Label>
-              <Input
-                id="customerName"
-                placeholder="Customer name"
-                value={order.customer.name}
-                onChange={(e) => updateCustomer('name', e.target.value)}
-                className="mt-1 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600"
-              />
-            </div>
-            <div>
-              <Label htmlFor="customerPhone" className="text-sm font-medium text-slate-700 dark:text-slate-300">Phone</Label>
-              <Input
-                id="customerPhone"
-                placeholder="Phone number"
-                value={order.customer.phone}
-                onChange={(e) => updateCustomer('phone', e.target.value)}
-                className="mt-1 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2 text-lg">
-              <div className="p-1.5 bg-orange-100 dark:bg-orange-900/30 rounded-lg">
-                <MapPin className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-              </div>
-              Table & Notes
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="tableNumber" className="text-sm font-medium text-slate-700 dark:text-slate-300">Table</Label>
-              <Select value={order.tableNumber} onValueChange={updateTable}>
-                <SelectTrigger className="mt-1 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600">
-                  <SelectValue placeholder="Select table" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Table 1</SelectItem>
-                  <SelectItem value="2">Table 2</SelectItem>
-                  <SelectItem value="3">Table 3</SelectItem>
-                  <SelectItem value="4">Table 4</SelectItem>
-                  <SelectItem value="5">Table 5</SelectItem>
-                  <SelectItem value="6">Table 6</SelectItem>
-                  <SelectItem value="takeout">Takeout</SelectItem>
-                  <SelectItem value="delivery">Delivery</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label htmlFor="orderNotes" className="text-sm font-medium text-slate-700 dark:text-slate-300">Notes</Label>
-              <Input
-                id="orderNotes"
-                placeholder="Order notes..."
-                value={order.notes || ''}
-                onChange={(e) => updateNotes(e.target.value)}
-                className="mt-1 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600"
-              />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Menu Items Grid */}
-        <div className="lg:col-span-2 space-y-4">
+      {/* Main Content Area */}
+      <div className="flex flex-col lg:flex-row gap-4 px-4 pb-24">
+        {/* Menu Items Section */}
+        <div className="flex-1">
           <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
             <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-2 text-lg">
-                <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                  <ChefHat className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                </div>
-                Menu Items
-              </CardTitle>
+              <CardTitle className="text-lg font-bold text-slate-900 dark:text-white">Menu Items</CardTitle>
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <div className="flex items-center justify-center h-64">
-                  <div className="text-slate-500">Loading menu items...</div>
+                <div className="flex items-center justify-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                </div>
+              ) : items.length === 0 ? (
+                <div className="text-center py-12">
+                  <ChefHat className="h-16 w-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
+                  <p className="text-slate-500 dark:text-slate-400">No menu items available</p>
                 </div>
               ) : (
                 <>
-                  {/* Categories */}
-                  <div className="flex gap-2 mb-6 flex-wrap">
-                    <Button variant="outline" size="sm" className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">All</Button>
+                  {/* Category Filters - Mobile Optimized */}
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    <Button variant="outline" size="sm" className="bg-blue-100 dark:bg-blue-900/30 border-blue-300 dark:border-blue-600 hover:bg-blue-200 dark:hover:bg-blue-900/40">All</Button>
+                    <Button variant="outline" size="sm" className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">Appetizer</Button>
                     <Button variant="outline" size="sm" className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">Main</Button>
-                    <Button variant="outline" size="sm" className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">Starter</Button>
                     <Button variant="outline" size="sm" className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">Beverage</Button>
                     <Button variant="outline" size="sm" className="bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-blue-50 dark:hover:bg-blue-900/20">Dessert</Button>
                   </div>
                   
-                  {/* Menu Items Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  {/* Menu Items Grid - Responsive */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
                     {items.map((item: any) => (
                       <Button
                         key={item.id}
                         variant="outline"
-                        className="h-32 flex flex-col items-center justify-center text-center bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-slate-700 dark:hover:to-slate-600 border-2 border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 rounded-xl"
+                        className="h-28 p-3 flex flex-col items-center justify-center text-center bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-gradient-to-br hover:from-blue-50 hover:to-indigo-50 dark:hover:from-slate-700 dark:hover:to-slate-600 border-2 border-transparent hover:border-blue-300 dark:hover:border-blue-600 transition-all duration-300 hover:shadow-lg hover:-translate-y-1 rounded-xl touch-manipulation"
                         onClick={() => addItemToOrder(item)}
                         disabled={isLoading}
                       >
-                        <div className="font-semibold text-sm text-slate-900 dark:text-white mb-1">{item.name}</div>
+                        <div className="font-semibold text-sm text-slate-900 dark:text-white mb-1 text-center leading-tight">{item.name}</div>
                         <div className="text-xs text-slate-500 dark:text-slate-400 font-medium mb-2">{formatAmount(item.price)}</div>
                         {item.category && (
                           <div className="text-xs text-blue-600 dark:text-blue-400 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full">{item.category}</div>
@@ -525,11 +492,11 @@ export default function POSPage() {
           </Card>
         </div>
 
-        {/* Order Summary */}
-        <div className="space-y-4">
+        {/* Order Summary - Mobile Optimized */}
+        <div className="w-full lg:w-96">
           <Card className="h-full flex flex-col bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
             <CardHeader className="bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-700 rounded-t-lg border-b border-slate-200/60 dark:border-slate-700/60">
-              <CardTitle className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <CardTitle className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                   <ShoppingCart className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 </div>
@@ -538,11 +505,11 @@ export default function POSPage() {
             </CardHeader>
             <CardContent className="flex-1 space-y-4 p-4">
               {/* Items List */}
-              <div className="space-y-2 max-h-80 overflow-y-auto pr-2">
+              <div className="space-y-2 max-h-64 overflow-y-auto pr-2">
                 {order.items.length === 0 ? (
-                  <div className="text-center py-12">
-                    <ShoppingCart className="h-16 w-16 text-slate-300 dark:text-slate-600 mx-auto mb-4" />
-                    <p className="text-slate-500 dark:text-slate-400">No items added</p>
+                  <div className="text-center py-8">
+                    <ShoppingCart className="h-12 w-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
+                    <p className="text-slate-500 dark:text-slate-400 text-sm">No items added</p>
                   </div>
                 ) : (
                   order.items.map((item) => (
@@ -550,17 +517,17 @@ export default function POSPage() {
                       key={item.id}
                       className="flex items-center justify-between p-3 bg-slate-50/50 dark:bg-slate-700/30 rounded-xl border border-slate-200/60 dark:border-slate-600 hover:shadow-md transition-all duration-200"
                     >
-                      <div className="flex-1">
-                        <p className="font-semibold text-sm text-slate-900 dark:text-white">{item.name}</p>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-slate-900 dark:text-white truncate">{item.name}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
                           {item.quantity}x {formatAmount(item.price)}
                         </p>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1 flex-shrink-0">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-8 w-8 p-0 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          className="h-8 w-8 p-0 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-red-50 dark:hover:bg-red-900/20 touch-manipulation"
                           onClick={() => updateItemQuantity(item.id, -1)}
                         >
                           <Minus className="h-3 w-3" />
@@ -568,7 +535,7 @@ export default function POSPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-8 w-8 p-0 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                          className="h-8 w-8 p-0 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 touch-manipulation"
                           onClick={() => updateItemQuantity(item.id, 1)}
                         >
                           <Plus className="h-3 w-3" />
@@ -576,7 +543,7 @@ export default function POSPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 touch-manipulation"
                           onClick={() => removeItem(item.id)}
                         >
                           <Trash2 className="h-3 w-3" />
@@ -603,7 +570,7 @@ export default function POSPage() {
                       <span>Tax (10%)</span>
                       <span>{formatAmount(order.taxAmount)}</span>
                     </div>
-                    <div className="flex justify-between font-bold text-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-xl shadow-lg shadow-blue-500/25">
+                    <div className="flex justify-between font-bold text-lg bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-3 rounded-xl shadow-lg shadow-blue-500/25">
                       <span>Total</span>
                       <span>{formatAmount(order.total)}</span>
                     </div>
@@ -622,13 +589,13 @@ export default function POSPage() {
                         setDiscountPercent(value)
                         updateOrder(order.items)
                       }}
-                      className="h-12 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600"
+                      className="h-11 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600"
                     />
                   </div>
 
                   {/* Checkout Button */}
                   <Button
-                    className="w-full h-14 text-lg font-bold bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5 btn-press"
+                    className="w-full h-12 text-base font-bold bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all duration-300 hover:-translate-y-0.5 btn-press touch-manipulation"
                     onClick={() => setShowPayment(true)}
                   >
                     <ShoppingCart className="mr-2 h-5 w-5" />
@@ -673,7 +640,6 @@ export default function POSPage() {
         amount={order.total}
         onConfirm={handleCompletePayment}
       />
-      </div>
     </div>
   )
 }

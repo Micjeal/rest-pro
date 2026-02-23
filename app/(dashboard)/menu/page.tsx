@@ -46,6 +46,7 @@ export default function MenuManagementPage() {
   const { menus, isLoading: menusLoading } = useMenus(selectedRestaurant)
   const { items, isLoading: itemsLoading, mutate } = useMenuItems(selectedMenu)
   const { formatAmount, getCurrencySymbol } = useCurrency({ restaurantId: selectedRestaurant })
+  const canEditMenu = true // Simple permission check - can be enhanced later
 
   // Set default restaurant when data loads
   useEffect(() => {
@@ -147,16 +148,18 @@ export default function MenuManagementPage() {
   }
 
   return (
-    <div className="p-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
+      <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Menu Management</h1>
-          <p className="text-gray-600">Edit menu items and their prices</p>
+<h1 className="text-2xl lg:text-3xl font-bold">Menu Management</h1>
+          <p className="text-sm lg:text-base text-gray-600">
+            {canEditMenu ? 'Edit menu items and their prices' : 'View menu items and prices'}
+          </p>
         </div>
         
-        <div className="flex gap-4">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Select value={selectedRestaurant || ''} onValueChange={setSelectedRestaurant}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="Select restaurant" />
             </SelectTrigger>
             <SelectContent>
@@ -169,7 +172,7 @@ export default function MenuManagementPage() {
           </Select>
 
           <Select value={selectedMenu || ''} onValueChange={setSelectedMenu}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48">
               <SelectValue placeholder="Select menu" />
             </SelectTrigger>
             <SelectContent>
@@ -184,20 +187,23 @@ export default function MenuManagementPage() {
       </div>
 
       {itemsLoading ? (
-        <div className="text-center py-8">Loading menu items...</div>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          Loading menu items...
+        </div>
       ) : items.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-500">No menu items found</p>
-          <p className="text-sm text-gray-400">Select a restaurant and menu to view items</p>
+          <p className="text-sm text-gray-400 mt-2">Select a restaurant and menu to view items</p>
         </div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
           {items.map((item: MenuItem) => (
             <Card key={item.id} className="relative">
               <CardContent className="p-4">
                 {editingItem?.id === item.id ? (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor={`name-${item.id}`}>Item Name</Label>
                         <Input
@@ -205,6 +211,7 @@ export default function MenuManagementPage() {
                           value={editForm.name}
                           onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
                           placeholder="Item name"
+                          className="h-10"
                         />
                       </div>
                       <div>
@@ -216,6 +223,7 @@ export default function MenuManagementPage() {
                           value={editForm.price}
                           onChange={(e) => setEditForm(prev => ({ ...prev, price: e.target.value }))}
                           placeholder="0.00"
+                          className="h-10"
                         />
                       </div>
                     </div>
@@ -227,9 +235,10 @@ export default function MenuManagementPage() {
                         value={editForm.description}
                         onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
                         placeholder="Item description"
+                        className="h-10"
                       />
                     </div>
-
+                    
                     <div className="flex items-center space-x-2">
                       <input
                         type="checkbox"
@@ -239,15 +248,15 @@ export default function MenuManagementPage() {
                         className="rounded"
                         title="Item Availability"
                       />
-                      <Label htmlFor={`availability-${item.id}`}>Available</Label>
+                      <Label htmlFor={`availability-${item.id}`} className="text-sm">Available</Label>
                     </div>
 
                     <div className="flex gap-2">
-                      <Button onClick={saveEdit} disabled={isLoading} size="sm">
+                      <Button onClick={saveEdit} disabled={isLoading} size="sm" className="h-9">
                         <Save className="h-4 w-4 mr-2" />
                         Save
                       </Button>
-                      <Button onClick={cancelEdit} variant="outline" size="sm">
+                      <Button onClick={cancelEdit} variant="outline" size="sm" className="h-9">
                         <X className="h-4 w-4 mr-2" />
                         Cancel
                       </Button>
@@ -255,31 +264,40 @@ export default function MenuManagementPage() {
                   </div>
                 ) : (
                   <div className="flex justify-between items-start">
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-lg">{item.name}</h3>
-                        <Badge variant={item.availability ? "default" : "secondary"}>
+                        <h3 className="font-semibold text-base lg:text-lg truncate">{item.name}</h3>
+                        <Badge variant={item.availability ? "default" : "secondary"} className="text-xs">
                           {item.availability ? "Available" : "Unavailable"}
                         </Badge>
                       </div>
-                      <p className="text-gray-600 mb-2">{item.description}</p>
-                      <div className="text-2xl font-bold text-green-600">
+                      <p className="text-sm lg:text-base text-gray-600 mb-2 line-clamp-2">{item.description}</p>
+                      <div className="text-xl lg:text-2xl font-bold text-green-600">
                         {formatAmount(item.price)}
                       </div>
                     </div>
                     
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => toggleAvailability(item)}
-                        variant={item.availability ? "outline" : "default"}
-                        size="sm"
-                      >
-                        {item.availability ? "Disable" : "Enable"}
-                      </Button>
-                      <Button onClick={() => startEdit(item)} size="sm">
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </Button>
+<div className="flex flex-col gap-2">
+                      {canEditMenu && (
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => toggleAvailability(item)}
+                            variant={item.availability ? "outline" : "default"}
+                            size="sm"
+                            className="h-8 px-3 text-xs"
+                          >
+                            {item.availability ? "Disable" : "Enable"}
+                          </Button>
+                          <Button onClick={() => startEdit(item)} size="sm" className="h-8">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
+                      {!canEditMenu && (
+                        <div className="text-xs text-gray-500 italic">
+                          View-only
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
