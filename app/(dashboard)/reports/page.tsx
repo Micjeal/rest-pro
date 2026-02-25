@@ -1,7 +1,41 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
+
+// Error Boundary Component
+class ChartErrorBoundary extends React.Component<
+  { children: React.ReactNode; fallback?: React.ReactNode },
+  { hasError: boolean; error?: Error }
+> {
+  constructor(props: any) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error }
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('[Reports] Chart error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || (
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <p className="text-gray-500">Chart data temporarily unavailable</p>
+            <p className="text-sm text-gray-400 mt-2">Please try refreshing the page</p>
+          </div>
+        </div>
+      )
+    }
+
+    return this.props.children
+  }
+}
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -149,11 +183,26 @@ export default function ReportsPage() {
           statusData
         },
         insights: {
-          bestDay: (dailyData || []).length > 0 ? (dailyData || []).reduce((max, day) => ((day?.sales || 0) > (max?.sales || 0)) ? day : max, { sales: 0 }) : null,
-          worstDay: (dailyData || []).length > 0 ? (dailyData || []).reduce((min, day) => ((day?.sales || 0) < (min?.sales || Infinity)) ? day : min, { sales: Infinity }) : null,
-          peakHour: (hourlyData || []).length > 0 ? (hourlyData || []).reduce((max, hour) => ((hour?.sales || 0) > (max?.sales || 0)) ? hour : max, { sales: 0 }) : null,
-          topCategory: (categoryData || []).length > 0 ? (categoryData || []).reduce((max, cat) => ((cat?.value || 0) > (max?.value || 0)) ? cat : max, { value: 0 }) : null,
-          topPaymentMethod: (paymentData || []).length > 0 ? (paymentData || []).reduce((max, pay) => ((pay?.value || 0) > (max?.value || 0)) ? pay : max, { value: 0 }) : null
+          bestDay: (dailyData || []).length > 0 ? (dailyData || []).reduce((max, day) => {
+            if (!day || typeof day?.sales !== 'number' || isNaN(day.sales)) return max
+            return (day.sales > (max?.sales || 0)) ? day : max
+          }, { sales: 0 }) : null,
+          worstDay: (dailyData || []).length > 0 ? (dailyData || []).reduce((min, day) => {
+            if (!day || typeof day?.sales !== 'number' || isNaN(day.sales)) return min
+            return (day.sales < (min?.sales || Infinity)) ? day : min
+          }, { sales: Infinity }) : null,
+          peakHour: (hourlyData || []).length > 0 ? (hourlyData || []).reduce((max, hour) => {
+            if (!hour || typeof hour?.sales !== 'number' || isNaN(hour.sales)) return max
+            return (hour.sales > (max?.sales || 0)) ? hour : max
+          }, { sales: 0 }) : null,
+          topCategory: (categoryData || []).length > 0 ? (categoryData || []).reduce((max, cat) => {
+            if (!cat || typeof cat?.value !== 'number' || isNaN(cat.value)) return max
+            return (cat.value > (max?.value || 0)) ? cat : max
+          }, { value: 0 }) : null,
+          topPaymentMethod: (paymentData || []).length > 0 ? (paymentData || []).reduce((max, pay) => {
+            if (!pay || typeof pay?.value !== 'number' || isNaN(pay.value)) return max
+            return (pay.value > (max?.value || 0)) ? pay : max
+          }, { value: 0 }) : null
         }
       }
       
@@ -259,18 +308,69 @@ export default function ReportsPage() {
     )
   }
 
-  const totalRevenue = (dailyData || []).reduce((sum, day) => sum + (day.sales || 0), 0)
-  const totalTransactions = (dailyData || []).reduce((sum, day) => sum + (day.transactions || 0), 0)
-  const averageTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
-  
-  // Calculate sold and cleared orders from status data
-  const soldOrders = (statusData || []).find((s: any) => s.status === 'Completed')?.count || 0
-  const clearedOrders = (statusData || []).reduce((sum: number, s: any) => sum + (s.count || 0), 0)
-  
-  // Calculate revenue metrics from API data
-  const soldRevenue = (statusData || []).find((s: any) => s.status === 'Completed')?.revenue || 0
-  const totalOrderRevenue = (statusData || []).reduce((sum: number, s: any) => sum + (s.revenue || 0), 0)
-  const averageOrderValue = totalOrderRevenue > 0 && clearedOrders > 0 ? (totalOrderRevenue / clearedOrders).toFixed(2) : '0.00'
+  // Safe data processing with comprehensive validation
+  const processedData = useMemo(() => {
+    try {
+      // Validate and sanitize data arrays
+      const safeDailyData = Array.isArray(dailyData) ? dailyData.filter(day => day && typeof day === 'object') : []
+      const safeStatusData = Array.isArray(statusData) ? statusData.filter(status => status && typeof status === 'object') : []
+      
+      // Calculate metrics with safe reduce operations
+      const totalRevenue = safeDailyData.reduce((sum, day) => {
+        const sales = typeof day?.sales === 'number' && !isNaN(day.sales) ? day.sales : 0
+        return sum + sales
+      }, 0)
+      
+      const totalTransactions = safeDailyData.reduce((sum, day) => {
+        const transactions = typeof day?.transactions === 'number' && !isNaN(day.transactions) ? day.transactions : 0
+        return sum + transactions
+      }, 0)
+      
+      const averageTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
+      
+      // Calculate sold and cleared orders from status data
+      const soldOrders = safeStatusData.find(s => s?.status === 'Completed')?.count || 0
+      const clearedOrders = safeStatusData.reduce((sum, s) => {
+        const count = typeof s?.count === 'number' && !isNaN(s.count) ? s.count : 0
+        return sum + count
+      }, 0)
+      
+      // Calculate revenue metrics from API data
+      const soldRevenue = safeStatusData.find(s => s?.status === 'Completed')?.revenue || 0
+      const totalOrderRevenue = safeStatusData.reduce((sum, s) => {
+        const revenue = typeof s?.revenue === 'number' && !isNaN(s.revenue) ? s.revenue : 0
+        return sum + revenue
+      }, 0)
+      
+      const averageOrderValue = totalOrderRevenue > 0 && clearedOrders > 0 ? (totalOrderRevenue / clearedOrders).toFixed(2) : '0.00'
+      
+      return {
+        totalRevenue,
+        totalTransactions,
+        averageTransaction,
+        soldOrders,
+        clearedOrders,
+        soldRevenue,
+        totalOrderRevenue,
+        averageOrderValue
+      }
+    } catch (error) {
+      console.error('[Reports] Error processing data:', error)
+      // Return safe defaults if processing fails
+      return {
+        totalRevenue: 0,
+        totalTransactions: 0,
+        averageTransaction: 0,
+        soldOrders: 0,
+        clearedOrders: 0,
+        soldRevenue: 0,
+        totalOrderRevenue: 0,
+        averageOrderValue: '0.00'
+      }
+    }
+  }, [dailyData, statusData])
+
+  const { totalRevenue, totalTransactions, averageTransaction, soldOrders, clearedOrders, soldRevenue, totalOrderRevenue, averageOrderValue } = processedData
 
   // Show loading or access denied state while checking role
   if (!userRole) {
@@ -867,6 +967,7 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <ChartErrorBoundary>
             {!statusData || statusData.length === 0 ? (
               <div className="h-56 lg:h-64 flex items-center justify-center">
                 <p className="text-gray-500">No status data available</p>
