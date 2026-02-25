@@ -723,6 +723,55 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Sold Items Summary */}
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg animate-pulse">
+                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
+                Sold Items Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 rounded-lg border border-green-200/50 dark:border-green-800/30">
+                    <div className="text-2xl font-bold text-green-700 dark:text-green-300">{soldOrders}</div>
+                    <div className="text-sm text-green-600 dark:text-green-400 mt-1">Items Sold</div>
+                  </div>
+                  <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-lg border border-blue-200/50 dark:border-blue-800/30">
+                    <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">{formatAmount(soldRevenue)}</div>
+                    <div className="text-sm text-blue-600 dark:text-blue-400 mt-1">Revenue from Sales</div>
+                  </div>
+                  <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg border border-purple-200/50 dark:border-purple-800/30">
+                    <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">${averageOrderValue}</div>
+                    <div className="text-sm text-purple-600 dark:text-purple-400 mt-1">Avg per Item</div>
+                  </div>
+                </div>
+                
+                {/* Order Status Breakdown */}
+                <div className="mt-6">
+                  <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Order Status Breakdown</h4>
+                  <div className="space-y-2">
+                    {(statusData || []).map((item: any, index: number) => (
+                      <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-slate-50/50 dark:bg-slate-700/30 hover:bg-slate-100/70 dark:hover:bg-slate-700/50 transition-colors duration-200">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-3 h-3 rounded-full shadow-sm`} style={{ backgroundColor: item.color || '#3b82f6' }}></div>
+                          <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.status}</span>
+                        </div>
+                        <div className="text-right">
+                          <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{item.count}</span>
+                          <span className="text-xs text-slate-600 dark:text-slate-400 ml-2">{formatAmount(item.revenue || 0)}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         {/* Other Tab Contents - Placeholder for now */}
