@@ -149,11 +149,11 @@ export default function ReportsPage() {
           statusData
         },
         insights: {
-          bestDay: dailyData.length > 0 ? dailyData.reduce((max, day) => (day.sales > max.sales ? day : max)) : null,
-          worstDay: dailyData.length > 0 ? dailyData.reduce((min, day) => (day.sales < min.sales ? day : min)) : null,
-          peakHour: hourlyData.length > 0 ? hourlyData.reduce((max, hour) => (hour.sales > max.sales ? hour : max)) : null,
-          topCategory: categoryData.length > 0 ? categoryData.reduce((max, cat) => (cat.value > max.value ? cat : max)) : null,
-          topPaymentMethod: paymentData.length > 0 ? paymentData.reduce((max, pay) => (pay.value > max.value ? pay : max)) : null
+          bestDay: (dailyData || []).length > 0 ? (dailyData || []).reduce((max, day) => ((day?.sales || 0) > (max?.sales || 0)) ? day : max, { sales: 0 }) : null,
+          worstDay: (dailyData || []).length > 0 ? (dailyData || []).reduce((min, day) => ((day?.sales || 0) < (min?.sales || Infinity)) ? day : min, { sales: Infinity }) : null,
+          peakHour: (hourlyData || []).length > 0 ? (hourlyData || []).reduce((max, hour) => ((hour?.sales || 0) > (max?.sales || 0)) ? hour : max, { sales: 0 }) : null,
+          topCategory: (categoryData || []).length > 0 ? (categoryData || []).reduce((max, cat) => ((cat?.value || 0) > (max?.value || 0)) ? cat : max, { value: 0 }) : null,
+          topPaymentMethod: (paymentData || []).length > 0 ? (paymentData || []).reduce((max, pay) => ((pay?.value || 0) > (max?.value || 0)) ? pay : max, { value: 0 }) : null
         }
       }
       
@@ -243,6 +243,20 @@ export default function ReportsPage() {
     } finally {
       setIsExporting(false)
     }
+  }
+
+  // Early return if data is not ready to prevent processing errors
+  if (!dailyData || !Array.isArray(dailyData) || isLoading) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="flex items-center justify-center min-h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading reports data...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const totalRevenue = (dailyData || []).reduce((sum, day) => sum + (day.sales || 0), 0)
@@ -853,20 +867,25 @@ export default function ReportsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="h-56 lg:h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <defs>
-                    <filter id="pieGlow">
-                      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-                      <feMerge> 
-                        <feMergeNode in="coloredBlur"/>
-                        <feMergeNode in="SourceGraphic"/>
-                      </feMerge>
-                    </filter>
-                  </defs>
-                  <Pie
-                    data={statusData}
+            {!statusData || statusData.length === 0 ? (
+              <div className="h-56 lg:h-64 flex items-center justify-center">
+                <p className="text-gray-500">No status data available</p>
+              </div>
+            ) : (
+              <div className="h-56 lg:h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <defs>
+                      <filter id="pieGlow">
+                        <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                        <feMerge> 
+                          <feMergeNode in="coloredBlur"/>
+                          <feMergeNode in="SourceGraphic"/>
+                        </feMerge>
+                      </filter>
+                    </defs>
+                    <Pie
+                      data={statusData || []}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
@@ -896,7 +915,8 @@ export default function ReportsPage() {
                   />
                 </PieChart>
               </ResponsiveContainer>
-            </div>
+              </div>
+            )}
             <div className="mt-3 lg:mt-4 space-y-2">
               {(statusData || []).map((item: any, index: number) => (
                 <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/50 dark:bg-slate-700/30">
@@ -911,6 +931,7 @@ export default function ReportsPage() {
                 </div>
               ))}
             </div>
+            )}
           </CardContent>
         </Card>
 
