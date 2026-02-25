@@ -931,7 +931,6 @@ export default function ReportsPage() {
                 </div>
               ))}
             </div>
-            )}
           </CardContent>
         </Card>
 
