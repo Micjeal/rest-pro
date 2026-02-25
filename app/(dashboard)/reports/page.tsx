@@ -878,8 +878,8 @@ export default function ReportsPage() {
                     animationDuration={1000}
                     animationEasing="ease-out"
                   >
-                    {statusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    {(statusData || []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color || ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][index % 4]} />
                     ))}
                   </Pie>
                   <Tooltip 
@@ -898,10 +898,10 @@ export default function ReportsPage() {
               </ResponsiveContainer>
             </div>
             <div className="mt-3 lg:mt-4 space-y-2">
-              {statusData.map((item: any, index: number) => (
+              {(statusData || []).map((item: any, index: number) => (
                 <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/50 dark:bg-slate-700/30">
                   <div className="flex items-center gap-2">
-                    <div className={`w-3 h-3 rounded-full shadow-sm bg-[${item.color}]`}></div>
+                    <div className={`w-3 h-3 rounded-full shadow-sm`} style={{ backgroundColor: item.color || '#3b82f6' }}></div>
                     <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.status}</span>
                   </div>
                   <div className="text-right">
@@ -926,11 +926,11 @@ export default function ReportsPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4 lg:space-y-6">
-              {paymentData.map((item, index) => (
+              {(paymentData || []).map((item, index) => (
                 <div key={item.method} className="space-y-3">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-3">
-                      <div className={`w-4 h-4 rounded-full shadow-sm animate-pulse bg-[${item.color}]`}></div>
+                      <div className={`w-4 h-4 rounded-full shadow-sm animate-pulse`} style={{ backgroundColor: item.color || '#10b981' }}></div>
                       <span className="text-sm lg:text-base font-medium text-slate-700 dark:text-slate-300">{item.method}</span>
                     </div>
                     <div className="text-right">
@@ -996,8 +996,8 @@ export default function ReportsPage() {
                     animationDuration={1200}
                     animationEasing="ease-out"
                   >
-                    {categoryData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    {(categoryData || []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color || ['#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'][index % 4]} />
                     ))}
                   </Pie>
                   <Tooltip 
@@ -1013,10 +1013,10 @@ export default function ReportsPage() {
               </ResponsiveContainer>
             </div>
             <div className="space-y-3">
-              {categoryData.map((item, index) => (
+              {(categoryData || []).map((item, index) => (
                 <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-slate-50/50 dark:bg-slate-700/30 hover:bg-slate-100/70 dark:hover:bg-slate-700/50 transition-colors duration-200">
                   <div className="flex items-center gap-3">
-                    <div className={`w-4 h-4 rounded-lg shadow-sm bg-[${item.color}]`}></div>
+                    <div className={`w-4 h-4 rounded-lg shadow-sm`} style={{ backgroundColor: item.color || '#8b5cf6' }}></div>
                     <span className="font-medium text-slate-700 dark:text-slate-300">{item.category}</span>
                   </div>
                   <span className="font-bold text-slate-900 dark:text-slate-100">{formatAmount(item.value)}</span>
