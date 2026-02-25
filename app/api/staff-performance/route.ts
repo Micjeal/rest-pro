@@ -85,10 +85,18 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(getFallbackStaffData())
       }
 
-      // Fetch shift assignments
+      // Fetch shift assignments with user information
       const { data: shiftData, error: shiftError } = await supabase
         .from('shift_assignments')
-        .select('*')
+        .select(`
+          *,
+          users!shift_assignments_staff_id_fkey (
+            id,
+            name,
+            email,
+            role
+          )
+        `)
         .or(dateFilter.replace(/date\./g, 'shift_date.'))
         .order('shift_date', { ascending: false })
 
@@ -101,10 +109,18 @@ export async function GET(request: NextRequest) {
         console.error('[Staff Performance API] Error fetching shift data:', shiftError)
       }
 
-      // Fetch user activity
+      // Fetch user activity with user information
       const { data: activityData, error: activityError } = await supabase
         .from('user_activity')
-        .select('*')
+        .select(`
+          *,
+          users!user_activity_user_id_fkey (
+            id,
+            name,
+            email,
+            role
+          )
+        `)
         .or(`created_at.gte.${new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()}`)
         .order('created_at', { ascending: false })
         .limit(100)
@@ -123,13 +139,14 @@ export async function GET(request: NextRequest) {
 
       staffPerformanceData.forEach((performance: any) => {
         const staffId = performance.staff_id
+        const staffInfo = performance.users
 
         if (!staffMap.has(staffId)) {
           staffMap.set(staffId, {
             staffId,
-            name: `Staff ${staffId.toString().slice(-4)}`, // Fallback name
-            email: '',
-            role: 'staff',
+            name: staffInfo?.name || 'Unknown Staff',
+            email: staffInfo?.email || '',
+            role: staffInfo?.role || 'unknown',
             totalOrders: 0,
             totalRevenue: 0,
             totalPreparationTime: 0,
@@ -175,10 +192,12 @@ export async function GET(request: NextRequest) {
       if (shiftData) {
         shiftData.forEach((shift: any) => {
           const staffId = shift.staff_id
+          const shiftUserInfo = shift.users
+          
           if (!shiftMap.has(staffId)) {
             shiftMap.set(staffId, {
               staffId,
-              name: `Staff ${staffId.toString().slice(-4)}`,
+              name: shiftUserInfo?.name || 'Unknown Staff',
               totalShifts: 0,
               completedShifts: 0,
               scheduledShifts: 0,
