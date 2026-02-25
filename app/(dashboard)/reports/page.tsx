@@ -87,6 +87,70 @@ export default function ReportsPage() {
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
   const { formatAmount, getCurrencySymbol } = useCurrency({ restaurantId: selectedRestaurant || undefined })
 
+  // Safe data processing with comprehensive validation - MOVED HERE TO FIX HOOKS ORDER
+  const processedData = useMemo(() => {
+    try {
+      // Validate and sanitize data arrays
+      const safeDailyData = Array.isArray(dailyData) ? dailyData.filter(day => day && typeof day === 'object') : []
+      const safeStatusData = Array.isArray(statusData) ? statusData.filter(status => status && typeof status === 'object') : []
+      
+      // Calculate metrics with safe reduce operations
+      const totalRevenue = safeDailyData.reduce((sum, day) => {
+        const sales = typeof day?.sales === 'number' && !isNaN(day.sales) ? day.sales : 0
+        return sum + sales
+      }, 0)
+      
+      const totalTransactions = safeDailyData.reduce((sum, day) => {
+        const transactions = typeof day?.transactions === 'number' && !isNaN(day.transactions) ? day.transactions : 0
+        return sum + transactions
+      }, 0)
+      
+      const averageTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
+      
+      // Calculate sold and cleared orders from status data
+      const soldOrders = safeStatusData.find(s => s?.status === 'Completed')?.count || 0
+      const clearedOrders = safeStatusData.reduce((sum, s) => {
+        const count = typeof s?.count === 'number' && !isNaN(s.count) ? s.count : 0
+        return sum + count
+      }, 0)
+      
+      // Calculate revenue metrics from API data
+      const soldRevenue = safeStatusData.find(s => s?.status === 'Completed')?.revenue || 0
+      const totalOrderRevenue = safeStatusData.reduce((sum, s) => {
+        const revenue = typeof s?.revenue === 'number' && !isNaN(s.revenue) ? s.revenue : 0
+        return sum + revenue
+      }, 0)
+      
+      const averageOrderValue = totalOrderRevenue > 0 && clearedOrders > 0 ? (totalOrderRevenue / clearedOrders).toFixed(2) : '0.00'
+      
+      return {
+        totalRevenue,
+        totalTransactions,
+        averageTransaction,
+        soldOrders,
+        clearedOrders,
+        soldRevenue,
+        totalOrderRevenue,
+        averageOrderValue
+      }
+    } catch (error) {
+      console.error('[Reports] Error processing data:', error)
+      // Return safe defaults if processing fails
+      return {
+        totalRevenue: 0,
+        totalTransactions: 0,
+        averageTransaction: 0,
+        soldOrders: 0,
+        clearedOrders: 0,
+        soldRevenue: 0,
+        totalOrderRevenue: 0,
+        averageOrderValue: '0.00'
+      }
+    }
+  }, [dailyData, statusData])
+
+  const { totalRevenue, totalTransactions, averageTransaction, soldOrders, clearedOrders, soldRevenue, totalOrderRevenue, averageOrderValue } = processedData
+
   // Check user role on mount
   useEffect(() => {
     const role = localStorage.getItem('userRole')
@@ -307,70 +371,6 @@ export default function ReportsPage() {
       </div>
     )
   }
-
-  // Safe data processing with comprehensive validation
-  const processedData = useMemo(() => {
-    try {
-      // Validate and sanitize data arrays
-      const safeDailyData = Array.isArray(dailyData) ? dailyData.filter(day => day && typeof day === 'object') : []
-      const safeStatusData = Array.isArray(statusData) ? statusData.filter(status => status && typeof status === 'object') : []
-      
-      // Calculate metrics with safe reduce operations
-      const totalRevenue = safeDailyData.reduce((sum, day) => {
-        const sales = typeof day?.sales === 'number' && !isNaN(day.sales) ? day.sales : 0
-        return sum + sales
-      }, 0)
-      
-      const totalTransactions = safeDailyData.reduce((sum, day) => {
-        const transactions = typeof day?.transactions === 'number' && !isNaN(day.transactions) ? day.transactions : 0
-        return sum + transactions
-      }, 0)
-      
-      const averageTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
-      
-      // Calculate sold and cleared orders from status data
-      const soldOrders = safeStatusData.find(s => s?.status === 'Completed')?.count || 0
-      const clearedOrders = safeStatusData.reduce((sum, s) => {
-        const count = typeof s?.count === 'number' && !isNaN(s.count) ? s.count : 0
-        return sum + count
-      }, 0)
-      
-      // Calculate revenue metrics from API data
-      const soldRevenue = safeStatusData.find(s => s?.status === 'Completed')?.revenue || 0
-      const totalOrderRevenue = safeStatusData.reduce((sum, s) => {
-        const revenue = typeof s?.revenue === 'number' && !isNaN(s.revenue) ? s.revenue : 0
-        return sum + revenue
-      }, 0)
-      
-      const averageOrderValue = totalOrderRevenue > 0 && clearedOrders > 0 ? (totalOrderRevenue / clearedOrders).toFixed(2) : '0.00'
-      
-      return {
-        totalRevenue,
-        totalTransactions,
-        averageTransaction,
-        soldOrders,
-        clearedOrders,
-        soldRevenue,
-        totalOrderRevenue,
-        averageOrderValue
-      }
-    } catch (error) {
-      console.error('[Reports] Error processing data:', error)
-      // Return safe defaults if processing fails
-      return {
-        totalRevenue: 0,
-        totalTransactions: 0,
-        averageTransaction: 0,
-        soldOrders: 0,
-        clearedOrders: 0,
-        soldRevenue: 0,
-        totalOrderRevenue: 0,
-        averageOrderValue: '0.00'
-      }
-    }
-  }, [dailyData, statusData])
-
-  const { totalRevenue, totalTransactions, averageTransaction, soldOrders, clearedOrders, soldRevenue, totalOrderRevenue, averageOrderValue } = processedData
 
   // Show loading or access denied state while checking role
   if (!userRole) {
@@ -800,8 +800,9 @@ export default function ReportsPage() {
                     </filter>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
-<XAxis dataKey="date" stroke="#64748b" fontSize={12} />
-                  <YAxis stroke="#64748b" fontSize={12} />
+                  <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
+                  <YAxis yAxisId="left" stroke="#64748b" fontSize={12} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#10b981" fontSize={12} />
                   <Tooltip 
                     contentStyle={{ 
                       backgroundColor: 'rgba(255,255,255,0.95)', 
@@ -838,7 +839,6 @@ export default function ReportsPage() {
                     yAxisId="right"
                     name="Transactions"
                   />
-<YAxis yAxisId="right" orientation="right" stroke="#10b981" fontSize={12} />
                 </ComposedChart>
               </ResponsiveContainer>
             </div>
