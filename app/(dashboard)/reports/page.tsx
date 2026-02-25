@@ -1032,10 +1032,10 @@ export default function ReportsPage() {
                 </div>
               ))}
             </div>
+            )}
+            </ChartErrorBoundary>
           </CardContent>
         </Card>
-
-        {/* Enhanced Payment Method Breakdown */}
         <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
           <CardHeader className="pb-3 lg:pb-4">
             <CardTitle className="flex items-center gap-2 text-base lg:text-lg">
