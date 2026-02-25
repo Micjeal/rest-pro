@@ -172,38 +172,42 @@ export async function GET(request: NextRequest) {
 
       // Process shift data
       const shiftMap = new Map()
-      shiftData.forEach((shift: any) => {
-        const staffId = shift.staff_id
-        if (!shiftMap.has(staffId)) {
-          shiftMap.set(staffId, {
-            staffId,
-            name: `Staff ${staffId.toString().slice(-4)}`,
-            totalShifts: 0,
-            completedShifts: 0,
-            scheduledShifts: 0,
-            cancelledShifts: 0,
-            shiftData: []
-          })
-        }
-        const shiftInfo = shiftMap.get(staffId)
-        shiftInfo.totalShifts += 1
-        if (shift.status === 'completed') shiftInfo.completedShifts += 1
-        if (shift.status === 'scheduled') shiftInfo.scheduledShifts += 1
-        if (shift.status === 'cancelled') shiftInfo.cancelledShifts += 1
-        shiftInfo.shiftData.push(shift)
-      })
+      if (shiftData) {
+        shiftData.forEach((shift: any) => {
+          const staffId = shift.staff_id
+          if (!shiftMap.has(staffId)) {
+            shiftMap.set(staffId, {
+              staffId,
+              name: `Staff ${staffId.toString().slice(-4)}`,
+              totalShifts: 0,
+              completedShifts: 0,
+              scheduledShifts: 0,
+              cancelledShifts: 0,
+              shiftData: []
+            })
+          }
+          const shiftInfo = shiftMap.get(staffId)
+          shiftInfo.totalShifts += 1
+          if (shift.status === 'completed') shiftInfo.completedShifts += 1
+          if (shift.status === 'scheduled') shiftInfo.scheduledShifts += 1
+          if (shift.status === 'cancelled') shiftInfo.cancelledShifts += 1
+          shiftInfo.shiftData.push(shift)
+        })
+      }
 
       const shiftArray = Array.from(shiftMap.values())
 
       // Process activity data
       const activityByType = new Map()
-      activityData.forEach((activity: any) => {
-        const type = activity.activity_type
-        if (!activityByType.has(type)) {
-          activityByType.set(type, 0)
-        }
-        activityByType.set(type, activityByType.get(type) + 1)
-      })
+      if (activityData) {
+        activityData.forEach((activity: any) => {
+          const type = activity.activity_type
+          if (!activityByType.has(type)) {
+            activityByType.set(type, 0)
+          }
+          activityByType.set(type, activityByType.get(type) + 1)
+        })
+      }
 
       const activityArray = Array.from(activityByType.entries()).map(([type, count]) => ({
         type,

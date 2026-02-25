@@ -157,45 +157,47 @@ export async function GET(request: NextRequest) {
       let totalTax = 0
       const categoryProfitMap = new Map()
 
-      ordersData.forEach((order: any) => {
-        const orderRevenue = parseFloat(order.total_amount) || 0
-        totalRevenue += orderRevenue
+      if (ordersData) {
+        ordersData.forEach((order: any) => {
+          const orderRevenue = parseFloat(order.total_amount) || 0
+          totalRevenue += orderRevenue
 
-        if (order.order_items) {
-          order.order_items.forEach((item: any) => {
-            const quantity = item.quantity || 0
-            const unitPrice = parseFloat(item.unit_price) || 0
-            const costPrice = parseFloat(item.menu_items?.cost_price) || 0
-            const taxCategory = item.menu_items?.tax_category || 'standard'
-            
-            const itemCost = costPrice * quantity
-            const itemRevenue = unitPrice * quantity
-            const itemTax = itemRevenue * 0.18 // 18% tax rate
-            
-            totalCost += itemCost
-            totalTax += itemTax
+          if (order.order_items) {
+            order.order_items.forEach((item: any) => {
+              const quantity = item.quantity || 0
+              const unitPrice = parseFloat(item.unit_price) || 0
+              const costPrice = parseFloat(item.menu_items?.cost_price) || 0
+              const taxCategory = item.menu_items?.tax_category || 'standard'
+              
+              const itemCost = costPrice * quantity
+              const itemRevenue = unitPrice * quantity
+              const itemTax = itemRevenue * 0.18 // 18% tax rate
+              
+              totalCost += itemCost
+              totalTax += itemTax
 
-            // Track profit by category
-            if (!categoryProfitMap.has(taxCategory)) {
-              categoryProfitMap.set(taxCategory, {
-                category: taxCategory,
-                revenue: 0,
-                cost: 0,
-                profit: 0,
-                tax: 0,
-                itemCount: 0
-              })
-            }
-            
-            const categoryData = categoryProfitMap.get(taxCategory)
-            categoryData.revenue += itemRevenue
-            categoryData.cost += itemCost
-            categoryData.profit += (itemRevenue - itemCost)
-            categoryData.tax += itemTax
-            categoryData.itemCount += quantity
-          })
-        }
-      })
+              // Track profit by category
+              if (!categoryProfitMap.has(taxCategory)) {
+                categoryProfitMap.set(taxCategory, {
+                  category: taxCategory,
+                  revenue: 0,
+                  cost: 0,
+                  profit: 0,
+                  tax: 0,
+                  itemCount: 0
+                })
+              }
+              
+              const categoryData = categoryProfitMap.get(taxCategory)
+              categoryData.revenue += itemRevenue
+              categoryData.cost += itemCost
+              categoryData.profit += (itemRevenue - itemCost)
+              categoryData.tax += itemTax
+              categoryData.itemCount += quantity
+            })
+          }
+        })
+      }
 
       const grossProfit = totalRevenue - totalCost
       const netProfit = grossProfit - totalTax
@@ -249,8 +251,8 @@ export async function GET(request: NextRequest) {
           netProfit,
           totalTax,
           profitMargin,
-          totalOrders: ordersData.length,
-          averageOrderValue: ordersData.length > 0 ? totalRevenue / ordersData.length : 0
+          totalOrders: ordersData?.length || 0,
+          averageOrderValue: ordersData && ordersData.length > 0 ? totalRevenue / ordersData.length : 0
         },
         dailyData: profitTrends,
         categoryProfit: categoryProfitArray,
