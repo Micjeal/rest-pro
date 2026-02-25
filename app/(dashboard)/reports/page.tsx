@@ -82,6 +82,12 @@ export default function ReportsPage() {
   const [comparisonMode, setComparisonMode] = useState(false)
   const [activeTab, setActiveTab] = useState('overview')
   
+  // Staff and financial data states
+  const [staffData, setStaffData] = useState<any>(null)
+  const [financialData, setFinancialData] = useState<any>(null)
+  const [staffLoading, setStaffLoading] = useState(false)
+  const [financialLoading, setFinancialLoading] = useState(false)
+  
   const router = useRouter()
   const { toast } = useToast()
   
@@ -184,6 +190,19 @@ export default function ReportsPage() {
     }
   }, [selectedRestaurant, dateRange, startDate, endDate])
 
+  // Load staff and financial data when tabs are accessed
+  useEffect(() => {
+    if (activeTab === 'staff' && selectedRestaurant) {
+      loadStaffData()
+    }
+  }, [activeTab, selectedRestaurant, dateRange, startDate, endDate])
+
+  useEffect(() => {
+    if (activeTab === 'tax-profit' && selectedRestaurant) {
+      loadFinancialData()
+    }
+  }, [activeTab, selectedRestaurant, dateRange, startDate, endDate])
+
   const loadReportData = async () => {
     try {
       setIsLoading(true)
@@ -285,6 +304,78 @@ export default function ReportsPage() {
         description: 'Failed to export report data',
         variant: 'destructive'
       })
+    }
+  }
+
+  const loadStaffData = async () => {
+    if (!selectedRestaurant) return
+    
+    try {
+      setStaffLoading(true)
+      
+      // Build date range parameters
+      let dateParams = ''
+      if (dateRange === 'custom' && startDate && endDate) {
+        dateParams = `&startDate=${startDate}&endDate=${endDate}`
+      } else if (dateRange !== 'custom') {
+        dateParams = `&range=${dateRange}`
+      }
+      
+      // Fetch staff performance data
+      const response = await fetch(`/api/staff-performance?restaurantId=${selectedRestaurant}${dateParams}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch staff performance data')
+      }
+
+      const staffPerformanceData = await response.json()
+      setStaffData(staffPerformanceData)
+      console.log('[Reports] Staff data loaded')
+    } catch (error) {
+      console.error('[Reports] Error loading staff data:', error)
+      setStaffData(null)
+    } finally {
+      setStaffLoading(false)
+    }
+  }
+
+  const loadFinancialData = async () => {
+    if (!selectedRestaurant) return
+    
+    try {
+      setFinancialLoading(true)
+      
+      // Build date range parameters
+      let dateParams = ''
+      if (dateRange === 'custom' && startDate && endDate) {
+        dateParams = `&startDate=${startDate}&endDate=${endDate}`
+      } else if (dateRange !== 'custom') {
+        dateParams = `&range=${dateRange}`
+      }
+      
+      // Fetch financial tracking data
+      const response = await fetch(`/api/financial-tracking?restaurantId=${selectedRestaurant}${dateParams}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch financial tracking data')
+      }
+
+      const financialTrackingData = await response.json()
+      setFinancialData(financialTrackingData)
+      console.log('[Reports] Financial data loaded')
+    } catch (error) {
+      console.error('[Reports] Error loading financial data:', error)
+      setFinancialData(null)
+    } finally {
+      setFinancialLoading(false)
     }
   }
 
@@ -1275,7 +1366,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-indigo-700 dark:text-indigo-300">--</p>
+                <p className="text-3xl font-bold text-indigo-700 dark:text-indigo-300">{staffData?.summary?.activeStaff || 0}</p>
                 <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70 mt-1">Currently working</p>
               </CardContent>
             </Card>
@@ -1290,7 +1381,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">--%</p>
+                <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{staffData?.summary?.averageEfficiency?.toFixed(1) || 0}%</p>
                 <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Order completion</p>
               </CardContent>
             </Card>
@@ -1305,7 +1396,9 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-xl font-bold text-green-700 dark:text-green-300 truncate">--</p>
+                <p className="text-xl font-bold text-green-700 dark:text-green-300 truncate">
+                  {staffData?.staffPerformance?.[0]?.name || 'N/A'}
+                </p>
                 <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Best staff member</p>
               </CardContent>
             </Card>
@@ -1320,41 +1413,176 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">--%</p>
+                <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">
+                  {staffData?.summary?.completedShifts && staffData?.summary?.totalShifts > 0 ? 
+                    Math.round((staffData.summary.completedShifts / staffData.summary.totalShifts) * 100) : 0}%
+                </p>
                 <p className="text-xs text-purple-600/70 dark:text-purple-400/70 mt-1">Staff utilization</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Staff Performance Placeholder */}
-          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+          {/* Staff Performance Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Staff Performance Bar Chart */}
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-indigo-500/10 transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg animate-pulse">
+                    <TrendingUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  Staff Performance Rankings
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 lg:h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={staffData?.staffPerformance?.slice(0, 10) || []} layout="horizontal">
+                      <defs>
+                        <linearGradient id="staffGradient" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#6366f1" />
+                          <stop offset="100%" stopColor="#8b5cf6" />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                      <XAxis type="number" stroke="#64748b" fontSize={12} />
+                      <YAxis dataKey="name" type="category" stroke="#64748b" fontSize={12} width={80} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255,255,255,0.95)', 
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        }}
+                        formatter={(value: any, name: any) => [
+                          name === 'totalRevenue' ? formatAmount(value) : value,
+                          name === 'totalRevenue' ? 'Revenue' : name === 'totalOrders' ? 'Orders' : 'Efficiency'
+                        ]}
+                      />
+                      <Bar 
+                        dataKey="totalRevenue" 
+                        fill="url(#staffGradient)" 
+                        radius={[0, 4, 4, 0]}
+                        animationDuration={1200}
+                        animationEasing="ease-out"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Staff Efficiency Pie Chart */}
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg animate-pulse">
+                    <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  Staff Activity Breakdown
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 lg:h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <defs>
+                        <filter id="staffActivityGlow">
+                          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                          <feMerge> 
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                      </defs>
+                      <Pie
+                        data={staffData?.userActivity?.map((activity: any, index: number) => ({
+                          ...activity,
+                          color: ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'][index % 5]
+                        })) || []}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ type, percent }) => `${type} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="count"
+                        filter="url(#staffActivityGlow)"
+                        animationDuration={1000}
+                        animationEasing="ease-out"
+                      >
+                        {(staffData?.userActivity || []).map((entry: any, index: number) => (
+                          <Cell key={`cell-${index}`} fill={['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981'][index % 5]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255,255,255,0.95)', 
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        }}
+                        formatter={(value: any, name: any, props: any) => [
+          value,
+          props.payload?.type || 'Unknown'
+        ]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Staff Performance Details Table */}
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-indigo-500/10 transition-all duration-300">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
-                <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg animate-pulse">
-                  <TrendingUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg animate-pulse">
+                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
                 </div>
-                Staff Performance Analytics
+                Staff Performance Details
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <div className="mx-auto w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4">
-                  <TrendingUp className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">Staff Analytics Coming Soon</h3>
-                <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-                  Track staff performance, order completion rates, revenue per staff member, and efficiency metrics.
-                </p>
-                <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg text-left">
-                  <h4 className="font-medium text-slate-700 dark:text-slate-300 mb-2">Features to include:</h4>
-                  <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
-                    <li>• Staff performance rankings</li>
-                    <li>• Order completion rates by staff</li>
-                    <li>• Revenue per staff member analysis</li>
-                    <li>• Shift performance tracking</li>
-                    <li>• Staff efficiency metrics</li>
-                  </ul>
-                </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/30">
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Staff Name</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Orders</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Revenue</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Avg Order</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Efficiency</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Days Worked</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {staffData?.staffPerformance?.map((staff: any, idx: number) => {
+                      const efficiencyColor = staff.efficiencyScore >= 80 ? 'text-emerald-600' : staff.efficiencyScore >= 60 ? 'text-yellow-600' : 'text-red-600'
+                      
+                      return (
+                        <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/70 dark:hover:bg-slate-700/40 transition-colors duration-200">
+                          <td className="py-3 px-4 font-medium text-slate-700 dark:text-slate-300">
+                            <div>
+                              <div className="font-medium">{staff.name}</div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400">{staff.role}</div>
+                            </div>
+                          </td>
+                          <td className="text-right py-3 px-4 text-slate-600 dark:text-slate-400">{staff.totalOrders}</td>
+                          <td className="text-right py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">{formatAmount(staff.totalRevenue)}</td>
+                          <td className="text-right py-3 px-4 text-slate-600 dark:text-slate-400">{formatAmount(staff.averageOrderValue)}</td>
+                          <td className="text-right py-3 px-4">
+                            <span className={`font-medium ${efficiencyColor} dark:${efficiencyColor.replace('600', '400')}`}>
+                              {staff.efficiencyScore.toFixed(1)}%
+                            </span>
+                          </td>
+                          <td className="text-right py-3 px-4 text-slate-600 dark:text-slate-400">{staff.daysWorked}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
@@ -1374,7 +1602,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">--</p>
+                <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">{formatAmount(financialData?.summary?.grossProfit || 0)}</p>
                 <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-1">Total profit</p>
               </CardContent>
             </Card>
@@ -1389,7 +1617,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">--%</p>
+                <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{(financialData?.summary?.profitMargin || 0).toFixed(1)}%</p>
                 <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Profit percentage</p>
               </CardContent>
             </Card>
@@ -1404,7 +1632,7 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">--</p>
+                <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">{formatAmount(financialData?.summary?.totalTax || 0)}</p>
                 <p className="text-xs text-orange-600/70 dark:text-orange-400/70 mt-1">Tax collected</p>
               </CardContent>
             </Card>
@@ -1419,41 +1647,189 @@ export default function ReportsPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">--</p>
+                <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">{formatAmount(financialData?.summary?.netProfit || 0)}</p>
                 <p className="text-xs text-purple-600/70 dark:text-purple-400/70 mt-1">After tax</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Financial Analytics Placeholder */}
-          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+          {/* Financial Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Profit Trend Chart */}
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-emerald-500/10 transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg animate-pulse">
+                    <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  Profit Trend Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 lg:h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={financialData?.dailyData || []}>
+                      <defs>
+                        <linearGradient id="profitGradient" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#10b981" />
+                          <stop offset="100%" stopColor="#3b82f6" />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                      <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
+                      <YAxis stroke="#64748b" fontSize={12} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255,255,255,0.95)', 
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        }}
+                        formatter={(value: any, name: any) => [
+                          name === 'grossProfit' || name === 'netProfit' ? formatAmount(value) : value,
+                          name === 'grossProfit' ? 'Gross Profit' : name === 'netProfit' ? 'Net Profit' : name === 'totalRevenue' ? 'Revenue' : 'Tax'
+                        ]}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="grossProfit"
+                        stroke="url(#profitGradient)"
+                        strokeWidth={3}
+                        dot={{ fill: '#10b981', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6 }}
+                        animationDuration={1500}
+                        animationEasing="ease-in-out"
+                        name="Gross Profit"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="netProfit"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        dot={{ fill: '#3b82f6', strokeWidth: 2, r: 3 }}
+                        activeDot={{ r: 5 }}
+                        animationDuration={1200}
+                        animationEasing="ease-out"
+                        name="Net Profit"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Category Profit Pie Chart */}
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg animate-pulse">
+                    <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  Profit by Category
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 lg:h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <defs>
+                        <filter id="categoryProfitGlow">
+                          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                          <feMerge> 
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                      </defs>
+                      <Pie
+                        data={financialData?.categoryProfit?.map((cat: any, index: number) => ({
+                          ...cat,
+                          color: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'][index % 5]
+                        })) || []}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="profit"
+                        filter="url(#categoryProfitGlow)"
+                        animationDuration={1000}
+                        animationEasing="ease-out"
+                      >
+                        {(financialData?.categoryProfit || []).map((entry: any, index: number) => (
+                          <Cell key={`cell-${index}`} fill={['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'][index % 5]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255,255,255,0.95)', 
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        }}
+                        formatter={(value: any, name: any, props: any) => [
+                          formatAmount(value),
+                          props.payload?.category || 'Unknown'
+                        ]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Financial Details Table */}
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-emerald-500/10 transition-all duration-300">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-2 text-lg">
                 <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg animate-pulse">
                   <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
-                Financial Analytics
+                Category Profit Details
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-center py-12">
-                <div className="mx-auto w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-4">
-                  <TrendingUp className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">Financial Analytics Coming Soon</h3>
-                <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto">
-                  Analyze profit margins, tax calculations, revenue vs cost breakdown, and financial trends.
-                </p>
-                <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg text-left">
-                  <h4 className="font-medium text-slate-700 dark:text-slate-300 mb-2">Features to include:</h4>
-                  <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
-                    <li>• Profit margin calculations</li>
-                    <li>• Tax reporting and breakdowns</li>
-                    <li>• Revenue vs cost analysis</li>
-                    <li>• Financial trend charts</li>
-                    <li>• Category profitability</li>
-                  </ul>
-                </div>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/30">
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Category</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Revenue</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Cost</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Profit</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Margin</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Items</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {financialData?.categoryProfit?.map((category: any, idx: number) => {
+                      const marginColor = category.profitMargin >= 30 ? 'text-emerald-600' : category.profitMargin >= 15 ? 'text-yellow-600' : 'text-red-600'
+                      
+                      return (
+                        <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/70 dark:hover:bg-slate-700/40 transition-colors duration-200">
+                          <td className="py-3 px-4 font-medium text-slate-700 dark:text-slate-300">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-3 h-3 rounded-full shadow-sm`} style={{ backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'][idx % 5] }}></div>
+                              {category.category}
+                            </div>
+                          </td>
+                          <td className="text-right py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">{formatAmount(category.revenue)}</td>
+                          <td className="text-right py-3 px-4 text-slate-600 dark:text-slate-400">{formatAmount(category.cost)}</td>
+                          <td className="text-right py-3 px-4 font-bold text-blue-600 dark:text-blue-400">{formatAmount(category.profit)}</td>
+                          <td className="text-right py-3 px-4">
+                            <span className={`font-medium ${marginColor} dark:${marginColor.replace('600', '400')}`}>
+                              {category.profitMargin.toFixed(1)}%
+                            </span>
+                          </td>
+                          <td className="text-right py-3 px-4 text-slate-600 dark:text-slate-400">{category.itemCount}</td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
               </div>
             </CardContent>
           </Card>
