@@ -245,18 +245,18 @@ export default function ReportsPage() {
     }
   }
 
-  const totalRevenue = dailyData.reduce((sum, day) => sum + day.sales, 0)
-  const totalTransactions = dailyData.reduce((sum, day) => sum + day.transactions, 0)
+  const totalRevenue = (dailyData || []).reduce((sum, day) => sum + (day.sales || 0), 0)
+  const totalTransactions = (dailyData || []).reduce((sum, day) => sum + (day.transactions || 0), 0)
   const averageTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
   
   // Calculate sold and cleared orders from status data
-  const soldOrders = statusData.find((s: any) => s.status === 'Completed')?.count || 0
-  const clearedOrders = statusData.reduce((sum: number, s: any) => sum + s.count, 0)
+  const soldOrders = (statusData || []).find((s: any) => s.status === 'Completed')?.count || 0
+  const clearedOrders = (statusData || []).reduce((sum: number, s: any) => sum + (s.count || 0), 0)
   
   // Calculate revenue metrics from API data
-  const soldRevenue = statusData.find((s: any) => s.status === 'Completed')?.revenue || 0
-  const totalOrderRevenue = statusData.reduce((sum: number, s: any) => sum + (s.revenue || 0), 0)
-  const averageOrderValue = totalOrderRevenue > 0 ? (totalOrderRevenue / clearedOrders).toFixed(2) : '0.00'
+  const soldRevenue = (statusData || []).find((s: any) => s.status === 'Completed')?.revenue || 0
+  const totalOrderRevenue = (statusData || []).reduce((sum: number, s: any) => sum + (s.revenue || 0), 0)
+  const averageOrderValue = totalOrderRevenue > 0 && clearedOrders > 0 ? (totalOrderRevenue / clearedOrders).toFixed(2) : '0.00'
 
   // Show loading or access denied state while checking role
   if (!userRole) {
@@ -870,7 +870,7 @@ export default function ReportsPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ status, percent, revenue }) => `${status} ${(percent * 100).toFixed(0)}% (${getCurrencySymbol()}${revenue.toFixed(0)})`}
+                    label={({ status, percent, revenue }) => `${status || 'Unknown'} ${(percent * 100).toFixed(0)}% (${getCurrencySymbol()}${(revenue || 0).toFixed(0)})`}
                     outerRadius={60}
                     fill="#8884d8"
                     dataKey="count"
@@ -890,8 +890,8 @@ export default function ReportsPage() {
                       boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
                     }}
                     formatter={(value: any, name: any, props: any) => [
-                      `${props.payload.count} orders - ${getCurrencySymbol()}${props.payload.revenue.toFixed(2)}`,
-                      props.payload.status
+                      `${props.payload?.count || 0} orders - ${getCurrencySymbol()}${(props.payload?.revenue || 0).toFixed(2)}`,
+                      props.payload?.status || 'Unknown'
                     ]}
                   />
                 </PieChart>
@@ -988,7 +988,7 @@ export default function ReportsPage() {
                     cx="50%"
                     cy="50%"
                     labelLine={false}
-                    label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
+                    label={({ category, percent }) => `${category || 'Unknown'} ${(percent * 100).toFixed(0)}%`}
                     outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
