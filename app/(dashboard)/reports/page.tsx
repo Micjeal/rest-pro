@@ -1032,8 +1032,7 @@ export default function ReportsPage() {
                 </div>
               ))}
             </div>
-            )}
-            </ChartErrorBoundary>
+          </ChartErrorBoundary>
           </CardContent>
         </Card>
         <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
