@@ -774,47 +774,687 @@ export default function ReportsPage() {
           </Card>
         </TabsContent>
 
-        {/* Other Tab Contents - Placeholder for now */}
+        {/* Sales Tab Content */}
         <TabsContent value="sales" className="space-y-6">
-          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Sales Analytics</CardTitle>
+          {/* Sales Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-200/50 dark:border-green-800/30 card-hover shadow-lg hover:shadow-green-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-300">
+                  <div className="p-1.5 bg-green-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                  </div>
+                  Total Revenue
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-green-700 dark:text-green-300">{formatAmount(totalRevenue)}</p>
+                <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">All time sales</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-200/50 dark:border-blue-800/30 card-hover shadow-lg hover:shadow-blue-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
+                  <div className="p-1.5 bg-blue-500/20 rounded-lg animate-pulse">
+                    <Calendar className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  Avg Transaction
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">{formatAmount(averageTransaction)}</p>
+                <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Per order</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-200/50 dark:border-purple-800/30 card-hover shadow-lg hover:shadow-purple-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-700 dark:text-purple-300">
+                  <div className="p-1.5 bg-purple-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  Peak Day
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                  {dailyData.length > 0 ? dailyData.reduce((max, day) => (day.sales > max.sales ? day : max), dailyData[0]).date : 'N/A'}
+                </p>
+                <p className="text-xs text-purple-600/70 dark:text-purple-400/70 mt-1">Best sales day</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-200/50 dark:border-orange-800/30 card-hover shadow-lg hover:shadow-orange-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-orange-700 dark:text-orange-300">
+                  <div className="p-1.5 bg-orange-500/20 rounded-lg animate-pulse">
+                    <Calendar className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  Completion Rate
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">
+                  {totalTransactions > 0 ? Math.round((soldOrders / totalTransactions) * 100) : 0}%
+                </p>
+                <p className="text-xs text-orange-600/70 dark:text-orange-400/70 mt-1">Orders completed</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sales Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Sales Trend Chart */}
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg animate-pulse">
+                    <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  Sales Trend Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 lg:h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={dailyData}>
+                      <defs>
+                        <linearGradient id="salesGradient2" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#3b82f6" />
+                          <stop offset="100%" stopColor="#8b5cf6" />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                      <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
+                      <YAxis stroke="#64748b" fontSize={12} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255,255,255,0.95)', 
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        }}
+                        formatter={(value: any, name: any) => [
+                          name === 'sales' ? formatAmount(value) : value,
+                          name === 'sales' ? 'Revenue' : 'Transactions'
+                        ]}
+                      />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="sales"
+                        stroke="url(#salesGradient2)"
+                        strokeWidth={3}
+                        dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4 }}
+                        activeDot={{ r: 6 }}
+                        animationDuration={1500}
+                        animationEasing="ease-in-out"
+                        name="Revenue"
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="transactions"
+                        stroke="#10b981"
+                        strokeWidth={2}
+                        dot={{ fill: '#10b981', strokeWidth: 2, r: 3 }}
+                        activeDot={{ r: 5 }}
+                        animationDuration={1200}
+                        animationEasing="ease-out"
+                        name="Transactions"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Payment Method Breakdown */}
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg animate-pulse">
+                    <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  Payment Methods
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 lg:h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <defs>
+                        <filter id="paymentGlow">
+                          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                          <feMerge> 
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                      </defs>
+                      <Pie
+                        data={paymentData || []}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ method, percent }) => `${method} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        filter="url(#paymentGlow)"
+                        animationDuration={1000}
+                        animationEasing="ease-out"
+                      >
+                        {(paymentData || []).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color || ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'][index % 4]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255,255,255,0.95)', 
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        }}
+                        formatter={(value: any, name: any, props: any) => [
+                          formatAmount(value),
+                          props.payload?.method || 'Unknown'
+                        ]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                {/* Payment Details */}
+                <div className="mt-4 space-y-2">
+                  {(paymentData || []).map((item, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 rounded-lg bg-slate-50/50 dark:bg-slate-700/30">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-3 h-3 rounded-full shadow-sm`} style={{ backgroundColor: item.color || '#3b82f6' }}></div>
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{item.method}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-sm font-bold text-slate-900 dark:text-slate-100">{formatAmount(item.value)}</span>
+                        <span className="text-xs text-slate-600 dark:text-slate-400 ml-2">({item.count} tx)</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Sales Performance Table */}
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg animate-pulse">
+                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
+                Daily Sales Performance
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Sales analytics coming soon...</p>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/30">
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Date</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Revenue</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Transactions</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Avg Order</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Performance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dailyData.map((day, idx) => {
+                      const dayPerformance = totalRevenue > 0 ? (day.sales / totalRevenue) * 100 : 0
+                      const performanceColor = dayPerformance >= 20 ? 'text-emerald-600' : dayPerformance >= 10 ? 'text-yellow-600' : 'text-red-600'
+                      
+                      return (
+                        <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/70 dark:hover:bg-slate-700/40 transition-colors duration-200">
+                          <td className="py-3 px-4 font-medium text-slate-700 dark:text-slate-300">{day.date}</td>
+                          <td className="text-right py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">{formatAmount(day.sales)}</td>
+                          <td className="text-right py-3 px-4 text-slate-600 dark:text-slate-400">{day.transactions}</td>
+                          <td className="text-right py-3 px-4 text-slate-600 dark:text-slate-400">{formatAmount(day.avgOrderValue)}</td>
+                          <td className="text-right py-3 px-4">
+                            <span className={`font-medium ${performanceColor} dark:${performanceColor.replace('600', '400')}`}>
+                              {dayPerformance.toFixed(1)}%
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Items Tab Content */}
         <TabsContent value="items" className="space-y-6">
-          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Item Performance</CardTitle>
+          {/* Items Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-200/50 dark:border-purple-800/30 card-hover shadow-lg hover:shadow-purple-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-700 dark:text-purple-300">
+                  <div className="p-1.5 bg-purple-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  Categories
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">{categoryData.length}</p>
+                <p className="text-xs text-purple-600/70 dark:text-purple-400/70 mt-1">Active categories</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-200/50 dark:border-blue-800/30 card-hover shadow-lg hover:shadow-blue-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
+                  <div className="p-1.5 bg-blue-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  Top Category
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xl font-bold text-blue-700 dark:text-blue-300 truncate">
+                  {categoryData.length > 0 ? categoryData.reduce((max, cat) => (cat.value > max.value ? cat : max), categoryData[0]).category : 'N/A'}
+                </p>
+                <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Best performer</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-200/50 dark:border-green-800/30 card-hover shadow-lg hover:shadow-green-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-300">
+                  <div className="p-1.5 bg-green-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                  </div>
+                  Avg Item Price
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-green-700 dark:text-green-300">
+                  {categoryData.length > 0 ? formatAmount(categoryData.reduce((sum, cat) => sum + (cat.avgPrice || 0), 0) / categoryData.length) : 'UGX 0'}
+                </p>
+                <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Per category</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-200/50 dark:border-orange-800/30 card-hover shadow-lg hover:shadow-orange-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-orange-700 dark:text-orange-300">
+                  <div className="p-1.5 bg-orange-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  Total Items
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">
+                  {categoryData.reduce((sum, cat) => sum + (cat.items || 0), 0)}
+                </p>
+                <p className="text-xs text-orange-600/70 dark:text-orange-400/70 mt-1">Items sold</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Category Performance Charts */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Category Pie Chart */}
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-1.5 bg-purple-100 dark:bg-purple-900/30 rounded-lg animate-pulse">
+                    <TrendingUp className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  Category Performance
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 lg:h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <defs>
+                        <filter id="categoryGlow2">
+                          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                          <feMerge> 
+                            <feMergeNode in="coloredBlur"/>
+                            <feMergeNode in="SourceGraphic"/>
+                          </feMerge>
+                        </filter>
+                      </defs>
+                      <Pie
+                        data={categoryData || []}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ category, percent }) => `${category} ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        filter="url(#categoryGlow2)"
+                        animationDuration={1000}
+                        animationEasing="ease-out"
+                      >
+                        {(categoryData || []).map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color || ['#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'][index % 4]} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255,255,255,0.95)', 
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        }}
+                        formatter={(value: any, name: any, props: any) => [
+                          formatAmount(value),
+                          props.payload?.category || 'Unknown'
+                        ]}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Category Bar Chart */}
+            <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg">
+                  <div className="p-1.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg animate-pulse">
+                    <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  Category Revenue
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64 lg:h-80">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={categoryData} layout="horizontal">
+                      <defs>
+                        <linearGradient id="barGradient2" x1="0" y1="0" x2="1" y2="0">
+                          <stop offset="0%" stopColor="#8b5cf6" />
+                          <stop offset="100%" stopColor="#ec4899" />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+                      <XAxis type="number" stroke="#64748b" fontSize={12} />
+                      <YAxis dataKey="category" type="category" stroke="#64748b" fontSize={12} width={80} />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255,255,255,0.95)', 
+                          border: '1px solid rgba(0,0,0,0.1)',
+                          borderRadius: '12px',
+                          boxShadow: '0 4px 6px rgba(0,0,0,0.1)'
+                        }}
+                        formatter={(value: any) => [formatAmount(value), 'Revenue']}
+                      />
+                      <Bar 
+                        dataKey="value" 
+                        fill="url(#barGradient2)" 
+                        radius={[0, 4, 4, 0]}
+                        animationDuration={1200}
+                        animationEasing="ease-out"
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Category Details Table */}
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <div className="p-1.5 bg-green-100 dark:bg-green-900/30 rounded-lg animate-pulse">
+                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </div>
+                Category Performance Details
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Item analytics coming soon...</p>
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-700/30">
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Category</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Revenue</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Items Sold</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Avg Price</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Performance</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {categoryData.map((category, idx) => {
+                      const categoryPerformance = totalRevenue > 0 ? (category.value / totalRevenue) * 100 : 0
+                      const performanceColor = categoryPerformance >= 30 ? 'text-emerald-600' : categoryPerformance >= 15 ? 'text-yellow-600' : 'text-red-600'
+                      
+                      return (
+                        <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/70 dark:hover:bg-slate-700/40 transition-colors duration-200">
+                          <td className="py-3 px-4 font-medium text-slate-700 dark:text-slate-300">
+                            <div className="flex items-center gap-2">
+                              <div className={`w-3 h-3 rounded-full shadow-sm`} style={{ backgroundColor: category.color || '#8b5cf6' }}></div>
+                              {category.category}
+                            </div>
+                          </td>
+                          <td className="text-right py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">{formatAmount(category.value)}</td>
+                          <td className="text-right py-3 px-4 text-slate-600 dark:text-slate-400">{category.items || 0}</td>
+                          <td className="text-right py-3 px-4 text-slate-600 dark:text-slate-400">{formatAmount(category.avgPrice)}</td>
+                          <td className="text-right py-3 px-4">
+                            <span className={`font-medium ${performanceColor} dark:${performanceColor.replace('600', '400')}`}>
+                              {categoryPerformance.toFixed(1)}%
+                            </span>
+                          </td>
+                        </tr>
+                      )
+                    })}
+                  </tbody>
+                </table>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Staff Tab Content */}
         <TabsContent value="staff" className="space-y-6">
-          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Staff Performance</CardTitle>
+          {/* Staff Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="bg-gradient-to-br from-indigo-500/10 to-indigo-600/5 border-indigo-200/50 dark:border-indigo-800/30 card-hover shadow-lg hover:shadow-indigo-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-indigo-700 dark:text-indigo-300">
+                  <div className="p-1.5 bg-indigo-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-indigo-600 dark:text-indigo-400" />
+                  </div>
+                  Active Staff
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-indigo-700 dark:text-indigo-300">--</p>
+                <p className="text-xs text-indigo-600/70 dark:text-indigo-400/70 mt-1">Currently working</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-200/50 dark:border-blue-800/30 card-hover shadow-lg hover:shadow-blue-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
+                  <div className="p-1.5 bg-blue-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  Avg Efficiency
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">--%</p>
+                <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Order completion</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-200/50 dark:border-green-800/30 card-hover shadow-lg hover:shadow-green-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-green-700 dark:text-green-300">
+                  <div className="p-1.5 bg-green-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-green-600 dark:text-green-400" />
+                  </div>
+                  Top Performer
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xl font-bold text-green-700 dark:text-green-300 truncate">--</p>
+                <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">Best staff member</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-200/50 dark:border-purple-800/30 card-hover shadow-lg hover:shadow-purple-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-700 dark:text-purple-300">
+                  <div className="p-1.5 bg-purple-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  Shift Coverage
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">--%</p>
+                <p className="text-xs text-purple-600/70 dark:text-purple-400/70 mt-1">Staff utilization</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Staff Performance Placeholder */}
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg animate-pulse">
+                  <TrendingUp className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                Staff Performance Analytics
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Staff analytics coming soon...</p>
+              <div className="text-center py-12">
+                <div className="mx-auto w-16 h-16 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center mb-4">
+                  <TrendingUp className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">Staff Analytics Coming Soon</h3>
+                <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+                  Track staff performance, order completion rates, revenue per staff member, and efficiency metrics.
+                </p>
+                <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg text-left">
+                  <h4 className="font-medium text-slate-700 dark:text-slate-300 mb-2">Features to include:</h4>
+                  <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
+                    <li>• Staff performance rankings</li>
+                    <li>• Order completion rates by staff</li>
+                    <li>• Revenue per staff member analysis</li>
+                    <li>• Shift performance tracking</li>
+                    <li>• Staff efficiency metrics</li>
+                  </ul>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
 
+        {/* Tax & Profit Tab Content */}
         <TabsContent value="tax-profit" className="space-y-6">
-          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg">
-            <CardHeader>
-              <CardTitle className="text-lg">Tax & Profit Analysis</CardTitle>
+          {/* Financial Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Card className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border-emerald-200/50 dark:border-emerald-800/30 card-hover shadow-lg hover:shadow-emerald-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-emerald-700 dark:text-emerald-300">
+                  <div className="p-1.5 bg-emerald-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  Gross Profit
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-emerald-700 dark:text-emerald-300">--</p>
+                <p className="text-xs text-emerald-600/70 dark:text-emerald-400/70 mt-1">Total profit</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-200/50 dark:border-blue-800/30 card-hover shadow-lg hover:shadow-blue-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-700 dark:text-blue-300">
+                  <div className="p-1.5 bg-blue-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  Profit Margin
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-blue-700 dark:text-blue-300">--%</p>
+                <p className="text-xs text-blue-600/70 dark:text-blue-400/70 mt-1">Profit percentage</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-200/50 dark:border-orange-800/30 card-hover shadow-lg hover:shadow-orange-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-orange-700 dark:text-orange-300">
+                  <div className="p-1.5 bg-orange-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  Total Tax
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-orange-700 dark:text-orange-300">--</p>
+                <p className="text-xs text-orange-600/70 dark:text-orange-400/70 mt-1">Tax collected</p>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-200/50 dark:border-purple-800/30 card-hover shadow-lg hover:shadow-purple-500/20 transition-all duration-300">
+              <CardHeader className="pb-3">
+                <CardTitle className="flex items-center gap-2 text-sm font-medium text-purple-700 dark:text-purple-300">
+                  <div className="p-1.5 bg-purple-500/20 rounded-lg animate-pulse">
+                    <TrendingUp className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  Net Profit
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-purple-700 dark:text-purple-300">--</p>
+                <p className="text-xs text-purple-600/70 dark:text-purple-400/70 mt-1">After tax</p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Financial Analytics Placeholder */}
+          <Card className="bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 card-hover shadow-lg hover:shadow-blue-500/10 transition-all duration-300">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
+                <div className="p-1.5 bg-emerald-100 dark:bg-emerald-900/30 rounded-lg animate-pulse">
+                  <TrendingUp className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                Financial Analytics
+              </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600">Financial analytics coming soon...</p>
+              <div className="text-center py-12">
+                <div className="mx-auto w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mb-4">
+                  <TrendingUp className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 mb-2">Financial Analytics Coming Soon</h3>
+                <p className="text-slate-600 dark:text-slate-400 max-w-md mx-auto">
+                  Analyze profit margins, tax calculations, revenue vs cost breakdown, and financial trends.
+                </p>
+                <div className="mt-6 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg text-left">
+                  <h4 className="font-medium text-slate-700 dark:text-slate-300 mb-2">Features to include:</h4>
+                  <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
+                    <li>• Profit margin calculations</li>
+                    <li>• Tax reporting and breakdowns</li>
+                    <li>• Revenue vs cost analysis</li>
+                    <li>• Financial trend charts</li>
+                    <li>• Category profitability</li>
+                  </ul>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
