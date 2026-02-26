@@ -73,7 +73,7 @@ async function populateStaffPerformance() {
           default:
             ordersCompleted = Math.floor(Math.random() * 10) + 5
             revenueGenerated = ordersCompleted * (Math.random() * 4000 + 2000)
-            efficiencyScore = 70 + Math.random() 15
+            efficiencyScore = 70 + Math.random() * 15
         }
 
         const performanceRecord = {
