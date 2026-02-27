@@ -76,10 +76,10 @@ export function LoginForm() {
   }
 
   return (
-    <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm shadow-2xl border-0">
+    <Card className="w-full max-w-md bg-white/95 backdrop-blur-sm shadow-xl border border-gray-100">
       <CardHeader className="space-y-1 pb-4">
-        <CardTitle className="text-2xl font-bold text-gray-900">Welcome Back</CardTitle>
-        <CardDescription className="text-gray-500">Enter your credentials to access the POS system</CardDescription>
+        <CardTitle className="text-2xl font-bold text-gray-900 text-center">Welcome Back</CardTitle>
+        <CardDescription className="text-gray-500 text-center">Enter your credentials to access the system</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleLogin} className="space-y-5">
@@ -93,7 +93,7 @@ export function LoginForm() {
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
-              className="h-11 bg-gray-50 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors"
+              className="h-11 bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 transition-colors"
             />
           </div>
 
@@ -107,13 +107,13 @@ export function LoginForm() {
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isLoading}
-              className="h-11 bg-gray-50 border-gray-200 focus:border-blue-500 focus:ring-blue-500 transition-colors"
+              className="h-11 bg-gray-50 border-gray-200 focus:border-blue-600 focus:ring-blue-600 transition-colors"
             />
           </div>
 
           <Button 
             type="submit" 
-            className="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium rounded-lg transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40" 
+            className="w-full h-11 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium rounded-lg transition-all duration-200 shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40" 
             disabled={isLoading}
           >
             {isLoading ? (
