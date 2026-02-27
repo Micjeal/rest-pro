@@ -67,10 +67,18 @@ export async function GET(request: NextRequest) {
     console.log('[Staff Performance API] Date filter:', dateFilter)
 
     try {
-      // Fetch staff performance data
+      // Fetch staff performance data with user information
       const { data: staffPerformanceData, error: performanceError } = await supabase
         .from('staff_performance')
-        .select('*')
+        .select(`
+          *,
+          users!staff_performance_staff_id_fkey (
+            id,
+            name,
+            email,
+            role
+          )
+        `)
         .or(dateFilter)
         .order('date', { ascending: false })
 
