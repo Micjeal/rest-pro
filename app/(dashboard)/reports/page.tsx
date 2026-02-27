@@ -691,20 +691,33 @@ export default function ReportsPage() {
                 </div>
               </div>
             </div>
-<Button 
-              onClick={handleExportReport}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-press text-sm lg:text-base"
-              size="sm"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              <span className="hidden sm:inline">Export Report</span>
-              <span className="sm:hidden">Export</span>
-            </Button>
+<div className="flex items-center gap-2">
+              <Button 
+                onClick={handleExcelExport}
+                disabled={isExporting}
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-press text-sm lg:text-base"
+                size="sm"
+              >
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Export Excel</span>
+                <span className="sm:hidden">Excel</span>
+              </Button>
+              <Button 
+                onClick={handlePDFExport}
+                disabled={isExporting}
+                className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 btn-press text-sm lg:text-base"
+                size="sm"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                <span className="hidden sm:inline">Export PDF</span>
+                <span className="sm:hidden">PDF</span>
+              </Button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="p-4 lg:p-6 space-y-4 lg:space-y-6">
+      <div id="reports-content" className="p-4 lg:p-6 space-y-4 lg:space-y-6">
       {/* Controls Section - Mobile Optimized */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
         {/* Restaurant Selector */}
