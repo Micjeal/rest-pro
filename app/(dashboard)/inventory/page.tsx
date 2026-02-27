@@ -259,32 +259,34 @@ export default function InventoryPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-800 min-h-screen">
-          <div className="flex justify-between items-start">
+    <div className="p-4 lg:p-6 space-y-4 lg:space-y-6 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-800 min-h-screen">
+          <div className="flex flex-col lg:flex-row lg:justify-between lg:items-start gap-4">
             <div>
-              <h1 className="text-4xl font-bold text-gray-900 dark:text-white">Inventory</h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">Manage stock levels and supplies</p>
+              <h1 className="text-2xl lg:text-4xl font-bold text-gray-900 dark:text-white">Inventory</h1>
+              <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 mt-1">Manage stock levels and supplies</p>
             </div>
             <Button 
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25"
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/25 text-sm lg:text-base"
               onClick={() => setShowAddDialog(true)}
+              size="sm"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Item
+              <span className="hidden sm:inline">Add Item</span>
+              <span className="sm:hidden">Add</span>
             </Button>
           </div>
 
       {/* Restaurant Selector */}
       <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-t-lg border-b border-gray-100 dark:border-slate-700">
-          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-            <Store className="h-5 w-5 text-blue-600" />
+          <CardTitle className="text-base lg:text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+            <Store className="h-4 w-4 lg:h-5 lg:w-5 text-blue-600" />
             Select Restaurant
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <Select value={selectedRestaurant || ''} onValueChange={setSelectedRestaurant} disabled={restaurantsLoading}>
-            <SelectTrigger className="h-12 bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600">
+            <SelectTrigger className="h-11 lg:h-12 bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600">
               <SelectValue placeholder="Select restaurant" />
             </SelectTrigger>
             <SelectContent>
@@ -303,21 +305,21 @@ export default function InventoryPage() {
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
           <div className="flex gap-3">
             <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-amber-900">Low Stock Alert</h3>
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-amber-900 text-sm lg:text-base">Low Stock Alert</h3>
               <p className="text-sm text-amber-800 mt-1">
                 {lowStockItems.length} item{lowStockItems.length !== 1 ? 's' : ''} below reorder level:
               </p>
               <div className="mt-2 space-y-1">
                 {lowStockItems.map((item: InventoryItem) => (
-                  <div key={item.id} className="text-sm text-amber-800 flex justify-between">
-                    <span>
+                  <div key={item.id} className="text-sm text-amber-800 flex justify-between items-center">
+                    <span className="truncate">
                       {item.item_name}: {item.quantity}/{item.reorder_level} {item.unit}
                     </span>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="text-xs"
+                      className="text-xs h-7 px-2"
                       onClick={() => handleRestock(item.id)}
                     >
                       Order Now
@@ -331,37 +333,37 @@ export default function InventoryPage() {
       )}
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Items</CardTitle>
+            <CardTitle className="text-xs lg:text-sm font-medium text-gray-600">Total Items</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">{inventory.length}</p>
+            <p className="text-xl lg:text-3xl font-bold">{inventory.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Low Stock</CardTitle>
+            <CardTitle className="text-xs lg:text-sm font-medium text-gray-600">Low Stock</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-amber-600">{lowStockItems.length}</p>
+            <p className="text-xl lg:text-3xl font-bold text-amber-600">{lowStockItems.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">In Stock</CardTitle>
+            <CardTitle className="text-xs lg:text-sm font-medium text-gray-600">In Stock</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold text-green-600">{inventory.length - lowStockItems.length}</p>
+            <p className="text-xl lg:text-3xl font-bold text-green-600">{inventory.length - lowStockItems.length}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Stock Status</CardTitle>
+            <CardTitle className="text-xs lg:text-sm font-medium text-gray-600">Stock Status</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-3xl font-bold">
+            <p className="text-xl lg:text-3xl font-bold">
               {((((inventory.length - lowStockItems.length) / inventory.length) * 100) || 0).toFixed(0)}%
             </p>
           </CardContent>
@@ -371,16 +373,16 @@ export default function InventoryPage() {
       {/* Search */}
       <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Search Inventory</CardTitle>
+          <CardTitle className="text-base lg:text-lg font-semibold text-gray-900 dark:text-white">Search Inventory</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="relative">
-            <Search className="absolute left-3 top-3.5 h-5 w-5 text-gray-400" />
+            <Search className="absolute left-3 top-3 lg:top-3.5 h-4 w-4 lg:h-5 lg:w-5 text-gray-400" />
             <Input
               placeholder="Search by item name or supplier..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-11 h-12 bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600"
+              className="pl-10 h-10 lg:h-12 bg-gray-50 dark:bg-slate-700 border-gray-200 dark:border-slate-600"
             />
           </div>
         </CardContent>
@@ -389,7 +391,7 @@ export default function InventoryPage() {
       {/* Inventory Table */}
       <Card className="bg-white dark:bg-slate-800 border-0 shadow-lg">
         <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-slate-800 dark:to-slate-700 rounded-t-lg border-b border-gray-100 dark:border-slate-700">
-          <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">Inventory Items</CardTitle>
+          <CardTitle className="text-base lg:text-lg font-semibold text-gray-900 dark:text-white">Inventory Items</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {itemsLoading ? (
@@ -406,12 +408,12 @@ export default function InventoryPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50 dark:bg-slate-700/50">
-                    <TableHead className="font-semibold text-gray-900 dark:text-white">Item Name</TableHead>
-                    <TableHead className="text-right font-semibold text-gray-900 dark:text-white">Quantity</TableHead>
-                    <TableHead className="text-right font-semibold text-gray-900 dark:text-white">Reorder Level</TableHead>
-                    <TableHead className="font-semibold text-gray-900 dark:text-white">Last Updated</TableHead>
-                    <TableHead className="font-semibold text-gray-900 dark:text-white">Status</TableHead>
-                    <TableHead className="text-right font-semibold text-gray-900 dark:text-white">Actions</TableHead>
+                    <TableHead className="font-semibold text-gray-900 dark:text-white text-xs lg:text-sm">Item Name</TableHead>
+                    <TableHead className="text-right font-semibold text-gray-900 dark:text-white text-xs lg:text-sm">Quantity</TableHead>
+                    <TableHead className="text-right font-semibold text-gray-900 dark:text-white text-xs lg:text-sm hidden sm:table-cell">Reorder Level</TableHead>
+                    <TableHead className="font-semibold text-gray-900 dark:text-white text-xs lg:text-sm hidden lg:table-cell">Last Updated</TableHead>
+                    <TableHead className="font-semibold text-gray-900 dark:text-white text-xs lg:text-sm">Status</TableHead>
+                    <TableHead className="text-right font-semibold text-gray-900 dark:text-white text-xs lg:text-sm">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -420,19 +422,19 @@ export default function InventoryPage() {
                       key={item.id}
                       className={`hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors ${isLowStock(item) ? 'bg-amber-50/50 dark:bg-amber-900/10' : ''}`}
                     >
-                      <TableCell className="font-semibold text-gray-900 dark:text-white">{item.item_name}</TableCell>
-                      <TableCell className="text-right text-gray-700 dark:text-gray-300">
+                      <TableCell className="font-semibold text-gray-900 dark:text-white text-xs lg:text-sm">{item.item_name}</TableCell>
+                      <TableCell className="text-right text-gray-700 dark:text-gray-300 text-xs lg:text-sm">
                         {item.quantity} {item.unit}
                       </TableCell>
-                      <TableCell className="text-right text-gray-700 dark:text-gray-300">{item.reorder_level} {item.unit}</TableCell>
-                      <TableCell className="text-gray-600 dark:text-gray-400">{new Date(item.last_updated).toLocaleDateString()}</TableCell>
+                      <TableCell className="text-right text-gray-700 dark:text-gray-300 text-xs lg:text-sm hidden sm:table-cell">{item.reorder_level} {item.unit}</TableCell>
+                      <TableCell className="text-gray-600 dark:text-gray-400 text-xs lg:text-sm hidden lg:table-cell">{new Date(item.last_updated).toLocaleDateString()}</TableCell>
                       <TableCell>
                         {isLowStock(item) ? (
-                          <span className="px-3 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-medium">
+                          <span className="px-2 py-1 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-full text-xs font-medium">
                             Low Stock
                           </span>
                         ) : (
-                          <span className="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
+                          <span className="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-xs font-medium">
                             In Stock
                           </span>
                         )}
@@ -443,18 +445,18 @@ export default function InventoryPage() {
                           size="sm"
                           onClick={() => handleEditItem(item)}
                           title="Edit item"
-                          className="h-8 w-8 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20"
+                          className="h-7 w-7 lg:h-8 lg:w-8 p-0 hover:bg-blue-50 dark:hover:bg-blue-900/20"
                         >
-                          <Edit className="h-4 w-4 text-blue-600" />
+                          <Edit className="h-3 w-3 lg:h-4 lg:w-4 text-blue-600" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDelete(item.id)}
                           title="Delete item"
-                          className="h-8 w-8 p-0 hover:bg-red-50 dark:hover:bg-red-900/20"
+                          className="h-7 w-7 lg:h-8 lg:w-8 p-0 hover:bg-red-50 dark:hover:bg-red-900/20"
                         >
-                          <Trash2 className="h-4 w-4 text-red-600" />
+                          <Trash2 className="h-3 w-3 lg:h-4 lg:w-4 text-red-600" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -468,12 +470,12 @@ export default function InventoryPage() {
 
       {/* Add/Edit Item Dialog */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] max-w-[95vw]">
           <DialogHeader>
-            <DialogTitle>{editingItem ? 'Edit Item' : 'Add New Item'}</DialogTitle>
+            <DialogTitle className="text-lg">{editingItem ? 'Edit Item' : 'Add New Item'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="itemName">Item Name</Label>
                 <Input
@@ -481,6 +483,7 @@ export default function InventoryPage() {
                   value={newItem.item_name}
                   onChange={(e) => setNewItem({ ...newItem, item_name: e.target.value })}
                   placeholder="Enter item name"
+                  className="h-11"
                 />
               </div>
               <div>
@@ -491,14 +494,15 @@ export default function InventoryPage() {
                   value={newItem.quantity}
                   onChange={(e) => setNewItem({ ...newItem, quantity: parseInt(e.target.value) || 0 })}
                   placeholder="0"
+                  className="h-11"
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="unit">Unit</Label>
                 <Select value={newItem.unit} onValueChange={(value) => setNewItem({ ...newItem, unit: value })}>
-                  <SelectTrigger>
+                  <SelectTrigger className="h-11">
                     <SelectValue placeholder="Select unit" />
                   </SelectTrigger>
                   <SelectContent>
@@ -518,15 +522,19 @@ export default function InventoryPage() {
                   value={newItem.reorder_level}
                   onChange={(e) => setNewItem({ ...newItem, reorder_level: parseInt(e.target.value) || 0 })}
                   placeholder="10"
+                  className="h-11"
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-2 pt-4">
+            <div className="flex justify-end gap-3 pt-4 border-t">
               <Button variant="outline" onClick={() => setShowAddDialog(false)}>
                 Cancel
               </Button>
-              <Button onClick={editingItem ? handleUpdateItem : handleAddItem}>
-                {editingItem ? 'Update' : 'Add'} Item
+              <Button 
+                onClick={handleAddItem}
+                className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
+              >
+                {editingItem ? 'Update Item' : 'Add Item'}
               </Button>
             </div>
           </div>
