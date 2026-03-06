@@ -132,6 +132,7 @@ export async function GET(
  * 
  * Error Responses:
  * - 400: Invalid data or database error
+ * - 401: Unauthorized
  * - 404: Order not found
  */
 export async function PUT(
@@ -140,6 +141,48 @@ export async function PUT(
 ) {
   const supabase = await createClient()
   const { id: orderId } = await params
+
+  // Check for authentication
+  const authHeader = request.headers.get('Authorization')
+  let user = null
+  let authError = null
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.substring(7)
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
+      
+      // Validate user from database using decoded token
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, email, role')
+        .eq('id', decoded.userId)
+        .eq('email', decoded.email)
+        .single()
+      
+      if (!userError && userData) {
+        user = userData
+        console.log('[API] Authenticated user via custom token:', user.email)
+      } else {
+        authError = userError
+      }
+    } catch (tokenError) {
+      console.error('[API] Invalid token format:', tokenError)
+      authError = new Error('Invalid token format')
+    }
+  } else {
+    // Fallback to Supabase auth for backward compatibility
+    const { data: { user: supabaseUser }, error: supabaseAuthError } = await supabase.auth.getUser()
+    user = supabaseUser
+    authError = supabaseAuthError
+  }
+
+  console.log('[API] Auth check for PUT:', { userId: user?.id, authError })
+
+  if (authError || !user) {
+    console.log('[API] No authenticated user found for PUT')
+    return NextResponse.json({ error: 'Unauthorized - Please login', details: authError?.message }, { status: 401 })
+  }
 
   try {
     const body = await request.json()
@@ -157,6 +200,11 @@ export async function PUT(
         return NextResponse.json({ error: error.message }, { status: 400 })
       }
       
+      if (!data || data.length === 0) {
+        return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+      }
+      
+      console.log('[API] Order status updated:', { orderId, newStatus: body.status })
       return NextResponse.json(data[0])
     }
 
@@ -173,6 +221,11 @@ export async function PUT(
         return NextResponse.json({ error: error.message }, { status: 400 })
       }
       
+      if (!data || data.length === 0) {
+        return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+      }
+      
+      console.log('[API] Order updated:', { orderId })
       return NextResponse.json(data[0])
     }
 
@@ -202,6 +255,7 @@ export async function PUT(
  * 
  * Error Responses:
  * - 400: Database error
+ * - 401: Unauthorized
  * - 404: Order not found
  */
 export async function DELETE(
@@ -210,6 +264,48 @@ export async function DELETE(
 ) {
   const supabase = await createClient()
   const { id: orderId } = await params
+
+  // Check for authentication
+  const authHeader = request.headers.get('Authorization')
+  let user = null
+  let authError = null
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.substring(7)
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
+      
+      // Validate user from database using decoded token
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, email, role')
+        .eq('id', decoded.userId)
+        .eq('email', decoded.email)
+        .single()
+      
+      if (!userError && userData) {
+        user = userData
+        console.log('[API] Authenticated user via custom token:', user.email)
+      } else {
+        authError = userError
+      }
+    } catch (tokenError) {
+      console.error('[API] Invalid token format:', tokenError)
+      authError = new Error('Invalid token format')
+    }
+  } else {
+    // Fallback to Supabase auth for backward compatibility
+    const { data: { user: supabaseUser }, error: supabaseAuthError } = await supabase.auth.getUser()
+    user = supabaseUser
+    authError = supabaseAuthError
+  }
+
+  console.log('[API] Auth check for DELETE:', { userId: user?.id, authError })
+
+  if (authError || !user) {
+    console.log('[API] No authenticated user found for DELETE')
+    return NextResponse.json({ error: 'Unauthorized - Please login', details: authError?.message }, { status: 401 })
+  }
 
   try {
     // Delete order (cascade should handle order_items due to foreign key constraint)
@@ -223,6 +319,7 @@ export async function DELETE(
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
+    console.log('[API] Order deleted:', { orderId })
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[API] DELETE order unexpected error:', error)
