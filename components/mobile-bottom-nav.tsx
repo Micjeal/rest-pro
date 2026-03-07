@@ -57,6 +57,7 @@ export function MobileBottomNav({ userRole: propUserRole }: MobileBottomNavProps
   const managementRoles = getRolesByCategory('Management').map(r => r.value)
   const frontOfHouseRoles = getRolesByCategory('Front of House').map(r => r.value)
   const supportRoles = getRolesByCategory('Support').map(r => r.value)
+  const isCashier = userRole === 'cashier'
 
   // Get the first available restaurant ID for navigation
   const getFirstRestaurantId = () => {
@@ -71,6 +72,7 @@ export function MobileBottomNav({ userRole: propUserRole }: MobileBottomNavProps
   }
 
   const firstRestaurantId = getFirstRestaurantId()
+  const cashierOrdersHref = firstRestaurantId ? `/dashboard/${firstRestaurantId}/orders` : '/dashboard'
 
   const isActive = (path: string) => {
     if (path === '/pos') return pathname.includes('/pos')
@@ -110,12 +112,20 @@ export function MobileBottomNav({ userRole: propUserRole }: MobileBottomNavProps
       active: isActive('/kitchen')
     }] : []),
 
-    // Menu Management - Management & Front of House Staff
-    ...(managementRoles.includes(userRole as RestaurantRole) || frontOfHouseRoles.includes(userRole as RestaurantRole) ? [{
+    // Menu Management - Management, Front of House, and Cashier
+    ...(managementRoles.includes(userRole as RestaurantRole) || frontOfHouseRoles.includes(userRole as RestaurantRole) || isCashier ? [{
       href: '/menu',
       icon: MenuIcon,
       label: 'Menu',
       active: isActive('/menu')
+    }] : []),
+
+    // Orders - Kitchen, Management, and Cashier
+    ...((kitchenRoles.includes(userRole as RestaurantRole) || managementRoles.includes(userRole as RestaurantRole) || isCashier) ? [{
+      href: cashierOrdersHref,
+      icon: ShoppingCart,
+      label: 'Orders',
+      active: pathname.includes('/orders')
     }] : []),
 
     // Inventory - Manager & Admin only

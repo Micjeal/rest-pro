@@ -16,43 +16,33 @@ export function PriorityBadge({ order, className = '' }: PriorityBadgeProps) {
     switch (priority) {
       case 'vip':
         return {
-          variant: 'default' as const,
-          className: 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-purple-600',
+          className: 'border-violet-300 bg-violet-50 text-violet-700 dark:border-violet-800 dark:bg-violet-900/20 dark:text-violet-200',
           icon: Star,
           label: 'VIP',
-          pulse: true
         }
       case 'urgent':
         return {
-          variant: 'destructive' as const,
-          className: 'bg-gradient-to-r from-red-500 to-orange-500 text-white border-red-600',
+          className: 'border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-200',
           icon: AlertTriangle,
           label: 'Urgent',
-          pulse: true
         }
       case 'high':
         return {
-          variant: 'destructive' as const,
-          className: 'bg-gradient-to-r from-orange-500 to-red-500 text-white border-orange-600',
+          className: 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200',
           icon: Zap,
           label: 'High',
-          pulse: false
         }
       case 'low':
         return {
-          variant: 'secondary' as const,
-          className: 'bg-gray-100 text-gray-700 border-gray-300',
+          className: 'border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200',
           icon: Clock,
           label: 'Low',
-          pulse: false
         }
       default:
         return {
-          variant: 'secondary' as const,
-          className: 'bg-blue-100 text-blue-700 border-blue-300',
+          className: 'border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-200',
           icon: Clock,
           label: 'Normal',
-          pulse: false
         }
     }
   }
@@ -62,10 +52,8 @@ export function PriorityBadge({ order, className = '' }: PriorityBadgeProps) {
 
   return (
     <Badge 
-      variant={config.variant} 
-      className={`flex items-center gap-1 font-semibold ${config.className} ${className} ${
-        config.pulse ? 'animate-pulse' : ''
-      }`}
+      variant="outline"
+      className={`flex items-center gap-1 border font-medium ${config.className} ${className}`}
     >
       <Icon className="h-3 w-3" />
       {config.label}

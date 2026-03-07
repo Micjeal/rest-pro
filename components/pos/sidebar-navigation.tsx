@@ -16,7 +16,7 @@ import {
   Users, 
   ChefHat, 
   Wrench, 
-  Hammer 
+  Hammer
 } from 'lucide-react'
 import { getRolesByCategory, getRoleBadgeColor, getRoleLabel, type RestaurantRole } from '@/components/users/role-definitions'
 import { useEffect, useState, useMemo, useCallback } from 'react'
@@ -79,6 +79,7 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
     }
     return null
   }, [restaurants])
+  const ordersHref = firstRestaurantId ? `/dashboard/${firstRestaurantId}/orders` : '/dashboard'
 
   // Fetch restaurants on mount and when user role changes
   useEffect(() => {
@@ -96,6 +97,7 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
   const managementRoles = getRolesByCategory('Management').map(r => r.value)
   const frontOfHouseRoles = getRolesByCategory('Front of House').map(r => r.value)
   const supportRoles = getRolesByCategory('Support').map(r => r.value)
+  const isCashier = userRole === 'cashier'
 
   // Notify parent if callback provided (for backwards compatibility)
   useEffect(() => {
@@ -231,15 +233,15 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
             )
           )}
 
-          {/* Menu Management - Kitchen & Management Staff */}
-          {[...kitchenRoles, ...managementRoles].includes(userRole as RestaurantRole) && (
+          {/* Menu Management - Kitchen, Management, and Cashier */}
+          {[...kitchenRoles, ...managementRoles].includes(userRole as RestaurantRole) || isCashier ? (
             createNavItem('/menu', <ChefHat className="h-5 w-5 flex-shrink-0" />, 'Menu', isActive('/menu'))
-          )}
+          ) : null}
 
-          {/* Orders - Kitchen & Management Staff */}
-          {[...kitchenRoles, ...managementRoles].includes(userRole as RestaurantRole) && firstRestaurantId && (
+          {/* Orders - Kitchen, Management, and Cashier */}
+          {([...kitchenRoles, ...managementRoles].includes(userRole as RestaurantRole) || isCashier) && (
             createNavItem(
-              `/dashboard/${firstRestaurantId}/orders`,
+              ordersHref,
               <ShoppingCart className="h-5 w-5 flex-shrink-0" />,
               'Orders',
               pathname.includes('/orders')

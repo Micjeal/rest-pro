@@ -1,241 +1,224 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { SidebarNavigation } from '@/components/pos/sidebar-navigation'
 import { useKitchenOrders } from '@/hooks/use-kitchen-orders'
 import { KitchenDisplay } from '@/components/kitchen/kitchen-display'
 import { useToast } from '@/hooks/use-toast'
-import { Shield, ChefHat, Clock, TrendingUp, Users, ArrowRight } from 'lucide-react'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { ChefHat, Users, ArrowRight } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useRestaurants } from '@/hooks/use-restaurants'
 import { Badge } from '@/components/ui/badge'
-import { ThemeProvider } from '@/contexts/theme-context'
-import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { Button } from '@/components/ui/button'
 import { getRolesByCategory } from '@/components/users/role-definitions'
 
-// Force dynamic rendering to avoid SSR issues
 export const dynamic = 'force-dynamic'
+
+function KitchenClock() {
+  const [currentTime, setCurrentTime] = useState(new Date())
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 30000)
+
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <div className="text-right">
+      <div className="text-xl font-semibold text-slate-900 dark:text-white">
+        {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+      </div>
+      <div className="text-xs text-slate-500 dark:text-slate-400">
+        {currentTime.toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+        })}
+      </div>
+    </div>
+  )
+}
 
 export default function KitchenPage() {
   const [userRole, setUserRole] = useState<string>('')
   const [selectedRestaurant, setSelectedRestaurant] = useState<string | undefined>(undefined)
-  const [currentTime, setCurrentTime] = useState(new Date())
   const router = useRouter()
   const { toast } = useToast()
-  
-  // Get kitchen roles for access control
-  const kitchenRoles = getRolesByCategory('Kitchen').map(r => r.value)
-  const managementRoles = getRolesByCategory('Management').map(r => r.value)
-  
-  // Use real data from hooks
+
+  const kitchenRoles = useMemo(() => getRolesByCategory('Kitchen').map((r) => r.value), [])
+  const managementRoles = useMemo(() => getRolesByCategory('Management').map((r) => r.value), [])
+  const allowedRoles = useMemo(() => [...kitchenRoles, ...managementRoles], [kitchenRoles, managementRoles])
+
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
-  const { orders } = useKitchenOrders(selectedRestaurant)
+  const {
+    orders,
+    isLoading: ordersLoading,
+    updateOrderStatus,
+  } = useKitchenOrders(selectedRestaurant)
 
   useEffect(() => {
-    // Only access localStorage on client side
-    if (typeof window !== 'undefined') {
-      const role = localStorage.getItem('userRole')
-      setUserRole(role || '')
+    if (typeof window === 'undefined') return
 
-      // Only allow kitchen staff and management roles to access kitchen
-      if (![...kitchenRoles, ...managementRoles].includes(role as any)) {
-        toast({
-          title: 'Access Denied',
-          description: 'Only kitchen staff can access the kitchen display.',
-          variant: 'destructive'
-        })
-        router.push('/dashboard')
-        return
-      }
+    const role = localStorage.getItem('userRole') || ''
+    setUserRole(role)
+
+    if (role && !allowedRoles.includes(role as any)) {
+      toast({
+        title: 'Access Denied',
+        description: 'Only kitchen staff can access the kitchen display.',
+        variant: 'destructive',
+      })
+      router.push('/dashboard')
     }
+  }, [allowedRoles, router, toast])
 
-    // Set default restaurant when data loads
-    if (restaurants.length > 0 && selectedRestaurant === undefined) {
+  useEffect(() => {
+    if (restaurants.length > 0 && !selectedRestaurant) {
       setSelectedRestaurant(restaurants[0].id)
     }
-  }, [router, toast, restaurants, selectedRestaurant, kitchenRoles, managementRoles])
+  }, [restaurants, selectedRestaurant])
 
-  // Update clock every second
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date())
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [])
-
-  const getKitchenStats = () => {
-    const pending = orders.filter(o => o.status === 'pending').length
-    const preparing = orders.filter(o => o.status === 'preparing').length
-    const ready = orders.filter(o => o.status === 'ready').length
+  const stats = useMemo(() => {
+    const pending = orders.filter((o) => o.status === 'pending').length
+    const preparing = orders.filter((o) => o.status === 'preparing').length
+    const ready = orders.filter((o) => o.status === 'ready').length
     const total = orders.length
-    return { pending, preparing, ready, total }
-  }
 
-  const stats = getKitchenStats()
+    return { pending, preparing, ready, total }
+  }, [orders])
 
   if (!userRole) {
     return (
-      <div className="flex h-screen">
+      <div className="flex min-h-screen">
         <SidebarNavigation />
-        <main className="flex-1 ml-64 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+        <main className="flex flex-1 items-center justify-center bg-slate-50 lg:ml-64 dark:bg-slate-950">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600 dark:text-gray-400">Checking permissions...</p>
+            <div className="mx-auto mb-3 h-7 w-7 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700 dark:border-slate-700 dark:border-t-slate-200" />
+            <p className="text-sm text-slate-600 dark:text-slate-400">Checking permissions...</p>
           </div>
         </main>
       </div>
     )
   }
 
-  if (![...kitchenRoles, ...managementRoles].includes(userRole as any)) {
+  if (!allowedRoles.includes(userRole as any)) {
     return null
   }
 
   return (
-    <ThemeProvider>
-      <div className="flex h-screen kitchen-mode">
-        <SidebarNavigation />
-        <main className="flex-1 lg:ml-64 bg-gradient-to-br from-slate-50 via-orange-50 to-red-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 overflow-y-auto">
-          <div className="mx-auto max-w-7xl px-4 py-4 lg:px-6 lg:py-6">
-            {/* Enhanced Header with Stats - Mobile Optimized */}
-            <div className="mb-6">
-              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="relative">
-                    <div className="flex h-12 w-12 lg:h-16 lg:w-16 items-center justify-center rounded-xl lg:rounded-2xl bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 shadow-lg lg:shadow-xl shadow-orange-500/30 animate-pulse">
-                      <ChefHat className="h-6 w-6 lg:h-8 lg:w-8 text-white" />
-                    </div>
-                    <div className="absolute -top-1 -right-1 h-3 w-3 lg:h-4 lg:w-4 bg-green-500 rounded-full border-2 border-white dark:border-slate-900"></div>
-                  </div>
-                  <div>
-                    <h1 className="text-xl lg:text-3xl font-bold bg-gradient-to-r from-orange-600 to-red-600 bg-clip-text text-transparent">Kitchen Display</h1>
-                    <p className="text-sm lg:text-base text-gray-600 dark:text-gray-400 font-medium">Real-time order management system</p>
-                  </div>
+    <div className="flex min-h-screen">
+      <SidebarNavigation />
+      <main className="flex-1 overflow-y-auto bg-slate-50 lg:ml-64 dark:bg-slate-950">
+        <div className="mx-auto max-w-7xl px-4 py-4 lg:px-6 lg:py-6">
+          <section className="mb-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+              <div className="flex items-center gap-3">
+                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
+                  <ChefHat className="h-6 w-6 text-slate-700 dark:text-slate-200" />
                 </div>
-                
-                {/* Theme Toggle and Clock - Mobile Optimized */}
-                <div className="flex flex-col sm:flex-row items-center gap-3">
-                  {/* Staff Assignment Button */}
-                  {selectedRestaurant && (
-                    <Button
-                      onClick={() => router.push(`/dashboard/${selectedRestaurant}/staff-assignment`)}
-                      className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 text-sm lg:text-base"
-                      size="sm"
-                    >
-                      <Users className="h-4 w-4" />
-                      <span className="hidden sm:inline">Staff</span>
-                      <ArrowRight className="h-4 w-4 hidden lg:inline" />
-                    </Button>
-                  )}
-                  <ThemeToggle />
-                  {/* Real-time Clock */}
-                  <div className="text-right">
-                    <div className="text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
-                      {currentTime.toLocaleTimeString()}
-                    </div>
-                    <div className="text-xs lg:text-sm text-gray-500 dark:text-gray-400">
-                      {currentTime.toLocaleDateString('en-US', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
-                    </div>
-                  </div>
+                <div>
+                  <h1 className="text-xl font-semibold text-slate-900 dark:text-white lg:text-2xl">
+                    Kitchen Display
+                  </h1>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Track and update live order flow
+                  </p>
                 </div>
               </div>
-            </div>
-            
-            {/* Kitchen Stats Bar - Mobile Optimized */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 lg:gap-4 mb-6">
-              <Card className="bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border-yellow-200 dark:border-yellow-800">
-                <CardContent className="p-3 lg:p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs lg:text-sm font-medium text-yellow-600 dark:text-yellow-400">Pending</p>
-                      <p className="text-xl lg:text-2xl font-bold text-yellow-700 dark:text-yellow-300">{stats.pending}</p>
-                    </div>
-                    <Clock className="h-6 w-6 lg:h-8 lg:w-8 text-yellow-500 dark:text-yellow-400" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border-blue-200 dark:border-blue-800">
-                <CardContent className="p-3 lg:p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs lg:text-sm font-medium text-blue-600 dark:text-blue-400">Preparing</p>
-                      <p className="text-xl lg:text-2xl font-bold text-blue-700 dark:text-blue-300">{stats.preparing}</p>
-                    </div>
-                    <ChefHat className="h-6 w-6 lg:h-8 lg:w-8 text-blue-500 dark:text-blue-400" />
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border-green-200 dark:border-green-800 cursor-pointer hover:shadow-lg transition-all duration-300"
-                    onClick={() => selectedRestaurant && router.push(`/dashboard/${selectedRestaurant}/staff-assignment`)}>
-                <CardContent className="p-3 lg:p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs lg:text-sm font-medium text-green-600 dark:text-green-400">Ready</p>
-                      <p className="text-xl lg:text-2xl font-bold text-green-700 dark:text-green-300">{stats.ready}</p>
-                      {stats.ready > 0 && (
-                        <p className="text-xs text-green-600 dark:text-green-400 mt-1 hidden lg:block">Click to assign servers</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="h-6 w-6 lg:h-8 lg:w-8 text-green-500 dark:text-green-400" />
-                      {stats.ready > 0 && (
-                        <div className="h-2 w-2 lg:h-3 lg:w-3 bg-green-500 rounded-full animate-pulse"></div>
-                      )}
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-              
-              <Card className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-purple-200 dark:border-purple-800">
-                <CardContent className="p-3 lg:p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs lg:text-sm font-medium text-purple-600 dark:text-purple-400">Total Orders</p>
-                      <p className="text-xl lg:text-2xl font-bold text-purple-700 dark:text-purple-300">{stats.total}</p>
-                    </div>
-                    <Users className="h-6 w-6 lg:h-8 lg:w-8 text-purple-500 dark:text-purple-400" />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
 
-          {/* Compact Restaurant Selector - Mobile Optimized */}
-          <div className="mb-6 px-4 lg:px-0">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Restaurant:</span>
-              <Select value={selectedRestaurant ?? ''} onValueChange={setSelectedRestaurant} disabled={restaurantsLoading}>
-                <SelectTrigger className="w-full sm:w-64 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-gray-200 dark:border-slate-600">
+              <div className="flex items-center gap-3 self-start lg:self-auto">
+                {selectedRestaurant && (
+                  <Button
+                    onClick={() => router.push(`/dashboard/${selectedRestaurant}/staff-assignment`)}
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Users className="h-4 w-4" />
+                    Staff
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                )}
+                <KitchenClock />
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <span className="text-sm font-medium text-slate-600 dark:text-slate-300">Restaurant</span>
+              <Select
+                value={selectedRestaurant ?? ''}
+                onValueChange={setSelectedRestaurant}
+                disabled={restaurantsLoading}
+              >
+                <SelectTrigger className="w-full sm:w-72">
                   <SelectValue placeholder="Select restaurant" />
                 </SelectTrigger>
                 <SelectContent>
                   {restaurants.map((restaurant: any) => (
                     <SelectItem key={restaurant.id} value={restaurant.id}>
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 bg-green-500 rounded-full"></div>
-                        {restaurant.name}
-                      </div>
+                      {restaurant.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
               {selectedRestaurant && (
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-300 dark:border-green-800">
+                <Badge variant="outline" className="w-fit">
                   Active
                 </Badge>
               )}
             </div>
+          </section>
+
+          <div className="mb-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Card className="border-slate-200 shadow-sm dark:border-slate-800">
+              <CardContent className="p-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-amber-700 dark:text-amber-300">
+                  Pending
+                </p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">{stats.pending}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 shadow-sm dark:border-slate-800">
+              <CardContent className="p-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-blue-700 dark:text-blue-300">
+                  Preparing
+                </p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">{stats.preparing}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 shadow-sm dark:border-slate-800">
+              <CardContent className="p-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-emerald-700 dark:text-emerald-300">
+                  Ready
+                </p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">{stats.ready}</p>
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 shadow-sm dark:border-slate-800">
+              <CardContent className="p-4">
+                <p className="text-xs font-medium uppercase tracking-wide text-slate-600 dark:text-slate-300">
+                  Total
+                </p>
+                <p className="mt-1 text-2xl font-semibold text-slate-900 dark:text-white">{stats.total}</p>
+              </CardContent>
+            </Card>
           </div>
-          
-          <KitchenDisplay restaurantId={selectedRestaurant} />
-        </main>
-      </div>
-    </ThemeProvider>
+
+          <KitchenDisplay
+            restaurantId={selectedRestaurant}
+            orders={orders}
+            isLoading={ordersLoading}
+            updateOrderStatus={updateOrderStatus}
+          />
+        </div>
+      </main>
+    </div>
   )
 }

@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Clock, ChefHat, CheckCircle, XCircle, Volume2, Timer, User, AlertTriangle } from 'lucide-react'
+import { Clock, ChefHat, CheckCircle, XCircle, Volume2, Timer, AlertTriangle } from 'lucide-react'
 import type { KitchenOrder } from '@/hooks/use-kitchen-orders'
 import { announceOrderReady } from '@/lib/text-to-speech'
 import { useState, useEffect } from 'react'
@@ -22,6 +22,7 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
   const [isAnnouncing, setIsAnnouncing] = useState(false)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [timeWarning, setTimeWarning] = useState<'normal' | 'warning' | 'critical'>('normal')
+  const currentStatus = order.status || 'pending'
 
   // Calculate elapsed time and warnings
   useEffect(() => {
@@ -50,11 +51,53 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-500'
+      case 'pending': return 'bg-amber-500'
       case 'preparing': return 'bg-blue-500'
-      case 'ready': return 'bg-green-500'
-      case 'completed': return 'bg-gray-500'
-      default: return 'bg-gray-400'
+      case 'ready': return 'bg-emerald-500'
+      case 'completed': return 'bg-slate-500'
+      case 'cancelled': return 'bg-rose-500'
+      default: return 'bg-slate-400'
+    }
+  }
+
+  const getStatusTone = (status: string) => {
+    switch (status) {
+      case 'pending':
+        return {
+          iconWrap: 'bg-amber-100 dark:bg-amber-900/30',
+          icon: 'text-amber-700 dark:text-amber-300',
+          border: 'border-amber-200/70 dark:border-amber-800/70',
+        }
+      case 'preparing':
+        return {
+          iconWrap: 'bg-blue-100 dark:bg-blue-900/30',
+          icon: 'text-blue-700 dark:text-blue-300',
+          border: 'border-blue-200/70 dark:border-blue-800/70',
+        }
+      case 'ready':
+        return {
+          iconWrap: 'bg-emerald-100 dark:bg-emerald-900/30',
+          icon: 'text-emerald-700 dark:text-emerald-300',
+          border: 'border-emerald-200/70 dark:border-emerald-800/70',
+        }
+      case 'completed':
+        return {
+          iconWrap: 'bg-slate-100 dark:bg-slate-800/80',
+          icon: 'text-slate-700 dark:text-slate-300',
+          border: 'border-slate-200/70 dark:border-slate-700/80',
+        }
+      case 'cancelled':
+        return {
+          iconWrap: 'bg-rose-100 dark:bg-rose-900/30',
+          icon: 'text-rose-700 dark:text-rose-300',
+          border: 'border-rose-200/70 dark:border-rose-800/70',
+        }
+      default:
+        return {
+          iconWrap: 'bg-slate-100 dark:bg-slate-800/80',
+          icon: 'text-slate-700 dark:text-slate-300',
+          border: 'border-slate-200/70 dark:border-slate-700/80',
+        }
     }
   }
 
@@ -62,35 +105,35 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
     switch (status) {
       case 'pending':
         return (
-          <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200">
+          <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
             <Clock className="h-3 w-3 mr-1" />
             Pending
           </Badge>
         )
       case 'preparing':
         return (
-          <Badge variant="secondary" className="bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-200">
+          <Badge variant="outline" className="border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-200">
             <ChefHat className="h-3 w-3 mr-1" />
             Preparing
           </Badge>
         )
       case 'ready':
         return (
-          <Badge variant="secondary" className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-200">
+          <Badge variant="outline" className="border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-900/20 dark:text-emerald-200">
             <CheckCircle className="h-3 w-3 mr-1" />
             Ready
           </Badge>
         )
       case 'completed':
         return (
-          <Badge variant="secondary" className="bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-200">
+          <Badge variant="outline" className="border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200">
             <CheckCircle className="h-3 w-3 mr-1" />
             Completed
           </Badge>
         )
       case 'cancelled':
         return (
-          <Badge variant="secondary" className="bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200">
+          <Badge variant="outline" className="border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-900/20 dark:text-rose-200">
             <XCircle className="h-3 w-3 mr-1" />
             Cancelled
           </Badge>
@@ -99,19 +142,6 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
         return (
           <Badge variant="secondary">Unknown</Badge>
         )
-    }
-  }
-
-  const getNextActionText = (status: string) => {
-    switch (status) {
-      case 'pending':
-        return 'Start Preparing'
-      case 'preparing':
-        return 'Mark as Ready'
-      case 'ready':
-        return 'Mark as Completed'
-      default:
-        return 'Update Status'
     }
   }
 
@@ -134,10 +164,101 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
 
   const getTimeWarningColor = () => {
     switch (timeWarning) {
-      case 'critical': return 'text-red-500'
-      case 'warning': return 'text-yellow-500'
-      default: return 'text-gray-500'
+      case 'critical': return 'text-rose-600 dark:text-rose-300'
+      case 'warning': return 'text-amber-600 dark:text-amber-300'
+      default: return 'text-slate-500 dark:text-slate-400'
     }
+  }
+
+  const getStageButtonClass = (stage: 'pending' | 'preparing' | 'ready') => {
+    const isActive = currentStatus === stage
+
+    if (stage === 'pending') {
+      return isActive
+        ? 'bg-amber-600 border-amber-600 text-white hover:bg-amber-700'
+        : 'border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-300 dark:hover:bg-amber-900/20'
+    }
+
+    if (stage === 'preparing') {
+      return isActive
+        ? 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700'
+        : 'border-blue-300 text-blue-700 hover:bg-blue-50 dark:border-blue-800 dark:text-blue-300 dark:hover:bg-blue-900/20'
+    }
+
+    return isActive
+      ? 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700'
+      : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-300 dark:hover:bg-emerald-900/20'
+  }
+
+  const statusTone = getStatusTone(currentStatus)
+  const cardWarningRing =
+    timeWarning === 'critical'
+      ? 'ring-1 ring-rose-300 dark:ring-rose-700'
+      : timeWarning === 'warning'
+        ? 'ring-1 ring-amber-300 dark:ring-amber-700'
+        : ''
+
+  const progressPercentage = getProgressPercentage()
+
+  const renderStatusIcon = () => {
+    if (currentStatus === 'pending') return <Clock className={`h-5 w-5 ${statusTone.icon}`} />
+    if (currentStatus === 'preparing') return <ChefHat className={`h-5 w-5 ${statusTone.icon}`} />
+    if (currentStatus === 'ready') return <CheckCircle className={`h-5 w-5 ${statusTone.icon}`} />
+    if (currentStatus === 'completed') return <CheckCircle className={`h-5 w-5 ${statusTone.icon}`} />
+    if (currentStatus === 'cancelled') return <XCircle className={`h-5 w-5 ${statusTone.icon}`} />
+    return <Clock className={`h-5 w-5 ${statusTone.icon}`} />
+  }
+
+  const renderPrimaryAction = () => {
+    if (currentStatus === 'pending') {
+      return (
+        <Button
+          className="w-full rounded-lg border border-amber-600 bg-amber-600 py-3 text-sm font-semibold text-white hover:bg-amber-700"
+          onClick={() => onStatusUpdate(order.id, 'pending', 'preparing')}
+        >
+          <ChefHat className="h-4 w-4 mr-2" />
+          Start Preparing
+        </Button>
+      )
+    }
+
+    if (currentStatus === 'preparing') {
+      return (
+        <Button
+          className="w-full rounded-lg border border-blue-600 bg-blue-600 py-3 text-sm font-semibold text-white hover:bg-blue-700"
+          onClick={() => onStatusUpdate(order.id, 'preparing', 'ready')}
+        >
+          <CheckCircle className="h-4 w-4 mr-2" />
+          Mark as Ready
+        </Button>
+      )
+    }
+
+    if (currentStatus === 'ready') {
+      return (
+        <div className="space-y-2.5">
+          <Button
+            className="w-full rounded-lg border border-emerald-600 bg-emerald-600 py-3 text-sm font-semibold text-white hover:bg-emerald-700"
+            onClick={() => onStatusUpdate(order.id, 'ready', 'completed')}
+          >
+            <CheckCircle className="h-4 w-4 mr-2" />
+            Mark as Completed
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full rounded-lg border-slate-300 bg-white py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-800"
+            onClick={handleServeAnnouncement}
+            disabled={isAnnouncing}
+          >
+            <Volume2 className="h-4 w-4 mr-2" />
+            {isAnnouncing ? 'Announcing...' : 'Announce Ready'}
+          </Button>
+        </div>
+      )
+    }
+
+    return null
   }
 
   const handleServeAnnouncement = async () => {
@@ -155,19 +276,14 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
   }
 
   return (
-    <Card className={`bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 rounded-2xl overflow-hidden group order-card relative w-full max-w-2xl mx-auto touch-manipulation ${
-      timeWarning === 'critical' ? 'ring-2 ring-red-500 ring-opacity-50' : 
-      timeWarning === 'warning' ? 'ring-2 ring-yellow-500 ring-opacity-50' : ''
-    }`}>
-      {/* Status Indicator Bar */}
-      <div className={`h-2 ${getStatusColor(order.status || 'pending')} relative`}>
-        <div 
-          className={`h-full bg-white dark:bg-slate-900 transition-all duration-500 progress-bar`}
-          style={{ '--progress': `${getProgressPercentage()}%` } as React.CSSProperties}
+    <Card className={`relative w-full overflow-hidden rounded-xl border bg-white shadow-sm transition-shadow duration-200 hover:shadow-md dark:bg-slate-900 ${statusTone.border} ${cardWarningRing}`}>
+      <div className="h-1.5 bg-slate-100 dark:bg-slate-800">
+        <div
+          className={`h-full ${getStatusColor(currentStatus)} transition-[width] duration-500`}
+          style={{ width: `${progressPercentage}%` }}
         />
       </div>
-      
-      {/* Selection Checkbox */}
+
       {showSelection && (
         <OrderCheckbox
           order={order}
@@ -175,158 +291,99 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
           onToggle={onToggleSelection || (() => {})}
         />
       )}
-      
-      <CardHeader className="pb-4 lg:pb-6 bg-gradient-to-br from-gray-50 to-white dark:from-slate-800 dark:to-slate-900">
+
+      <CardHeader className="pb-3 border-b border-slate-100 dark:border-slate-800">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3">
           <div className="flex items-center gap-3">
-            <div className={`h-10 w-10 lg:h-12 lg:w-12 rounded-full ${getStatusColor(order.status || 'pending')} bg-opacity-20 flex items-center justify-center`}>
-              {order.status === 'pending' && <Clock className="h-5 w-5 lg:h-6 lg:w-6 text-yellow-600 dark:text-yellow-400" />}
-              {order.status === 'preparing' && <ChefHat className="h-5 w-5 lg:h-6 lg:w-6 text-blue-600 dark:text-blue-400" />}
-              {order.status === 'ready' && <CheckCircle className="h-5 w-5 lg:h-6 lg:w-6 text-green-600 dark:text-green-400" />}
-              {order.status === 'completed' && <CheckCircle className="h-5 w-5 lg:h-6 lg:w-6 text-gray-600 dark:text-gray-400" />}
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${statusTone.iconWrap}`}>
+              {renderStatusIcon()}
             </div>
             <div>
-              <div className="flex items-center gap-2 lg:gap-3">
-                <CardTitle className="text-lg lg:text-2xl font-bold text-gray-900 dark:text-white">
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-50">
                   Order #{order.id?.substring(0, 6) || 'N/A'}
                 </CardTitle>
                 <PriorityBadge order={order} />
               </div>
-              <div className="text-sm lg:text-base text-gray-500 dark:text-gray-400 mt-1">
+              <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                 {formatTime(order.created_at || new Date().toISOString())}
               </div>
             </div>
           </div>
           <div className="flex flex-col items-end gap-2">
-            {getStatusBadge(order.status || 'pending')}
-            
-            {/* Timer Display */}
-            <div className={`flex items-center gap-1 text-sm lg:text-base font-medium ${getTimeWarningColor()}`}>
+            {getStatusBadge(currentStatus)}
+            <div className={`flex items-center gap-1 text-sm font-medium ${getTimeWarningColor()}`}>
               <Timer className="h-4 w-4" />
-              <span className={timeWarning !== 'normal' ? 'animate-pulse' : ''}>
-                {formatElapsedTime(elapsedTime)}
-              </span>
+              <span>{formatElapsedTime(elapsedTime)}</span>
               {timeWarning === 'critical' && (
-                <AlertTriangle className="h-4 w-4 ml-1 animate-bounce" />
+                <AlertTriangle className="h-4 w-4 ml-1" />
               )}
             </div>
           </div>
         </div>
       </CardHeader>
-      
-      <CardContent className="p-4 lg:p-8">
-        <div className="space-y-6 lg:space-y-8">
-          {/* Order Items */}
-          <div className="space-y-3 lg:space-y-4">
-            <h4 className="font-bold text-gray-900 dark:text-white text-lg lg:text-xl uppercase tracking-wide">Order Items</h4>
-            <div className="space-y-3 lg:space-y-4">
+
+      <CardContent className="p-4 lg:p-5">
+        <div className="space-y-5">
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500 dark:text-slate-400">Order Items</h4>
+            <div className="space-y-2.5">
               {order.items?.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-4 lg:p-6 bg-gray-50 dark:bg-slate-700/50 rounded-xl border-2 border-gray-200 dark:border-slate-600">
-                  <div className="flex items-center gap-4 lg:gap-6">
-                    <div className="h-12 w-12 lg:h-16 lg:w-16 bg-gradient-to-br from-orange-100 to-red-100 dark:from-orange-900/30 dark:to-red-900/30 rounded-full flex items-center justify-center border-2 border-orange-300 dark:border-orange-700">
-                      <span className="text-lg lg:text-2xl font-bold text-orange-600 dark:text-orange-400">{item.quantity}</span>
+                <div key={index} className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/50">
+                  <div className="flex items-start gap-3">
+                    <div className="h-10 w-10 shrink-0 rounded-full border border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 flex items-center justify-center text-sm font-semibold">
+                      {item.quantity}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-bold text-gray-900 dark:text-white text-lg lg:text-2xl leading-tight truncate">
+                      <p className="font-semibold text-base leading-tight text-slate-900 dark:text-slate-100">
                         {item.name}
                       </p>
                       {item.description && (
-                        <div className="mt-2 p-2 lg:p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                          <p className="text-sm lg:text-base font-semibold text-blue-700 dark:text-blue-300">
-                            🥘 <span className="uppercase">Ingredients & Prep:</span> {item.description}
-                          </p>
-                        </div>
+                        <p className="mt-2 border-l-2 border-slate-300 pl-2 text-sm text-slate-600 dark:border-slate-600 dark:text-slate-300">
+                          Prep: {item.description}
+                        </p>
                       )}
                       {item.notes && (
-                        <div className="mt-2 lg:mt-3 p-2 lg:p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                          <p className="text-sm lg:text-base font-semibold text-yellow-700 dark:text-yellow-300">
-                            📝 <span className="uppercase">Special Instructions:</span> {item.notes}
-                          </p>
-                        </div>
+                        <p className="mt-2 border-l-2 border-amber-300 pl-2 text-sm text-amber-700 dark:border-amber-700 dark:text-amber-300">
+                          Note: {item.notes}
+                        </p>
                       )}
                     </div>
                   </div>
-                  {item.notes && (
-                    <div className="text-sm lg:text-base text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20 px-3 lg:px-4 py-2 lg:py-3 rounded-full border-2 border-orange-200 dark:border-orange-800 lg:hidden">
-                      📋 Note
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Action Buttons */}
-          {(order.status === 'pending' || order.status === 'preparing' || order.status === 'ready') && (
-            <div className="space-y-3 lg:space-y-4">
-              {/* Primary Action Button */}
-              {order.status === 'pending' && (
+          {(currentStatus === 'pending' || currentStatus === 'preparing' || currentStatus === 'ready') && (
+            <div className="space-y-3">
+              {renderPrimaryAction()}
+
+              <div className="grid grid-cols-3 gap-2 pt-1">
                 <Button
-                  className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white font-bold py-3 lg:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-base lg:text-lg touch-manipulation"
-                  onClick={() => onStatusUpdate(order.id, 'pending', 'preparing')}
-                >
-                  <ChefHat className="h-5 w-5 lg:h-6 lg:w-6 mr-2 lg:mr-3" />
-                  Start Preparing
-                </Button>
-              )}
-              
-              {order.status === 'preparing' && (
-                <Button
-                  className="w-full bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white font-bold py-3 lg:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-base lg:text-lg touch-manipulation"
-                  onClick={() => onStatusUpdate(order.id, 'preparing', 'ready')}
-                >
-                  <CheckCircle className="h-5 w-5 lg:h-6 lg:w-6 mr-2 lg:mr-3" />
-                  Mark as Ready
-                </Button>
-              )}
-              
-              {order.status === 'ready' && (
-                <div className="space-y-3 lg:space-y-4">
-                  <Button
-                    className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white font-bold py-3 lg:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-base lg:text-lg touch-manipulation"
-                    onClick={() => onStatusUpdate(order.id, 'ready', 'completed')}
-                  >
-                    <CheckCircle className="h-5 w-5 lg:h-6 lg:w-6 mr-2 lg:mr-3" />
-                    Mark as Completed
-                  </Button>
-                   
-                  <Button
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-bold py-3 lg:py-4 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105 text-base lg:text-lg touch-manipulation"
-                    onClick={handleServeAnnouncement}
-                    disabled={isAnnouncing}
-                  >
-                    <Volume2 className="h-5 w-5 lg:h-6 lg:w-6 mr-2 lg:mr-3" />
-                    {isAnnouncing ? 'Announcing...' : 'Announce Ready'}
-                  </Button>
-                </div>
-              )}
-              
-              {/* Quick Stage Navigation - Mobile Optimized */}
-              <div className="grid grid-cols-3 gap-2 lg:gap-3 pt-2 lg:pt-3">
-                <Button
-                  variant={order.status === 'pending' ? 'default' : 'outline'}
+                  variant="outline"
                   size="sm"
-                  className={`${order.status === 'pending' ? 'bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 text-white' : 'hover:bg-yellow-50 dark:hover:bg-yellow-900/20 border-yellow-200 dark:border-yellow-800 text-yellow-700 dark:text-yellow-300'} rounded-xl transition-all duration-200 text-sm touch-manipulation`}
-                  onClick={() => onStatusUpdate(order.id, order.status, 'pending')}
-                  disabled={order.status === 'pending'}
+                  className={`rounded-md text-xs font-medium transition-colors ${getStageButtonClass('pending')}`}
+                  onClick={() => onStatusUpdate(order.id, currentStatus, 'pending')}
+                  disabled={currentStatus === 'pending'}
                 >
                   Pending
                 </Button>
                 <Button
-                  variant={order.status === 'preparing' ? 'default' : 'outline'}
+                  variant="outline"
                   size="sm"
-                  className={`${order.status === 'preparing' ? 'bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white' : 'hover:bg-blue-50 dark:hover:bg-blue-900/20 border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300'} rounded-xl transition-all duration-200 text-sm touch-manipulation`}
-                  onClick={() => onStatusUpdate(order.id, order.status, 'preparing')}
-                  disabled={order.status === 'preparing'}
+                  className={`rounded-md text-xs font-medium transition-colors ${getStageButtonClass('preparing')}`}
+                  onClick={() => onStatusUpdate(order.id, currentStatus, 'preparing')}
+                  disabled={currentStatus === 'preparing'}
                 >
                   Preparing
                 </Button>
                 <Button
-                  variant={order.status === 'ready' ? 'default' : 'outline'}
+                  variant="outline"
                   size="sm"
-                  className={`${order.status === 'ready' ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white' : 'hover:bg-green-50 dark:hover:bg-green-900/20 border-green-200 dark:border-green-800 text-green-700 dark:text-green-300'} rounded-xl transition-all duration-200 text-sm touch-manipulation`}
-                  onClick={() => onStatusUpdate(order.id, order.status, 'ready')}
-                  disabled={order.status === 'ready'}
+                  className={`rounded-md text-xs font-medium transition-colors ${getStageButtonClass('ready')}`}
+                  onClick={() => onStatusUpdate(order.id, currentStatus, 'ready')}
+                  disabled={currentStatus === 'ready'}
                 >
                   Ready
                 </Button>
