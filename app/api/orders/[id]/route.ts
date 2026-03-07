@@ -168,7 +168,8 @@ export async function PUT(
       const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
       
       // Validate user from database using decoded token
-      const { data: userData, error: userError } = await supabase
+      const client = serviceClient || await createClient()
+      const { data: userData, error: userError } = await client
         .from('users')
         .select('id, email, role')
         .eq('id', decoded.userId)
@@ -187,6 +188,7 @@ export async function PUT(
     }
   } else {
     // Fallback to Supabase auth for backward compatibility
+    const supabase = await createClient()
     const { data: { user: supabaseUser }, error: supabaseAuthError } = await supabase.auth.getUser()
     user = supabaseUser
     authError = supabaseAuthError
@@ -202,16 +204,6 @@ export async function PUT(
   try {
     const body = await request.json()
     
-    // Use service client consistently for RLS bypass
-    const client = serviceClient || await createClient()
-    
-    const { data, error } = await client
-      .from('orders')
-      .update(body)
-      .eq('id', orderId)
-      .select()
-
-<<<<<<< Updated upstream
     if (!body || Object.keys(body).length === 0) {
       return NextResponse.json({ 
         error: 'Request body is required' 
@@ -220,8 +212,11 @@ export async function PUT(
 
     console.log('[API] Updating order:', { orderId, updates: Object.keys(body) })
 
+    // Use service client consistently for RLS bypass
+    const client = serviceClient || await createClient()
+    
     // First, verify the order exists
-    const { data: existingOrder, error: fetchError } = await supabase
+    const { data: existingOrder, error: fetchError } = await client
       .from('orders')
       .select('id')
       .eq('id', orderId)
@@ -233,7 +228,7 @@ export async function PUT(
     }
 
     // Perform the update without returning data
-    const { error: updateError } = await supabase
+    const { error: updateError } = await client
       .from('orders')
       .update(body)
       .eq('id', orderId)
@@ -244,7 +239,7 @@ export async function PUT(
     }
 
     // Fetch the updated order
-    const { data: updatedOrder, error: selectError } = await supabase
+    const { data: updatedOrder, error: selectError } = await client
       .from('orders')
       .select('id, restaurant_id, customer_name, customer_phone, customer_email, status, total_amount, notes, created_at, updated_at')
       .eq('id', orderId)
@@ -257,18 +252,6 @@ export async function PUT(
     
     console.log('[API] Order updated successfully:', { orderId, newStatus: body.status })
     return NextResponse.json(updatedOrder)
-=======
-    if (error) {
-      console.error('[API] Order update error:', error)
-      return NextResponse.json({ error: error.message }, { status: 400 })
-    }
-
-    if (!data || data.length === 0) {
-      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
-    }
-
-    return NextResponse.json(data[0])
->>>>>>> Stashed changes
   } catch (error) {
     console.error('[API] Unexpected error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
@@ -309,7 +292,8 @@ export async function DELETE(
       const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
       
       // Validate user from database using decoded token
-      const { data: userData, error: userError } = await supabase
+      const client = serviceClient || await createClient()
+      const { data: userData, error: userError } = await client
         .from('users')
         .select('id, email, role')
         .eq('id', decoded.userId)
@@ -328,6 +312,7 @@ export async function DELETE(
     }
   } else {
     // Fallback to Supabase auth for backward compatibility
+    const supabase = await createClient()
     const { data: { user: supabaseUser }, error: supabaseAuthError } = await supabase.auth.getUser()
     user = supabaseUser
     authError = supabaseAuthError
