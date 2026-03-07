@@ -9,6 +9,7 @@ import { Calendar, Download, TrendingUp, FileSpreadsheet, FileText } from 'lucid
 import { useRestaurants } from '@/hooks/use-restaurants'
 import { useToast } from '@/hooks/use-toast'
 import { useCurrency } from '@/hooks/use-currency'
+import { useReportsData } from '@/hooks/use-reports-data'
 
 // Dynamic imports for lazy loading
 const KPICards = lazy(() => import('./components/KPICards').then(module => ({ default: module.KPICards })))
@@ -22,12 +23,9 @@ const CustomerGrowth = lazy(() => import('./components/CustomerGrowth').then(mod
  * Better performance with strategic data fetching
  */
 export default function OptimizedReportsPage() {
-  const [dailyData, setDailyData] = useState<any[]>([])
-  const [categoryData, setCategoryData] = useState<any[]>([])
   const [dateRange, setDateRange] = useState('week')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
   const [selectedRestaurant, setSelectedRestaurant] = useState<string | null>(null)
   const [userRole, setUserRole] = useState('')
   
@@ -36,37 +34,16 @@ export default function OptimizedReportsPage() {
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
   const { formatAmount, getCurrencySymbol } = useCurrency({ restaurantId: selectedRestaurant || undefined })
 
-  // Memoized processed data for performance
-  const processedData = useMemo(() => {
-    if (!Array.isArray(dailyData)) return {
-      totalRevenue: 0,
-      totalOrders: 0,
-      totalTransactions: 0,
-      averageTransaction: 0
-    }
+  // Use optimized data hook
+  const { data, isLoading, error, refresh, metrics } = useReportsData({
+    restaurantId: selectedRestaurant,
+    dateRange,
+    startDate,
+    endDate,
+    enabled: !!selectedRestaurant
+  })
 
-    const totalRevenue = dailyData.reduce((sum, day) => {
-      const sales = typeof day?.sales === 'number' && !isNaN(day.sales) ? day.sales : 0
-      return sum + sales
-    }, 0)
-    
-    const totalTransactions = dailyData.reduce((sum, day) => {
-      const transactions = typeof day?.transactions === 'number' && !isNaN(day.transactions) ? day.transactions : 0
-      return sum + transactions
-    }, 0)
-    
-    const averageTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
-    const totalOrders = totalTransactions // Simplified for demo
-
-    return {
-      totalRevenue,
-      totalOrders,
-      totalTransactions,
-      averageTransaction
-    }
-  }, [dailyData])
-
-  const { totalRevenue, totalOrders, totalTransactions, averageTransaction } = processedData
+  const { totalRevenue, totalOrders, totalTransactions, averageTransaction } = metrics
 
   // Check user role on mount
   useEffect(() => {
@@ -91,56 +68,29 @@ export default function OptimizedReportsPage() {
     }
   }, [restaurants, selectedRestaurant])
 
-  // Optimized data loading with caching
+  // Check user role on mount
   useEffect(() => {
-    if (selectedRestaurant) {
-      loadReportData()
-    }
-  }, [selectedRestaurant, dateRange, startDate, endDate])
+    const role = localStorage.getItem('userRole')
+    setUserRole(role || '')
 
-  const loadReportData = async () => {
-    try {
-      setIsLoading(true)
-      
-      // Build date range parameters
-      let dateParams = ''
-      if (dateRange === 'custom' && startDate && endDate) {
-        dateParams = `&startDate=${startDate}&endDate=${endDate}`
-      } else if (dateRange !== 'custom') {
-        dateParams = `&range=${dateRange}`
-      }
-      
-      // Fetch analytics data with caching headers
-      const response = await fetch(`/api/analytics?restaurantId=${selectedRestaurant}${dateParams}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`,
-          'Cache-Control': 'max-age=300' // 5 minute cache
-        }
+    if (role !== 'manager' && role !== 'admin') {
+      toast({
+        title: 'Access Denied',
+        description: 'Only managers and administrators can access reports.',
+        variant: 'destructive'
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch analytics data')
-      }
-
-      const analyticsData = await response.json()
-      
-      setDailyData(analyticsData.dailyData || [])
-      setCategoryData(analyticsData.categoryData || [])
-    } catch (error) {
-      console.error('[Reports] Error loading data:', error)
-      // Set empty data on error
-      setDailyData([])
-      setCategoryData([])
-    } finally {
-      setIsLoading(false)
+      router.push('/dashboard')
+      return
     }
-  }
+  }, [router, toast])
 
   const handleExport = (format: 'excel' | 'pdf') => {
-    const data = {
-      summary: processedData,
-      dailyData,
-      categoryData,
+    if (!data) return
+
+    const exportData = {
+      summary: metrics,
+      dailyData: data.dailyData,
+      categoryData: data.categoryData,
       dateRange,
       restaurant: restaurants.find((r: any) => r.id === selectedRestaurant)?.name || 'Unknown'
     }
@@ -148,8 +98,7 @@ export default function OptimizedReportsPage() {
     const filename = `reports-${new Date().toISOString().split('T')[0]}.${format === 'excel' ? 'xlsx' : 'pdf'}`
     
     if (format === 'excel') {
-      // Simple Excel export
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -157,7 +106,6 @@ export default function OptimizedReportsPage() {
       a.click()
       URL.revokeObjectURL(url)
     } else {
-      // Simple PDF export (window.print for now)
       window.print()
     }
     
@@ -168,7 +116,7 @@ export default function OptimizedReportsPage() {
   }
 
   // Early return for loading states
-  if (isLoading && !dailyData.length) {
+  if (isLoading && !data?.dailyData?.length) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
         <div className="flex items-center justify-center min-h-screen">
@@ -338,7 +286,7 @@ export default function OptimizedReportsPage() {
                 )}
                 <div className="flex items-end lg:col-span-1">
                   <Button 
-                    onClick={loadReportData} 
+                    onClick={refresh} 
                     disabled={isLoading}
                     className="w-full bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
                   >
@@ -369,7 +317,7 @@ export default function OptimizedReportsPage() {
             {/* Customer Habits Chart */}
             <Suspense fallback={<div className="animate-pulse h-96 bg-gray-200 rounded-lg"></div>}>
               <CustomerHabits
-                dailyData={dailyData}
+                dailyData={data?.dailyData || []}
                 isLoading={isLoading}
               />
             </Suspense>
@@ -379,7 +327,7 @@ export default function OptimizedReportsPage() {
           <div className="space-y-6">
             <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded-lg"></div>}>
               <ProductStats
-                categoryData={categoryData}
+                categoryData={data?.categoryData || []}
                 isLoading={isLoading}
               />
             </Suspense>
