@@ -142,8 +142,21 @@ export function MobileBottomNav({ userRole: propUserRole }: MobileBottomNavProps
       active: isActive('/reports')
     }] : []),
 
+    // Users - Admin only
+    ...(userRole === 'admin' ? [{
+      href: '/users',
+      icon: Users,
+      label: 'Users',
+      active: isActive('/users')
+    }] : []),
+
     // Settings - Admin only
-    { href: '/settings', icon: Settings, label: 'Settings', active: isActive('/settings') }
+    ...(userRole === 'admin' ? [{
+      href: '/settings', 
+      icon: Settings, 
+      label: 'Settings', 
+      active: isActive('/settings')
+    }] : [])
   ].filter(Boolean)
 
   // Limit to 5 items for mobile bottom nav

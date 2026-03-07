@@ -135,10 +135,10 @@ export default function ReceiptsPage() {
         number: `RCP-${new Date(order.created_at).toISOString().split('T')[0].replace(/-/g, '')}-${String(order.id).padStart(3, '0')}`,
         date: new Date(order.created_at).toLocaleString(),
         amount: order.total_amount,
-        paymentMethod: order.payment_method || 'Unknown',
+        paymentMethod: order.payment_method || 'Not specified',
         itemCount: order.order_items?.length || 0,
-        cashier: order.cashier_name || 'System',
-        customerName: order.customer_name,
+        cashier: order.users ? `${order.users.name} (${order.users.role})` : order.cashier_name || 'Not assigned',
+        customerName: order.customer_name || 'No customer',
         tableName: order.table_number,
         status: order.status,
         items: order.order_items?.map((item: any) => ({
@@ -257,304 +257,266 @@ export default function ReceiptsPage() {
   const getTotalAmount = () => receipts.reduce((sum, r) => sum + r.amount, 0)
 
   return (
-    <div className="p-6 space-y-6 bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900 min-h-screen">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-            Receipt Management
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">Track orders and generate professional receipts</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="px-4 py-2 bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-            <p className="text-sm text-gray-500">Total Orders</p>
-            <p className="text-2xl font-bold text-gray-900 dark:text-white">{receipts.length}</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Restaurant Selector */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Restaurant</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Select value={selectedRestaurant || ''} onValueChange={setSelectedRestaurant} disabled={restaurantsLoading}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select restaurant" />
-            </SelectTrigger>
-            <SelectContent>
-              {restaurants.map((restaurant: any) => (
-                <SelectItem key={restaurant.id} value={restaurant.id}>
-                  {restaurant.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </CardContent>
-      </Card>
-
-      {/* Summary Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-blue-100 flex items-center gap-2">
-              <ShoppingBag className="h-4 w-4" />
-              Total Orders
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{receipts.length}</p>
-            <p className="text-blue-100 text-sm mt-1">All time orders</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-green-100 flex items-center gap-2">
-              <DollarSign className="h-4 w-4" />
-              Total Revenue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">{formatAmount(getTotalAmount())}</p>
-            <p className="text-green-100 text-sm mt-1">Gross revenue</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-purple-100 flex items-center gap-2">
-              <TrendingUp className="h-4 w-4" />
-              Average Order
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {receipts.length > 0 ? formatAmount(getTotalAmount() / receipts.length) : formatAmount(0)}
-            </p>
-            <p className="text-purple-100 text-sm mt-1">Per order</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-gradient-to-br from-orange-500 to-orange-600 text-white border-0 shadow-lg">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-orange-100 flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Completed Orders
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              {receipts.filter(r => r.status === 'completed').length}
-            </p>
-            <p className="text-orange-100 text-sm mt-1">Finished orders</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Search and Filter */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            Search & Filter Receipts
-            <Button variant="outline" size="sm" onClick={handleExportData}>
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-            <Input
-              placeholder="Search by receipt number or cashier..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+    <div className="min-h-screen bg-gray-50">
+      {/* Header Section */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Receipts</h1>
+            <p className="text-sm text-gray-600 mt-1">View and manage receipt history</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div>
-              <Label htmlFor="statusFilter">Order Status</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Orders</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="preparing">Preparing</SelectItem>
-                  <SelectItem value="ready">Ready</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                </SelectContent>
-              </Select>
+          <div className="flex items-center gap-3">
+            <div className="px-4 py-2 bg-white border border-gray-200 rounded-lg">
+              <p className="text-sm text-gray-500">Total Orders</p>
+              <p className="text-xl font-bold text-gray-900">{receipts.length}</p>
             </div>
             
-            <div>
-              <Label htmlFor="dateFilter">Date Filter</Label>
-              <Select value={dateFilter} onValueChange={setDateFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select date range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="week">This Week</SelectItem>
-                  <SelectItem value="month">This Month</SelectItem>
-                  <SelectItem value="custom">Custom Range</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {dateFilter === 'custom' && (
-              <>
-                <div>
-                  <Label htmlFor="startDate">Start Date</Label>
-                  <Input
-                    id="startDate"
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="endDate">End Date</Label>
-                  <Input
-                    id="endDate"
-                    type="date"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </div>
-              </>
-            )}
+            {/* Restaurant Selector */}
+            <Select value={selectedRestaurant || ''} onValueChange={setSelectedRestaurant} disabled={restaurantsLoading}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select restaurant" />
+              </SelectTrigger>
+              <SelectContent>
+                {restaurants.map((restaurant: any) => (
+                  <SelectItem key={restaurant.id} value={restaurant.id}>
+                    {restaurant.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Receipts Table */}
-      <Card className="shadow-lg border-0">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
+      {/* Filters Section */}
+      <div className="bg-white border-b border-gray-200 px-6 py-3">
+        <div className="flex items-center gap-4">
+          <div className="flex-1 max-w-md">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search receipts..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+          </div>
+          
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="custom">Custom</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="p-4 sm:p-6 space-y-6">
+        {/* Summary Stats - Mobile Optimized */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+          <Card className="bg-gradient-to-br from-blue-500 to-blue-600 text-white border-0 shadow-lg">
+            <CardHeader className="pb-2 px-3 pt-3">
+              <CardTitle className="text-xs font-medium text-blue-100 flex items-center gap-1">
+                <ShoppingBag className="h-3 w-3" />
+                Total Orders
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 pb-3">
+              <p className="text-2xl font-bold">{receipts.length}</p>
+              <p className="text-blue-100 text-xs mt-1">All time</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-green-500 to-green-600 text-white border-0 shadow-lg">
+            <CardHeader className="pb-2 px-3 pt-3">
+              <CardTitle className="text-xs font-medium text-green-100 flex items-center gap-1">
+                <DollarSign className="h-3 w-3" />
+                Total Revenue
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 pb-3">
+              <p className="text-2xl font-bold">{formatAmount(getTotalAmount())}</p>
+              <p className="text-green-100 text-xs mt-1">Gross revenue</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-purple-500 to-purple-600 text-white border-0 shadow-lg">
+            <CardHeader className="pb-2 px-3 pt-3">
+              <CardTitle className="text-xs font-medium text-purple-100 flex items-center gap-1">
+                <TrendingUp className="h-3 w-3" />
+                Average Order
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 pb-3">
+              <p className="text-2xl font-bold">
+                {receipts.length > 0 ? formatAmount(getTotalAmount() / receipts.length) : formatAmount(0)}
+              </p>
+              <p className="text-purple-100 text-xs mt-1">Per order</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white border-0 shadow-lg">
+            <CardHeader className="pb-2 px-3 pt-3">
+              <CardTitle className="text-xs font-medium text-emerald-100 flex items-center gap-1">
+                <FileText className="h-3 w-3" />
+                Completed Orders
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-3 pb-3">
+              <p className="text-2xl font-bold">
+                {receipts.filter(r => r.status === 'completed').length}
+              </p>
+              <p className="text-emerald-100 text-xs mt-1">Finished</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search and Filter - Mobile Optimized */}
+        <Card className="mb-6">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-lg font-semibold flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <span>Search & Filter Receipts</span>
+              <Button variant="outline" size="sm" onClick={handleExportData} className="w-full sm:w-auto">
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by receipt number or cashier..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 h-12"
+              />
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <Label htmlFor="statusFilter" className="text-sm font-medium text-gray-700">Order Status</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Filter by status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Orders</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="dateFilter" className="text-sm font-medium text-gray-700">Date Range</Label>
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger className="h-10">
+                    <SelectValue placeholder="Filter by date" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="week">This Week</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                    <SelectItem value="custom">Custom</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Receipts Table - Mobile Optimized */}
+        <Card className="shadow-lg border-0">
+          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20">
+            <CardTitle className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-600" />
               Receipt History
-            </span>
-            <Button variant="outline" size="sm" onClick={handleExportData} className="bg-white dark:bg-slate-800">
-              <Download className="h-4 w-4 mr-2" />
-              Export CSV
-            </Button>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          {isLoading ? (
-            <div className="text-center py-12 text-gray-500">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p>Loading receipts...</p>
-            </div>
-          ) : filteredReceipts.length === 0 ? (
-            <div className="text-center py-12 text-gray-500">
-              <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p className="text-lg font-medium">
-                {searchTerm ? 'No receipts found' : 'No receipts yet'}
-              </p>
-              <p className="text-sm mt-2">
-                {searchTerm ? 'Try adjusting your search terms' : 'Orders will appear here once created'}
-              </p>
-            </div>
-          ) : (
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader className="bg-gray-50 dark:bg-slate-800">
-                  <TableRow>
-                    <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Receipt #</TableHead>
-                    <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Date & Time</TableHead>
-                    <TableHead className="text-right font-semibold text-gray-700 dark:text-gray-300">Amount</TableHead>
-                    <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Status</TableHead>
-                    <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Items</TableHead>
-                    <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Payment Method</TableHead>
-                    <TableHead className="font-semibold text-gray-700 dark:text-gray-300">Cashier</TableHead>
-                    <TableHead className="text-right font-semibold text-gray-700 dark:text-gray-300">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredReceipts.map((receipt) => (
-                    <TableRow key={receipt.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
-                      <TableCell className="font-mono font-semibold text-blue-600">{receipt.number}</TableCell>
-                      <TableCell className="text-gray-700 dark:text-gray-300">{receipt.date}</TableCell>
-                      <TableCell className="text-right font-semibold text-gray-900 dark:text-white">
-                        {formatAmount(receipt.amount)}
-                      </TableCell>
-                      <TableCell>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                          receipt.status === 'completed' ? 'bg-green-100 text-green-700 border border-green-200' :
-                          receipt.status === 'ready' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
-                          receipt.status === 'preparing' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
-                          receipt.status === 'confirmed' ? 'bg-purple-100 text-purple-700 border border-purple-200' :
-                          'bg-gray-100 text-gray-700 border border-gray-200'
-                        }`}>
-                          {receipt.status}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-gray-700 dark:text-gray-300">{receipt.itemCount}</TableCell>
-                      <TableCell>
-                        <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded text-xs font-medium border border-blue-200">
-                          {receipt.paymentMethod}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-gray-700 dark:text-gray-300">{receipt.cashier}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handlePrint(receipt)}
-                            title="Print receipt"
-                            className="hover:bg-blue-50 hover:text-blue-600"
-                          >
-                            <Printer className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDownload(receipt)}
-                            title="Download receipt PDF"
-                            className="hover:bg-green-50 hover:text-green-600"
-                          >
-                            <Download className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleDownloadDetailed(receipt)}
-                            title="Download detailed PDF"
-                            className="hover:bg-purple-50 hover:text-purple-600"
-                          >
-                            <FileText className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewDetails(receipt)}
-                            title="View details"
-                            className="hover:bg-indigo-50 hover:text-indigo-600"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-0">
+            {isLoading ? (
+              <div className="text-center py-12 text-gray-500">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p>Loading receipts...</p>
+              </div>
+            ) : filteredReceipts.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p className="text-lg font-medium">
+                  {searchTerm ? 'No receipts found' : 'No receipts yet'}
+                </p>
+                <p className="text-sm mt-2">
+                  {searchTerm ? 'Try adjusting your search terms' : 'Orders will appear here once created'}
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-gray-50 dark:bg-slate-800">
+                    <TableRow>
+                      <TableHead className="font-semibold text-gray-700 dark:text-gray-300 text-xs sm:text-sm">Receipt #</TableHead>
+                      <TableHead className="font-semibold text-gray-700 dark:text-gray-300 text-xs sm:text-sm">Date</TableHead>
+                      <TableHead className="text-right font-semibold text-gray-700 dark:text-gray-300 text-xs sm:text-sm">Amount</TableHead>
+                      <TableHead className="font-semibold text-gray-700 dark:text-gray-300 text-xs sm:text-sm">Status</TableHead>
+                      <TableHead className="font-semibold text-gray-700 dark:text-gray-300 text-xs sm:text-sm">Cashier</TableHead>
+                      <TableHead className="text-right font-semibold text-gray-700 dark:text-gray-300 text-xs sm:text-sm">Actions</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredReceipts.map((receipt) => (
+                      <TableRow key={receipt.id} className="hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors">
+                        <TableCell className="font-mono font-semibold text-blue-600 text-xs sm:text-sm">{receipt.number}</TableCell>
+                        <TableCell className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">{receipt.date}</TableCell>
+                        <TableCell className="text-right font-semibold text-gray-900 dark:text-white text-xs sm:text-sm">
+                          {formatAmount(receipt.amount)}
+                        </TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                            receipt.status === 'completed' ? 'bg-green-100 text-green-700 border border-green-200' :
+                            receipt.status === 'ready' ? 'bg-blue-100 text-blue-700 border border-blue-200' :
+                            receipt.status === 'preparing' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
+                            receipt.status === 'confirmed' ? 'bg-purple-100 text-purple-700 border border-purple-200' :
+                            'bg-gray-100 text-gray-700 border border-gray-200'
+                          }`}>
+                            {receipt.status}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-gray-700 dark:text-gray-300 text-xs sm:text-sm">{receipt.cashier}</TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleViewDetails(receipt)}
+                              title="View details"
+                              className="hover:bg-indigo-50 hover:text-indigo-600 h-8 w-8 p-0"
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+      </div>
 
       {/* Receipt Details Modal */}
       <Dialog open={showDetails} onOpenChange={setShowDetails}>

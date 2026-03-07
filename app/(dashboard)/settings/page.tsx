@@ -5,14 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Switch } from '@/components/ui/switch'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
 import { Save, RotateCcw, Database, Printer, Bell, Shield, RefreshCw, AlertTriangle } from 'lucide-react'
 import { useRestaurants } from '@/hooks/use-restaurants'
 import { getCurrenciesByRegion, Currency } from '@/lib/currencies'
 import { useCurrencyContext } from '@/contexts/CurrencyContext'
+import { EnhancedSwitch } from '@/components/ui/enhanced-toggle'
 
 /**
  * Settings Page
@@ -440,31 +441,28 @@ export default function SettingsPage() {
                   onChange={(e) => updateSetting('pos', 'receiptFooter', e.target.value)}
                 />
               </div>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="autoPrint">Auto-print Receipts</Label>
-                  <Switch
-                    id="autoPrint"
-                    checked={settings.pos.autoPrintReceipts}
-                    onCheckedChange={(checked) => updateSetting('pos', 'autoPrintReceipts', checked)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="showTax">Show Tax Breakdown</Label>
-                  <Switch
-                    id="showTax"
-                    checked={settings.pos.showTaxBreakdown}
-                    onCheckedChange={(checked) => updateSetting('pos', 'showTaxBreakdown', checked)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="allowDiscounts">Allow Discounts</Label>
-                  <Switch
-                    id="allowDiscounts"
-                    checked={settings.pos.allowDiscounts}
-                    onCheckedChange={(checked) => updateSetting('pos', 'allowDiscounts', checked)}
-                  />
-                </div>
+              <div className="space-y-4">
+                <EnhancedSwitch
+                  id="autoPrint"
+                  checked={settings.pos.autoPrintReceipts}
+                  onCheckedChange={(checked) => updateSetting('pos', 'autoPrintReceipts', checked)}
+                  label="Auto-print Receipts"
+                  description="Automatically print receipts after successful payments"
+                />
+                <EnhancedSwitch
+                  id="showTax"
+                  checked={settings.pos.showTaxBreakdown}
+                  onCheckedChange={(checked) => updateSetting('pos', 'showTaxBreakdown', checked)}
+                  label="Show Tax Breakdown"
+                  description="Display tax details on receipts and order summaries"
+                />
+                <EnhancedSwitch
+                  id="allowDiscounts"
+                  checked={settings.pos.allowDiscounts}
+                  onCheckedChange={(checked) => updateSetting('pos', 'allowDiscounts', checked)}
+                  label="Allow Discounts"
+                  description="Enable staff to apply discounts to orders"
+                />
               </div>
               {settings.pos.allowDiscounts && (
                 <div>
@@ -513,31 +511,28 @@ export default function SettingsPage() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="backupEnabled">Enable Backups</Label>
-                  <Switch
-                    id="backupEnabled"
-                    checked={settings.system.backupEnabled}
-                    onCheckedChange={(checked) => updateSetting('system', 'backupEnabled', checked)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="maintenanceMode">Maintenance Mode</Label>
-                  <Switch
-                    id="maintenanceMode"
-                    checked={settings.system.maintenanceMode}
-                    onCheckedChange={(checked) => updateSetting('system', 'maintenanceMode', checked)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="debugMode">Debug Mode</Label>
-                  <Switch
-                    id="debugMode"
-                    checked={settings.system.debugMode}
-                    onCheckedChange={(checked) => updateSetting('system', 'debugMode', checked)}
-                  />
-                </div>
+              <div className="space-y-4">
+                <EnhancedSwitch
+                  id="backupEnabled"
+                  checked={settings.system.backupEnabled}
+                  onCheckedChange={(checked) => updateSetting('system', 'backupEnabled', checked)}
+                  label="Enable Backups"
+                  description="Automatically backup restaurant data to secure cloud storage"
+                />
+                <EnhancedSwitch
+                  id="maintenanceMode"
+                  checked={settings.system.maintenanceMode}
+                  onCheckedChange={(checked) => updateSetting('system', 'maintenanceMode', checked)}
+                  label="Maintenance Mode"
+                  description="Temporarily disable customer-facing features"
+                />
+                <EnhancedSwitch
+                  id="debugMode"
+                  checked={settings.system.debugMode}
+                  onCheckedChange={(checked) => updateSetting('system', 'debugMode', checked)}
+                  label="Debug Mode"
+                  description="Enable detailed logging for troubleshooting"
+                />
               </div>
             </CardContent>
           </Card>

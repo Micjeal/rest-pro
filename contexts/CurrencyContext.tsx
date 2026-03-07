@@ -39,11 +39,7 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Fetch settings for the restaurant
-      const response = await fetch(`/api/settings?restaurantId=${effectiveRestaurantId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
-        }
-      })
+      const response = await fetch(`/api/settings?restaurantId=${effectiveRestaurantId}`)
 
       if (response.ok) {
         const settings = await response.json()

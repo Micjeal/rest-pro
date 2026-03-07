@@ -319,7 +319,7 @@ export default function StaffAssignmentPage() {
       <div className="flex">
         <SidebarNavigation />
         <main className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
               <p className="text-gray-500 mt-2">Loading staff assignment...</p>
@@ -334,7 +334,7 @@ export default function StaffAssignmentPage() {
     <div className="flex">
       <SidebarNavigation />
       <main className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
           {/* Header */}
           <div className="mb-8">
             <Button

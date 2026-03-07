@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const restaurantId = searchParams.get('restaurantId')
 
-    // Get user from auth header (simplified)
+    // Get user from auth header
     const authHeader = request.headers.get('authorization')
     let userId = null
 
@@ -36,22 +36,18 @@ export async function GET(request: NextRequest) {
         const token = authHeader.substring(7)
         const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
         userId = decoded.userId
-        console.log('[Settings API] User ID from token:', userId)
       } catch (error) {
-        console.error('[Settings API] Invalid token format:', error)
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
     }
 
     if (!userId) {
-      console.log('[Settings API] No user ID found, returning 401')
       return NextResponse.json({ error: 'Unauthorized - No valid token' }, { status: 401 })
     }
 
     if (!restaurantId) {
       return NextResponse.json({ error: 'Restaurant ID is required' }, { status: 400 })
     }
-
-    console.log('[Settings API] Fetching settings for restaurant:', restaurantId, 'user:', userId)
 
     // Verify user owns the restaurant
     const { data: restaurant, error: restaurantError } = await supabase
@@ -62,11 +58,10 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (restaurantError || !restaurant) {
-      console.log('[Settings API] Restaurant not found or access denied')
       return NextResponse.json({ error: 'Restaurant not found or access denied' }, { status: 404 })
     }
 
-    // Get settings for the restaurant - use service client to bypass RLS
+    // Use service client to bypass RLS for verified user
     const client = serviceClient || supabase
     const { data: settings, error } = await client
       .from('restaurant_settings')

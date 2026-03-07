@@ -19,7 +19,7 @@ import {
   Hammer 
 } from 'lucide-react'
 import { getRolesByCategory, getRoleBadgeColor, getRoleLabel, type RestaurantRole } from '@/components/users/role-definitions'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useSidebar } from '@/hooks/use-sidebar'
 
 interface SidebarNavigationProps {
@@ -31,60 +31,71 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
   const router = useRouter()
   const [userRole, setUserRole] = useState<string>('')
   const [restaurants, setRestaurants] = useState<any[]>([])
+  const [isMounted, setIsMounted] = useState(false)
   const { isMobileOpen, toggleMobileSidebar, closeMobileSidebar, isDesktopCollapsed } = useSidebar()
+
+  // Prevent hydration mismatch
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+
+  // Memoized restaurant fetching
+  const fetchRestaurants = useCallback(async () => {
+    try {
+      const token = localStorage.getItem('auth_token')
+      if (!token) {
+        return
+      }
+
+      const response = await fetch('/api/restaurants', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const restaurants = await response.json()
+        setRestaurants(restaurants)
+      } else {
+        console.error('[SidebarNavigation] Failed to fetch restaurants:', response.status)
+      }
+    } catch (error) {
+      console.error('[SidebarNavigation] Error fetching restaurants:', error)
+    }
+  }, [])
+
+  // Memoized first restaurant ID
+  const firstRestaurantId = useMemo(() => {
+    if (restaurants.length > 0) {
+      const firstId = restaurants[0].id
+      // Validate that it's a proper UUID format
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+      if (uuidRegex.test(firstId)) {
+        return firstId
+      } else {
+        console.error('[SidebarNavigation] Invalid restaurant ID format:', firstId)
+        return null
+      }
+    }
+    return null
+  }, [restaurants])
+
+  // Fetch restaurants on mount and when user role changes
+  useEffect(() => {
+    const role = localStorage.getItem('userRole') || 'cashier'
+    setUserRole(role)
+    
+    // Only fetch if we haven't fetched yet or if restaurants is empty
+    if (restaurants.length === 0) {
+      fetchRestaurants()
+    }
+  }, [fetchRestaurants, restaurants.length])
 
   // Get role categories
   const kitchenRoles = getRolesByCategory('Kitchen').map(r => r.value)
   const managementRoles = getRolesByCategory('Management').map(r => r.value)
   const frontOfHouseRoles = getRolesByCategory('Front of House').map(r => r.value)
   const supportRoles = getRolesByCategory('Support').map(r => r.value)
-
-  useEffect(() => {
-    // Get user role from localStorage or session
-    const role = localStorage.getItem('userRole') || 'cashier'
-    setUserRole(role)
-    console.log('[SidebarNavigation] User role:', role)
-    
-    console.log('[SidebarNavigation] Menu visibility check:', {
-      userRole: role,
-      isManagement: managementRoles.includes(role as RestaurantRole),
-      isKitchen: kitchenRoles.includes(role as RestaurantRole),
-      isFrontOfHouse: frontOfHouseRoles.includes(role as RestaurantRole),
-      isSupport: supportRoles.includes(role as RestaurantRole),
-      shouldShowDashboard: managementRoles.includes(role as RestaurantRole),
-      shouldShowKitchen: [...kitchenRoles, ...managementRoles].includes(role as RestaurantRole),
-      shouldShowPOS: [...frontOfHouseRoles, ...supportRoles].includes(role as RestaurantRole)
-    })
-    
-    // Fetch real restaurants from API
-    const fetchRestaurants = async () => {
-      try {
-        const token = localStorage.getItem('auth_token')
-        if (!token) {
-          console.log('[SidebarNavigation] No auth token found')
-          return
-        }
-
-        const response = await fetch('/api/restaurants', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-
-        if (response.ok) {
-          const restaurants = await response.json()
-          setRestaurants(restaurants)
-          console.log('[SidebarNavigation] Loaded restaurants:', restaurants)
-        } else {
-          console.error('[SidebarNavigation] Failed to fetch restaurants:', response.status)
-        }
-      } catch (error) {
-        console.error('[SidebarNavigation] Error fetching restaurants:', error)
-      }
-    }
-
-    fetchRestaurants()
-  }, [])
 
   // Notify parent if callback provided (for backwards compatibility)
   useEffect(() => {
@@ -106,25 +117,6 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
 
   const isActive = (path: string) => pathname === path
 
-  // Get the first available restaurant ID for navigation
-  const getFirstRestaurantId = () => {
-    if (restaurants.length > 0) {
-      const firstId = restaurants[0].id
-      console.log('[SidebarNavigation] First restaurant ID:', firstId)
-      // Validate that it's a proper UUID format
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-      if (uuidRegex.test(firstId)) {
-        return firstId
-      } else {
-        console.error('[SidebarNavigation] Invalid restaurant ID format:', firstId)
-        return null
-      }
-    }
-    return null
-  }
-
-  const firstRestaurantId = getFirstRestaurantId()
-
   // Helper function to create navigation items with tooltips
   const createNavItem = (href: string, icon: React.ReactNode, label: string, isActive: boolean) => {
     const button = (
@@ -132,14 +124,14 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
         variant={isActive ? 'default' : 'ghost'}
         className={`w-full justify-start h-11 transition-all duration-200 hover:bg-white/10 ${
           isActive ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : ''
-        } ${isDesktopCollapsed ? 'px-3' : ''}`}
+        } ${isDesktopCollapsed && isMounted ? 'px-3' : ''}`}
       >
         {icon}
-        {!isDesktopCollapsed && <span className="ml-3">{label}</span>}
+        {!isDesktopCollapsed && isMounted && <span className="ml-3">{label}</span>}
       </Button>
     )
 
-    if (isDesktopCollapsed) {
+    if (isDesktopCollapsed && isMounted) {
       return (
         <Tooltip>
           <TooltipTrigger asChild>
@@ -157,11 +149,11 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
 
   return (
     <>
-      {/* Mobile Toggle Button - Always visible on mobile when sidebar is closed */}
+      {/* Mobile Toggle Button - Only on mobile */}
       <Button
         variant="outline"
         size="icon"
-        className={`fixed top-4 left-4 z-50 transition-all duration-300 ${isMobileOpen ? 'hidden' : 'block lg:hidden'} bg-white dark:bg-slate-800 shadow-lg`}
+        className={`fixed top-4 left-4 z-50 transition-all duration-300 md:hidden bg-white dark:bg-slate-800 shadow-lg`}
         onClick={toggleMobileSidebar}
       >
         <Menu className="h-4 w-4" />
@@ -177,21 +169,22 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
 
       <TooltipProvider>
       <aside className={`
-        ${isDesktopCollapsed ? 'w-20' : 'w-64'} 
+        ${isDesktopCollapsed && isMounted ? 'w-20' : 'w-64'} 
         bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 text-white h-screen fixed left-0 top-0 overflow-y-auto transition-all duration-300 z-40
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         shadow-2xl
+        hidden lg:block
       `}>
         {/* Header */}
         <div className={`p-5 border-b border-white/10 transition-all duration-300 sticky top-0 bg-slate-900/95 backdrop-blur-sm z-10 ${
-          isDesktopCollapsed ? 'px-3' : ''
+          isDesktopCollapsed && isMounted ? 'px-3' : ''
         }`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-500/30 flex-shrink-0">
                 <span className="font-bold text-sm">P</span>
               </div>
-              {!isDesktopCollapsed && (
+              {!isDesktopCollapsed && isMounted && (
                 <div className="overflow-hidden">
                   <h1 className="font-bold text-lg whitespace-nowrap">POS System</h1>
                   <p className="text-xs text-slate-400 capitalize truncate">{userRole}</p>
@@ -211,7 +204,7 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
 
         {/* Navigation */}
         <nav className={`p-4 space-y-1 transition-all duration-300 ${
-          isDesktopCollapsed ? 'px-2' : ''
+          isDesktopCollapsed && isMounted ? 'px-2' : ''
         }`}>
           {/* Dashboard - Management Roles Only */}
           {managementRoles.includes(userRole as RestaurantRole) && (
@@ -225,12 +218,7 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
 
           {/* Kitchen Display - Kitchen & Management Staff */}
           {[...kitchenRoles, ...managementRoles].includes(userRole as RestaurantRole) && (
-            createNavItem(
-              userRole === 'chef' ? '/dashboard' : '/kitchen', 
-              <ChefHat className="h-5 w-5 flex-shrink-0" />, 
-              userRole === 'chef' ? 'Dashboard' : 'Kitchen', 
-              isActive(userRole === 'chef' ? '/dashboard' : '/kitchen')
-            )
+            createNavItem('/kitchen', <ChefHat className="h-5 w-5 flex-shrink-0" />, 'Kitchen', isActive('/kitchen'))
           )}
 
           {/* Staff Assignment - Kitchen & Management Staff */}
@@ -243,18 +231,13 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
             )
           )}
 
-          {/* Receipts - Front of House & Support Staff */}
-          {[...frontOfHouseRoles, ...supportRoles].includes(userRole as RestaurantRole) && (
-            createNavItem('/receipts', <Receipt className="h-5 w-5 flex-shrink-0" />, 'Receipts', isActive('/receipts'))
-          )}
-
-          {/* Menu Management - Available to all except chef */}
-          {userRole !== 'chef' && (
+          {/* Menu Management - Kitchen & Management Staff */}
+          {[...kitchenRoles, ...managementRoles].includes(userRole as RestaurantRole) && (
             createNavItem('/menu', <ChefHat className="h-5 w-5 flex-shrink-0" />, 'Menu', isActive('/menu'))
           )}
 
-          {/* Orders - Available to all except chef */}
-          {userRole !== 'chef' && firstRestaurantId && (
+          {/* Orders - Kitchen & Management Staff */}
+          {[...kitchenRoles, ...managementRoles].includes(userRole as RestaurantRole) && firstRestaurantId && (
             createNavItem(
               `/dashboard/${firstRestaurantId}/orders`,
               <ShoppingCart className="h-5 w-5 flex-shrink-0" />,
@@ -263,14 +246,19 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
             )
           )}
 
-          {/* Reservations - Available to all except chef */}
-          {userRole !== 'chef' && firstRestaurantId && (
+          {/* Reservations - Kitchen & Management Staff */}
+          {[...kitchenRoles, ...managementRoles].includes(userRole as RestaurantRole) && firstRestaurantId && (
             createNavItem(
               `/dashboard/${firstRestaurantId}/reservations`,
               <Users className="h-5 w-5 flex-shrink-0" />,
               'Reservations',
               pathname.includes('/reservations')
             )
+          )}
+
+          {/* Receipts - Front of House & Support Staff */}
+          {[...frontOfHouseRoles, ...supportRoles].includes(userRole as RestaurantRole) && (
+            createNavItem('/receipts', <Receipt className="h-5 w-5 flex-shrink-0" />, 'Receipts', isActive('/receipts'))
           )}
 
           {/* Inventory - Manager & Admin only */}

@@ -62,8 +62,23 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     // Apply kitchen-specific optimizations
     if (theme.includes('kitchen')) {
       root.classList.add('kitchen-mode')
+      // Add kitchen-specific body class for better targeting
+      document.body.classList.add('kitchen-active')
     } else {
       root.classList.remove('kitchen-mode')
+      document.body.classList.remove('kitchen-active')
+    }
+    
+    // Update meta theme-color for mobile browsers
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]')
+    if (metaThemeColor) {
+      const colors = {
+        'kitchen-light': '#f9fafb',
+        'kitchen-dark': '#0f172a',
+        'light': '#ffffff',
+        'dark': '#0f172a'
+      }
+      metaThemeColor.setAttribute('content', colors[theme])
     }
   }
 

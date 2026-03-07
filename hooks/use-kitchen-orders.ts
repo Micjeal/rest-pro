@@ -31,7 +31,7 @@ const fetcher = async (url: string) => {
 
 export function useKitchenOrders(restaurantId?: string) {
   const { data, error, mutate } = useSWR<Order[]>(
-    restaurantId ? `/api/orders?restaurantId=${restaurantId}&status=pending,confirmed,preparing` : null,
+    restaurantId ? `/api/orders?restaurantId=${restaurantId}&status=pending,confirmed,preparing,ready` : null,
     fetcher,
     {
       refreshInterval: 5000,
@@ -77,7 +77,7 @@ export function useKitchenOrders(restaurantId?: string) {
 
   const kitchenOrders: KitchenOrder[] = (data || []).map(order => ({
     ...order,
-    items: (order.order_items || []).map(item => ({
+    items: (order.order_items || []).map(item =>({
       id: item.id,
       name: (item as any).menu_items?.name || `Item ${(item as any).menu_item_id?.substring(0, 4) || 'Unknown'}`,
       quantity: item.quantity,

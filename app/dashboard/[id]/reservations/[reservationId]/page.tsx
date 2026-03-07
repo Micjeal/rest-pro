@@ -41,7 +41,7 @@ export default function ReservationDetailPage() {
   // Set default restaurant when data loads
   useEffect(() => {
     if (restaurants.length > 0 && !selectedRestaurant) {
-      const urlRestaurantExists = restaurants.find(r => r.id === restaurantId)
+      const urlRestaurantExists = restaurants.find((r: any) => r.id === restaurantId)
       setSelectedRestaurant(urlRestaurantExists ? restaurantId : restaurants[0].id)
     }
   }, [restaurants, selectedRestaurant, restaurantId])
@@ -49,7 +49,7 @@ export default function ReservationDetailPage() {
   // Find the specific reservation when reservations load
   useEffect(() => {
     if (reservations.length > 0 && reservationId) {
-      const foundReservation = reservations.find(r => r.id === reservationId)
+      const foundReservation = reservations.find((r: any) => r.id === reservationId)
       if (foundReservation) {
         setReservation(foundReservation)
       } else {
@@ -141,7 +141,7 @@ export default function ReservationDetailPage() {
       <div className="flex">
         <SidebarNavigation />
         <main id="main-content" className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
               <p className="text-gray-500 mt-2">Loading reservation details...</p>
@@ -157,7 +157,7 @@ export default function ReservationDetailPage() {
       <div className="flex">
         <SidebarNavigation />
         <main id="main-content" className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
             <div className="text-center py-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Reservation Not Found</h2>
               <p className="text-gray-600 mb-6">The reservation you're looking for doesn't exist.</p>
@@ -175,7 +175,7 @@ export default function ReservationDetailPage() {
     <div className="flex">
       <SidebarNavigation />
       <main id="main-content" className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
           {/* Header */}
           <div className="mb-8">
             <Button

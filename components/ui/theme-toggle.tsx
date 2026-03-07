@@ -3,15 +3,11 @@
 import { Moon, Sun, ChefHat, Monitor } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useTheme } from '@/contexts/theme-context'
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { useState } from 'react'
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, toggleTheme } = useTheme()
+  const [isOpen, setIsOpen] = useState(false)
 
   const getThemeIcon = () => {
     switch (theme) {
@@ -43,44 +39,43 @@ export function ThemeToggle() {
     }
   }
 
+  const getNextTheme = () => {
+    const themes: (typeof theme)[] = ['kitchen-light', 'kitchen-dark', 'light', 'dark']
+    const currentIndex = themes.indexOf(theme)
+    return themes[(currentIndex + 1) % themes.length]
+  }
+
+  const nextTheme = getNextTheme()
+  const nextThemeIcon = nextTheme === 'kitchen-light' || nextTheme === 'kitchen-dark' 
+    ? <ChefHat className="h-4 w-4" />
+    : nextTheme === 'light' 
+    ? <Sun className="h-4 w-4" />
+    : <Moon className="h-4 w-4" />
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm">
+    <div className="relative">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={toggleTheme}
+        className="kitchen-button kitchen-touch-target min-w-[44px] h-10 w-10 sm:w-auto sm:min-w-[120px] kitchen-bg kitchen-border hover:kitchen-surface transition-all duration-200"
+        aria-label={`Current theme: ${getThemeLabel()}. Click to change theme.`}
+        title={`Current: ${getThemeLabel()}. Next: ${nextTheme.charAt(0).toUpperCase() + nextTheme.slice(1).replace('-', ' ')}`}
+      >
+        <span className="flex items-center justify-center gap-2">
           {getThemeIcon()}
-          <span className="ml-2 hidden sm:inline">{getThemeLabel()}</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onClick={() => setTheme('kitchen-light')} className="flex items-center gap-2">
-          <div className="h-4 w-4 rounded bg-gradient-to-br from-orange-100 to-yellow-100 border border-orange-200"></div>
-          <div>
-            <div className="font-medium">Kitchen Light</div>
-            <div className="text-xs text-gray-500">Optimized for bright kitchens</div>
-          </div>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('kitchen-dark')} className="flex items-center gap-2">
-          <div className="h-4 w-4 rounded bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-600"></div>
-          <div>
-            <div className="font-medium">Kitchen Dark</div>
-            <div className="text-xs text-gray-500">Optimized for dark kitchens</div>
-          </div>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('light')} className="flex items-center gap-2">
-          <Sun className="h-4 w-4 text-yellow-500" />
-          <div>
-            <div className="font-medium">Light Mode</div>
-            <div className="text-xs text-gray-500">Standard light theme</div>
-          </div>
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')} className="flex items-center gap-2">
-          <Moon className="h-4 w-4 text-blue-500" />
-          <div>
-            <div className="font-medium">Dark Mode</div>
-            <div className="text-xs text-gray-500">Standard dark theme</div>
-          </div>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <span className="hidden sm:inline font-medium">{getThemeLabel()}</span>
+        </span>
+      </Button>
+      
+      {/* Visual hint for next theme on hover */}
+      <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+        <div className="flex items-center gap-1 text-xs kitchen-text-secondary bg-kitchen-card px-2 py-1 rounded border kitchen-border shadow-sm">
+          <span>Next:</span>
+          {nextThemeIcon}
+          <span className="capitalize">{nextTheme.replace('-', ' ')}</span>
+        </div>
+      </div>
+    </div>
   )
 }

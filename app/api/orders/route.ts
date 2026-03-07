@@ -105,7 +105,11 @@ export async function GET(request: NextRequest) {
 
   let query = supabase
     .from('orders')
-    .select('*, order_items(*, menu_items(name))')
+    .select(`
+      *, 
+      order_items(*, menu_items(name)),
+      users!orders_staff_id_fkey(id, name, email, role)
+    `)
     .eq('restaurant_id', restaurantId)
     .order('created_at', { ascending: false })
 
@@ -213,6 +217,20 @@ export async function POST(request: NextRequest) {
     if (!body.restaurant_id || !body.customer_name) {
       return NextResponse.json({ 
         error: 'Missing required fields: restaurant_id and customer_name are required' 
+      }, { status: 400 })
+    }
+
+    // Validate customer name is not empty
+    if (body.customer_name.trim() === '') {
+      return NextResponse.json({ 
+        error: 'Customer name cannot be empty' 
+      }, { status: 400 })
+    }
+
+    // Validate payment method if provided
+    if (body.payment_method && !['cash', 'card', 'mobile'].includes(body.payment_method)) {
+      return NextResponse.json({ 
+        error: 'Invalid payment method. Must be one of: cash, card, mobile' 
       }, { status: 400 })
     }
 

@@ -76,14 +76,15 @@ export default function OrderDetailPage() {
       const response = await fetch(`/api/orders/${order.id}`, {
         method: 'PUT',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({ status: newStatus })
       })
       
       if (!response.ok) {
-        throw new Error('Failed to update order status')
+        const errorData = await response.json()
+        console.error('[Order] API Error:', response.status, errorData)
+        throw new Error(`Failed to update order status: ${errorData.error || response.statusText}`)
       }
       
       toast.success(`Order status updated to ${newStatus}`)
@@ -144,7 +145,7 @@ export default function OrderDetailPage() {
       <div className="flex">
         <SidebarNavigation />
         <main id="main-content" className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
               <p className="text-gray-500 mt-2">Loading order details...</p>
@@ -160,7 +161,7 @@ export default function OrderDetailPage() {
       <div className="flex">
         <SidebarNavigation />
         <main id="main-content" className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
-          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
             <div className="text-center py-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Order Not Found</h2>
               <p className="text-gray-600 mb-6">The order you're looking for doesn't exist.</p>
@@ -178,7 +179,7 @@ export default function OrderDetailPage() {
     <div className="flex">
       <SidebarNavigation />
       <main id="main-content" className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
           {/* Header */}
           <div className="mb-8">
             <Button

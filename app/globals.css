@@ -196,3 +196,120 @@ body {
 .btn-press:active {
   transform: scale(0.95);
 }
+
+/* Kitchen Theme Variables */
+.kitchen-light {
+  --kitchen-bg: 255 255 255;
+  --kitchen-surface: 249 250 251;
+  --kitchen-card: 255 255 255;
+  --kitchen-border: 229 231 235;
+  --kitchen-text: 17 24 39;
+  --kitchen-text-secondary: 107 114 128;
+  --kitchen-accent: 251 146 60;
+  --kitchen-success: 34 197 94;
+  --kitchen-warning: 250 204 21;
+  --kitchen-danger: 239 68 68;
+  --kitchen-info: 59 130 246;
+  --kitchen-sidebar: 243 244 246;
+  --kitchen-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+}
+
+.kitchen-dark {
+  --kitchen-bg: 15 23 42;
+  --kitchen-surface: 30 41 59;
+  --kitchen-card: 30 41 59;
+  --kitchen-border: 51 65 85;
+  --kitchen-text: 248 250 252;
+  --kitchen-text-secondary: 148 163 184;
+  --kitchen-accent: 251 146 60;
+  --kitchen-success: 34 197 94;
+  --kitchen-warning: 250 204 21;
+  --kitchen-danger: 239 68 68;
+  --kitchen-info: 59 130 246;
+  --kitchen-sidebar: 30 41 59;
+  --kitchen-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+}
+
+/* Kitchen-specific utilities */
+@layer utilities {
+  .kitchen-bg {
+    background-color: rgb(var(--kitchen-bg));
+  }
+  
+  .kitchen-surface {
+    background-color: rgb(var(--kitchen-surface));
+  }
+  
+  .kitchen-card {
+    background-color: rgb(var(--kitchen-card));
+    border-color: rgb(var(--kitchen-border));
+  }
+  
+  .kitchen-text {
+    color: rgb(var(--kitchen-text));
+  }
+  
+  .kitchen-text-secondary {
+    color: rgb(var(--kitchen-text-secondary));
+  }
+  
+  .kitchen-border {
+    border-color: rgb(var(--kitchen-border));
+  }
+  
+  .kitchen-shadow {
+    box-shadow: var(--kitchen-shadow);
+  }
+  
+  .kitchen-accent {
+    background-color: rgb(var(--kitchen-accent));
+    color: white;
+  }
+  
+  .kitchen-success {
+    background-color: rgb(var(--kitchen-success));
+    color: white;
+  }
+  
+  .kitchen-warning {
+    background-color: rgb(var(--kitchen-warning));
+    color: rgb(var(--kitchen-text));
+  }
+  
+  .kitchen-danger {
+    background-color: rgb(var(--kitchen-danger));
+    color: white;
+  }
+  
+  .kitchen-info {
+    background-color: rgb(var(--kitchen-info));
+    color: white;
+  }
+  
+  /* Touch-friendly sizing for kitchen */
+  .kitchen-touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Kitchen card hover states */
+  .kitchen-card-hover {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .kitchen-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -1px rgb(0 0 0 / 0.06);
+  }
+  
+  /* Reduced motion for accessibility */
+  @media (prefers-reduced-motion: reduce) {
+    .kitchen-card-hover {
+      transition: none;
+    }
+    
+    .kitchen-card-hover:hover {
+      transform: none;
+    }
+  }
+}

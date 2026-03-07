@@ -7,6 +7,20 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+
+// Service role client to bypass RLS
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+
+const serviceClient = supabaseUrl && supabaseServiceKey 
+  ? createSupabaseClient(supabaseUrl, supabaseServiceKey, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+  : null
 
 /**
  * GET /api/orders/[id]
@@ -52,12 +66,14 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient()
   const { id: orderId } = await params
 
   try {
+    // Use service client to bypass RLS
+    const client = serviceClient || await createClient()
+    
     // Get order with items and menu item details
-    const { data: order, error } = await supabase
+    const { data: order, error } = await client
       .from('orders')
       .select(`
         *,
@@ -139,7 +155,6 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient()
   const { id: orderId } = await params
 
   // Check for authentication
@@ -186,7 +201,17 @@ export async function PUT(
 
   try {
     const body = await request.json()
+    
+    // Use service client consistently for RLS bypass
+    const client = serviceClient || await createClient()
+    
+    const { data, error } = await client
+      .from('orders')
+      .update(body)
+      .eq('id', orderId)
+      .select()
 
+<<<<<<< Updated upstream
     if (!body || Object.keys(body).length === 0) {
       return NextResponse.json({ 
         error: 'Request body is required' 
@@ -232,11 +257,21 @@ export async function PUT(
     
     console.log('[API] Order updated successfully:', { orderId, newStatus: body.status })
     return NextResponse.json(updatedOrder)
+=======
+    if (error) {
+      console.error('[API] Order update error:', error)
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    if (!data || data.length === 0) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    }
+
+    return NextResponse.json(data[0])
+>>>>>>> Stashed changes
   } catch (error) {
-    console.error('[API] PUT order parse error:', error)
-    return NextResponse.json({ 
-      error: 'Invalid request body' 
-    }, { status: 400 })
+    console.error('[API] Unexpected error:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
 }
 
@@ -261,7 +296,6 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const supabase = await createClient()
   const { id: orderId } = await params
 
   // Check for authentication
@@ -307,8 +341,11 @@ export async function DELETE(
   }
 
   try {
+    // Use service client to bypass RLS
+    const client = serviceClient || await createClient()
+    
     // Delete order (cascade should handle order_items due to foreign key constraint)
-    const { error } = await supabase
+    const { error } = await client
       .from('orders')
       .delete()
       .eq('id', orderId)

@@ -15,15 +15,25 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined)
 
 export const SidebarProvider: React.FC<{ children: ReactNode }> = ({ children }): ReactNode => {
   const [isMobileOpen, setIsMobileOpen] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   
-  // Initialize desktop collapsed state from localStorage
-  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(() => {
+  // Initialize desktop collapsed state with a consistent default
+  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false)
+  
+  // Set mounted state after hydration
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
+  
+  // Sync desktop collapsed state with localStorage after mount
+  useEffect(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('sidebar-desktop-collapsed')
-      return saved === 'true'
+      if (saved !== null) {
+        setIsDesktopCollapsed(saved === 'true')
+      }
     }
-    return false
-  })
+  }, [])
 
   // DEBUG: Log provider initialization
   console.log('[SidebarProvider] Initializing, isMobileOpen:', isMobileOpen, 'isDesktopCollapsed:', isDesktopCollapsed)
