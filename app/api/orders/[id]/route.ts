@@ -132,6 +132,7 @@ export async function GET(
  * 
  * Error Responses:
  * - 400: Invalid data or database error
+ * - 401: Unauthorized
  * - 404: Order not found
  */
 export async function PUT(
@@ -141,45 +142,96 @@ export async function PUT(
   const supabase = await createClient()
   const { id: orderId } = await params
 
+  // Check for authentication
+  const authHeader = request.headers.get('Authorization')
+  let user = null
+  let authError = null
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.substring(7)
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
+      
+      // Validate user from database using decoded token
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, email, role')
+        .eq('id', decoded.userId)
+        .eq('email', decoded.email)
+        .single()
+      
+      if (!userError && userData) {
+        user = userData
+        console.log('[API] Authenticated user via custom token:', user.email)
+      } else {
+        authError = userError
+      }
+    } catch (tokenError) {
+      console.error('[API] Invalid token format:', tokenError)
+      authError = new Error('Invalid token format')
+    }
+  } else {
+    // Fallback to Supabase auth for backward compatibility
+    const { data: { user: supabaseUser }, error: supabaseAuthError } = await supabase.auth.getUser()
+    user = supabaseUser
+    authError = supabaseAuthError
+  }
+
+  console.log('[API] Auth check for PUT:', { userId: user?.id, authError })
+
+  if (authError || !user) {
+    console.log('[API] No authenticated user found for PUT')
+    return NextResponse.json({ error: 'Unauthorized - Please login', details: authError?.message }, { status: 401 })
+  }
+
   try {
     const body = await request.json()
 
-    // If only status is provided, just update the status
-    if (body && Object.keys(body).length === 1 && body.status) {
-      const { data, error } = await supabase
-        .from('orders')
-        .update({ status: body.status })
-        .eq('id', orderId)
-        .select()
-      
-      if (error) {
-        console.error('[API] PUT order status error:', error)
-        return NextResponse.json({ error: error.message }, { status: 400 })
-      }
-      
-      return NextResponse.json(data[0])
+    if (!body || Object.keys(body).length === 0) {
+      return NextResponse.json({ 
+        error: 'Request body is required' 
+      }, { status: 400 })
     }
 
-    // If other fields are provided, update the full order
-    if (body && Object.keys(body).length > 1) {
-      const { data, error } = await supabase
-        .from('orders')
-        .update(body)
-        .eq('id', orderId)
-        .select()
-      
-      if (error) {
-        console.error('[API] PUT order error:', error)
-        return NextResponse.json({ error: error.message }, { status: 400 })
-      }
-      
-      return NextResponse.json(data[0])
+    console.log('[API] Updating order:', { orderId, updates: Object.keys(body) })
+
+    // First, verify the order exists
+    const { data: existingOrder, error: fetchError } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('id', orderId)
+      .single()
+
+    if (fetchError || !existingOrder) {
+      console.warn('[API] Order not found:', orderId)
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
-    // If no body, return error
-    return NextResponse.json({ 
-      error: 'Request body is required' 
-    }, { status: 400 })
+    // Perform the update without returning data
+    const { error: updateError } = await supabase
+      .from('orders')
+      .update(body)
+      .eq('id', orderId)
+    
+    if (updateError) {
+      console.error('[API] PUT order update error:', updateError)
+      return NextResponse.json({ error: updateError.message }, { status: 400 })
+    }
+
+    // Fetch the updated order
+    const { data: updatedOrder, error: selectError } = await supabase
+      .from('orders')
+      .select('id, restaurant_id, customer_name, customer_phone, customer_email, status, total_amount, notes, created_at, updated_at')
+      .eq('id', orderId)
+      .single()
+
+    if (selectError || !updatedOrder) {
+      console.error('[API] Error fetching updated order:', selectError)
+      return NextResponse.json({ error: 'Failed to fetch updated order' }, { status: 400 })
+    }
+    
+    console.log('[API] Order updated successfully:', { orderId, newStatus: body.status })
+    return NextResponse.json(updatedOrder)
   } catch (error) {
     console.error('[API] PUT order parse error:', error)
     return NextResponse.json({ 
@@ -202,6 +254,7 @@ export async function PUT(
  * 
  * Error Responses:
  * - 400: Database error
+ * - 401: Unauthorized
  * - 404: Order not found
  */
 export async function DELETE(
@@ -210,6 +263,48 @@ export async function DELETE(
 ) {
   const supabase = await createClient()
   const { id: orderId } = await params
+
+  // Check for authentication
+  const authHeader = request.headers.get('Authorization')
+  let user = null
+  let authError = null
+
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    try {
+      const token = authHeader.substring(7)
+      const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
+      
+      // Validate user from database using decoded token
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('id, email, role')
+        .eq('id', decoded.userId)
+        .eq('email', decoded.email)
+        .single()
+      
+      if (!userError && userData) {
+        user = userData
+        console.log('[API] Authenticated user via custom token:', user.email)
+      } else {
+        authError = userError
+      }
+    } catch (tokenError) {
+      console.error('[API] Invalid token format:', tokenError)
+      authError = new Error('Invalid token format')
+    }
+  } else {
+    // Fallback to Supabase auth for backward compatibility
+    const { data: { user: supabaseUser }, error: supabaseAuthError } = await supabase.auth.getUser()
+    user = supabaseUser
+    authError = supabaseAuthError
+  }
+
+  console.log('[API] Auth check for DELETE:', { userId: user?.id, authError })
+
+  if (authError || !user) {
+    console.log('[API] No authenticated user found for DELETE')
+    return NextResponse.json({ error: 'Unauthorized - Please login', details: authError?.message }, { status: 401 })
+  }
 
   try {
     // Delete order (cascade should handle order_items due to foreign key constraint)
@@ -223,6 +318,7 @@ export async function DELETE(
       return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
+    console.log('[API] Order deleted:', { orderId })
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('[API] DELETE order unexpected error:', error)
