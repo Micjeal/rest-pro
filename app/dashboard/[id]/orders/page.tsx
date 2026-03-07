@@ -49,17 +49,17 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header Section */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Orders</h1>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Orders</h1>
             <p className="text-sm text-gray-600 mt-1">Manage your restaurant orders</p>
           </div>
           
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             {/* Restaurant Selector */}
             <Select value={selectedRestaurant || ''} onValueChange={setSelectedRestaurant} disabled={restaurantsLoading}>
-              <SelectTrigger className="w-48">
+              <SelectTrigger className="w-full sm:w-48">
                 <SelectValue placeholder="Select restaurant" />
               </SelectTrigger>
               <SelectContent>
@@ -73,7 +73,7 @@ export default function OrdersPage() {
             
             {/* New Order Button */}
             <Link href={`/pos`}>
-              <Button className="bg-green-600 hover:bg-green-700 text-white">
+              <Button className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white">
                 <Plus className="h-4 w-4 mr-2" />
                 New Order
               </Button>
@@ -83,7 +83,7 @@ export default function OrdersPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="p-6">
+      <div className="p-4 sm:p-6">
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
@@ -105,22 +105,22 @@ export default function OrdersPage() {
             </CardContent>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4 sm:gap-6">
             {ordersArray.map((order: any) => (
               <Card key={order.id} className="bg-white border-gray-200 hover:shadow-md transition-shadow">
-                <CardHeader className="bg-gray-50 border-b border-gray-200">
-                  <div className="flex items-start justify-between">
+                <CardHeader className="bg-gray-50 border-b border-gray-200 pb-4">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       <CardTitle className="text-base font-semibold text-gray-900 truncate">{order.customer_name}</CardTitle>
                       <p className="text-sm text-gray-600">Order #{order.id.slice(0, 8)}</p>
                     </div>
-                    <Badge className={statusColors[order.status] || 'bg-gray-100 text-gray-800'}>
+                    <Badge className={`shrink-0 ${statusColors[order.status] || 'bg-gray-100 text-gray-800'}`}>
                       {order.status}
                     </Badge>
                   </div>
                 </CardHeader>
-                <CardContent className="p-4 space-y-3">
-                  <div className="grid grid-cols-2 gap-3 text-sm">
+                <CardContent className="p-4 space-y-4">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-gray-400 flex-shrink-0" />
                       <div className="min-w-0">
@@ -157,14 +157,14 @@ export default function OrdersPage() {
 
                   {order.notes && (
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Notes</p>
-                      <p className="text-sm text-gray-900 bg-gray-50 p-2 rounded truncate">{order.notes}</p>
+                      <p className="text-sm text-gray-600 mb-2">Notes</p>
+                      <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg line-clamp-2">{order.notes}</p>
                     </div>
                   )}
 
                   <div className="flex gap-2 pt-2">
                     <Link href={`/dashboard/${restaurantId}/orders/${order.id}`} className="flex-1">
-                      <Button size="sm" variant="outline" className="w-full text-xs h-8">
+                      <Button size="sm" variant="outline" className="w-full text-xs h-10 touch-manipulation">
                         <Eye className="h-3 w-3 mr-1" />
                         View Details
                       </Button>

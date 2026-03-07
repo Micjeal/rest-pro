@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { PaymentModal } from '@/components/pos/payment-modal'
@@ -8,9 +8,8 @@ import { Numpad } from '@/components/pos/numpad'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { Trash2, Plus, Minus, User, MapPin, Store, ChefHat, ShoppingCart } from 'lucide-react'
+import { Trash2, Plus, Minus, User, MapPin, Store, ChefHat, ShoppingCart, Search } from 'lucide-react'
 import { toast } from 'sonner'
-import { SidebarNavigation } from '@/components/pos/sidebar-navigation'
 import { useRestaurants } from '@/hooks/use-restaurants'
 import { useMenus } from '@/hooks/use-menus'
 import { useMenuItems } from '@/hooks/use-menu-items'
@@ -65,23 +64,56 @@ export default function POSPage() {
   const [quantityInput, setQuantityInput] = useState('')
   const [showNumpad, setShowNumpad] = useState(false)
   const [showPayment, setShowPayment] = useState(false)
-  const [discountPercent, setDiscountPercent] = useState(0)
   const [selectedRestaurant, setSelectedRestaurant] = useState<string | undefined>(undefined)
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null)
   const [selectedTable, setSelectedTable] = useState<string>('10') // Default to table 10 as shown in image
   const [orderType, setOrderType] = useState<'dine-in' | 'takeaway' | 'delivery'>('dine-in')
-  const [selectedCategory, setSelectedCategory] = useState<string>('desserts') // Default to desserts as shown in image
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
+  const [menuSearch, setMenuSearch] = useState('')
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'mobile'>('cash')
   
   // Use real data from hooks
-  const { restaurants, isLoading: restaurantsLoading, error: restaurantsError } = useRestaurants()
+  const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
   const { menus, isLoading: menusLoading } = useMenus(selectedRestaurant)
   const { items, isLoading: itemsLoading } = useMenuItems(selectedMenu)
-  const { formatAmount, getCurrencySymbol, loading: currencyLoading } = useCurrency({ restaurantId: selectedRestaurant })
+  const { formatAmount, loading: currencyLoading } = useCurrency({ restaurantId: selectedRestaurant })
   const { listenForCurrencyChanges } = useCurrencyEvents()
-  const { user: currentUser, loading: userLoading } = useCurrentUser()
+  const { user: currentUser } = useCurrentUser()
   
   const isLoading = restaurantsLoading || menusLoading || itemsLoading || currencyLoading
+  const filteredMenuItems = useMemo(() => {
+    const normalizedSearch = menuSearch.trim().toLowerCase()
+
+    return items.filter((item: any) => {
+      const rawCategory = String(item.category || item.type || '').toLowerCase()
+      const name = String(item.name || '').toLowerCase()
+      const description = String(item.description || '').toLowerCase()
+
+      const searchMatch =
+        normalizedSearch.length === 0 ||
+        name.includes(normalizedSearch) ||
+        description.includes(normalizedSearch) ||
+        rawCategory.includes(normalizedSearch)
+
+      if (selectedCategory === 'all') {
+        return searchMatch
+      }
+
+      if (!rawCategory) {
+        return searchMatch
+      }
+
+      const normalized = selectedCategory.endsWith('s')
+        ? selectedCategory.slice(0, -1)
+        : selectedCategory
+
+      const categoryMatch =
+        rawCategory.includes(selectedCategory) ||
+        rawCategory.includes(normalized)
+
+      return categoryMatch && searchMatch
+    })
+  }, [items, selectedCategory, menuSearch])
 
   // Set default restaurant when data loads
   useEffect(() => {
@@ -340,78 +372,110 @@ export default function POSPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       {/* Header Section */}
-      <div className="bg-gradient-to-r from-green-600 to-green-700 text-white px-6 py-6 shadow-lg">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">Point of Sale</h1>
-            <p className="text-green-100 mt-1">Process orders efficiently</p>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            {/* Order Type Selection */}
-            <div className="kitchen-toggle-group-container">
-              <div className="mb-2">
-                <Label className="text-sm font-medium kitchen-text">Order Type</Label>
-              </div>
-              <EnhancedToggleGroup
-                value={orderType}
-                onValueChange={(value) => setOrderType(value as 'dine-in' | 'takeaway' | 'delivery')}
-                className="w-full"
-              >
-                <EnhancedToggleGroupItem value="dine-in" icon={<Store className="h-4 w-4" />}>
-                  Dine-In
-                </EnhancedToggleGroupItem>
-                <EnhancedToggleGroupItem value="takeaway">
-                  Takeaway
-                </EnhancedToggleGroupItem>
-                <EnhancedToggleGroupItem value="delivery" icon={<MapPin className="h-4 w-4" />}>
-                  Delivery
-                </EnhancedToggleGroupItem>
-              </EnhancedToggleGroup>
+      <div className="border-b border-slate-200 bg-white px-4 py-4 lg:px-6">
+        <div className="mx-auto max-w-[1600px]">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900 lg:text-3xl">Point of Sale</h1>
+              <p className="mt-1 text-sm text-slate-600">Create and complete orders with a clean workflow</p>
             </div>
             
-            {/* Payment Method Selection */}
-            <div className="kitchen-toggle-group-container">
-              <div className="mb-2">
-                <Label className="text-sm font-medium kitchen-text">Payment Method</Label>
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium uppercase tracking-wide text-slate-500">Restaurant</Label>
+                <Select value={selectedRestaurant || ''} onValueChange={setSelectedRestaurant} disabled={restaurantsLoading}>
+                  <SelectTrigger className="h-10 w-full min-w-[180px]">
+                    <SelectValue placeholder="Select restaurant" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {restaurants.map((restaurant: any) => (
+                      <SelectItem key={restaurant.id} value={restaurant.id}>
+                        {restaurant.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <EnhancedToggleGroup
-                value={paymentMethod}
-                onValueChange={(value) => setPaymentMethod(value as 'cash' | 'card' | 'mobile')}
-                className="w-full"
-              >
-                <EnhancedToggleGroupItem value="cash">
-                  Cash
-                </EnhancedToggleGroupItem>
-                <EnhancedToggleGroupItem value="card">
-                  Card
-                </EnhancedToggleGroupItem>
-                <EnhancedToggleGroupItem value="mobile">
-                  Mobile
-                </EnhancedToggleGroupItem>
-              </EnhancedToggleGroup>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-medium uppercase tracking-wide text-slate-500">Menu</Label>
+                <Select value={selectedMenu || ''} onValueChange={setSelectedMenu} disabled={menusLoading}>
+                  <SelectTrigger className="h-10 w-full min-w-[180px]">
+                    <SelectValue placeholder="Select menu" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {menus.map((menu: any) => (
+                      <SelectItem key={menu.id} value={menu.id}>
+                        {menu.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+                <div className="mb-2">
+                  <Label className="text-xs font-medium uppercase tracking-wide text-slate-500">Order Type</Label>
+                </div>
+                <EnhancedToggleGroup
+                  value={orderType}
+                  onValueChange={(value) => setOrderType(value as 'dine-in' | 'takeaway' | 'delivery')}
+                  className="w-full"
+                >
+                  <EnhancedToggleGroupItem value="dine-in" icon={<Store className="h-4 w-4" />}>
+                    Dine-In
+                  </EnhancedToggleGroupItem>
+                  <EnhancedToggleGroupItem value="takeaway">
+                    Takeaway
+                  </EnhancedToggleGroupItem>
+                  <EnhancedToggleGroupItem value="delivery" icon={<MapPin className="h-4 w-4" />}>
+                    Delivery
+                  </EnhancedToggleGroupItem>
+                </EnhancedToggleGroup>
+              </div>
+              
+              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
+                <div className="mb-2">
+                  <Label className="text-xs font-medium uppercase tracking-wide text-slate-500">Payment</Label>
+                </div>
+                <EnhancedToggleGroup
+                  value={paymentMethod}
+                  onValueChange={(value) => setPaymentMethod(value as 'cash' | 'card' | 'mobile')}
+                  className="w-full"
+                >
+                  <EnhancedToggleGroupItem value="cash">
+                    Cash
+                  </EnhancedToggleGroupItem>
+                  <EnhancedToggleGroupItem value="card">
+                    Card
+                  </EnhancedToggleGroupItem>
+                  <EnhancedToggleGroupItem value="mobile">
+                    Mobile
+                  </EnhancedToggleGroupItem>
+                </EnhancedToggleGroup>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       {/* Main Content Area */}
-      <div className="flex gap-6 p-6">
+      <div className="mx-auto grid max-w-[1600px] gap-6 p-4 lg:p-6 xl:grid-cols-[minmax(0,1fr)_380px]">
         {/* Left Section - Order Entry */}
-        <div className="flex-1 space-y-6">
+        <div className="space-y-6">
           {/* Table Selection */}
-          <Card className="bg-white border-gray-200 shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200">
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <Store className="h-5 w-5 text-blue-600" />
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="border-b border-slate-200 bg-slate-50/70">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                <Store className="h-5 w-5 text-slate-600" />
                 Select Table
               </CardTitle>
-              <p className="text-sm text-gray-600">Choose the dining table</p>
+              <p className="text-sm text-slate-600">Choose the active table for this order</p>
             </CardHeader>
             <CardContent className="p-4">
-              <div className="grid grid-cols-6 gap-3">
+              <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
                 {Array.from({ length: 12 }, (_, i) => {
                   const tableNumber = (i + 1).toString()
                   const isSelected = selectedTable === tableNumber
@@ -419,10 +483,10 @@ export default function POSPage() {
                     <Button
                       key={tableNumber}
                       variant={isSelected ? 'default' : 'outline'}
-                      className={`h-14 w-full font-semibold transition-all ${
+                      className={`h-12 w-full font-semibold transition-colors ${
                         isSelected
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-md transform scale-105'
-                          : 'bg-white border-gray-300 text-gray-700 hover:bg-blue-50 hover:border-blue-300'
+                          ? 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900'
+                          : 'border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
                       }`}
                       onClick={() => {
                         setSelectedTable(tableNumber)
@@ -438,56 +502,82 @@ export default function POSPage() {
           </Card>
 
           {/* Menu Section */}
-          <Card className="bg-white border-gray-200 shadow-sm">
-            <CardHeader className="bg-gradient-to-r from-orange-50 to-amber-50 border-b border-gray-200">
-              <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <ChefHat className="h-5 w-5 text-orange-600" />
+          <Card className="border-slate-200 shadow-sm">
+            <CardHeader className="border-b border-slate-200 bg-slate-50/70">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900">
+                <ChefHat className="h-5 w-5 text-slate-600" />
                 Menu
               </CardTitle>
-              <p className="text-sm text-gray-600">Select items to add to order</p>
+              <p className="text-sm text-slate-600">Select items to add to order</p>
             </CardHeader>
             <CardContent className="space-y-4 p-4">
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+                <Input
+                  value={menuSearch}
+                  onChange={(e) => setMenuSearch(e.target.value)}
+                  placeholder="Search menu items..."
+                  className="h-10 pl-9"
+                />
+              </div>
+
               {/* Category Tabs */}
-              <div className="flex gap-2 border-b border-gray-200 bg-gray-50 p-1 rounded-lg">
+              <div className="flex flex-wrap gap-2 rounded-lg border border-slate-200 bg-slate-50 p-2">
                 <Button
+                  size="sm"
+                  variant={selectedCategory === 'all' ? 'default' : 'ghost'}
+                  className={`capitalize transition-colors ${
+                    selectedCategory === 'all'
+                      ? 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900'
+                      : 'border border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
+                  }`}
+                  onClick={() => setSelectedCategory('all')}
+                >
+                  All
+                </Button>
+                <Button
+                  size="sm"
                   variant={selectedCategory === 'appetizers' ? 'default' : 'ghost'}
-                  className={`px-4 py-2 border-b-2 rounded-none transition-all ${
+                  className={`capitalize transition-colors ${
                     selectedCategory === 'appetizers'
-                      ? 'border-orange-600 text-orange-600 bg-transparent font-semibold'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900'
+                      : 'border border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
                   }`}
                   onClick={() => setSelectedCategory('appetizers')}
                 >
                   Appetizers
                 </Button>
                 <Button
+                  size="sm"
                   variant={selectedCategory === 'mains' ? 'default' : 'ghost'}
-                  className={`px-4 py-2 border-b-2 rounded-none transition-all ${
+                  className={`capitalize transition-colors ${
                     selectedCategory === 'mains'
-                      ? 'border-orange-600 text-orange-600 bg-transparent font-semibold'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900'
+                      : 'border border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
                   }`}
                   onClick={() => setSelectedCategory('mains')}
                 >
                   Mains
                 </Button>
                 <Button
+                  size="sm"
                   variant={selectedCategory === 'desserts' ? 'default' : 'ghost'}
-                  className={`px-4 py-2 border-b-2 rounded-none transition-all ${
+                  className={`capitalize transition-colors ${
                     selectedCategory === 'desserts'
-                      ? 'border-orange-600 text-orange-600 bg-transparent font-semibold'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900'
+                      : 'border border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
                   }`}
                   onClick={() => setSelectedCategory('desserts')}
                 >
                   Desserts
                 </Button>
                 <Button
+                  size="sm"
                   variant={selectedCategory === 'drinks' ? 'default' : 'ghost'}
-                  className={`px-4 py-2 border-b-2 rounded-none transition-all ${
+                  className={`capitalize transition-colors ${
                     selectedCategory === 'drinks'
-                      ? 'border-orange-600 text-orange-600 bg-transparent font-semibold'
-                      : 'border-transparent text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? 'bg-slate-900 text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900'
+                      : 'border border-slate-300 text-slate-700 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800'
                   }`}
                   onClick={() => setSelectedCategory('drinks')}
                 >
@@ -498,25 +588,25 @@ export default function POSPage() {
               {/* Menu Items Grid */}
               {isLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
+                  <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-slate-700 dark:border-slate-700 dark:border-t-slate-200"></div>
                 </div>
-              ) : items.length === 0 ? (
+              ) : filteredMenuItems.length === 0 ? (
                 <div className="text-center py-12">
                   <ChefHat className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <p className="text-gray-500">No menu items available</p>
+                  <p className="text-gray-500">No menu items for this category</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
-                  {items.map((item: any) => (
-                    <Card key={item.id} className="border-gray-200 hover:shadow-lg transition-all hover:scale-105 cursor-pointer bg-white">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {filteredMenuItems.map((item: any) => (
+                    <Card key={item.id} className="cursor-pointer border-slate-200 bg-white shadow-sm transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
                       <CardContent className="p-4">
                         <div className="space-y-3">
                           <div>
-                            <h3 className="font-semibold text-gray-900 text-lg">{item.name}</h3>
-                            <p className="text-xl font-bold text-orange-600">{formatAmount(item.price)}</p>
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{item.name}</h3>
+                            <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{formatAmount(item.price)}</p>
                           </div>
                           <Button
-                            className="w-full bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-semibold shadow-md transition-all"
+                            className="w-full bg-slate-900 font-semibold text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
                             onClick={() => addItemToOrder(item)}
                             disabled={isLoading}
                           >
@@ -533,64 +623,61 @@ export default function POSPage() {
         </div>
 
         {/* Right Section - Current Order */}
-        <div className="w-96">
-          <Card className="bg-white border-gray-200 shadow-lg h-full">
-            <CardHeader className="bg-gradient-to-r from-purple-600 to-purple-700 text-white border-b border-gray-200">
-              <CardTitle className="text-lg font-semibold flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" />
+        <div className="xl:sticky xl:top-6">
+          <Card className="h-full border-slate-200 shadow-sm dark:border-slate-800">
+            <CardHeader className="border-b border-slate-200 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-900/50">
+              <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-900 dark:text-slate-100">
+                <ShoppingCart className="h-5 w-5 text-slate-600 dark:text-slate-300" />
                 Current Order
               </CardTitle>
               {selectedTable && (
-                <p className="text-sm text-purple-100">Table {selectedTable}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">Table {selectedTable}</p>
               )}
             </CardHeader>
             <CardContent className="p-4 space-y-4">
               {/* Customer Information */}
-              <div className="space-y-3 p-3 bg-purple-50 rounded-lg border border-purple-200">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  <User className="h-4 w-4 text-purple-600" />
+              <div className="space-y-3 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                <h3 className="flex items-center gap-2 font-semibold text-slate-900 dark:text-slate-100">
+                  <User className="h-4 w-4 text-slate-600 dark:text-slate-300" />
                   Customer Information
                 </h3>
                 <div className="space-y-2">
                   <div>
-                    <Label htmlFor="customer-name" className="text-sm font-medium text-gray-700">Name *</Label>
+                    <Label htmlFor="customer-name" className="text-xs font-medium uppercase tracking-wide text-slate-500">Name *</Label>
                     <Input
                       id="customer-name"
                       type="text"
                       value={order.customer.name}
                       onChange={(e) => updateCustomer('name', e.target.value)}
                       placeholder="Enter customer name"
-                      className="w-full border-purple-200 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="customer-phone" className="text-sm font-medium text-gray-700">Phone Number *</Label>
+                    <Label htmlFor="customer-phone" className="text-xs font-medium uppercase tracking-wide text-slate-500">Phone Number *</Label>
                     <Input
                       id="customer-phone"
                       type="tel"
                       value={order.customer.phone}
                       onChange={(e) => updateCustomer('phone', e.target.value)}
                       placeholder="Enter phone number"
-                      className="w-full border-purple-200 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="customer-email" className="text-sm font-medium text-gray-700">Email (Optional)</Label>
+                    <Label htmlFor="customer-email" className="text-xs font-medium uppercase tracking-wide text-slate-500">Email (Optional)</Label>
                     <Input
                       id="customer-email"
                       type="email"
                       value={order.customer.email || ''}
                       onChange={(e) => updateCustomer('email', e.target.value)}
                       placeholder="Enter email address"
-                      className="w-full border-purple-200 focus:border-purple-500 focus:ring-purple-500"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Order Notes */}
-              <div className="space-y-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                <Label htmlFor="order-notes" className="text-sm font-medium text-gray-700 flex items-center gap-2">
+              <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                <Label htmlFor="order-notes" className="text-xs font-medium uppercase tracking-wide text-slate-500">
                   Order Notes (Optional)
                 </Label>
                 <Input
@@ -599,44 +686,43 @@ export default function POSPage() {
                   value={order.notes || ''}
                   onChange={(e) => updateNotes(e.target.value)}
                   placeholder="Add any special instructions..."
-                  className="w-full border-blue-200 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
 
               {/* Order Items */}
 
-              <div className="space-y-3 max-h-64 overflow-y-auto">
+              <div className="max-h-72 space-y-2 overflow-y-auto pr-1">
                 {order.items.length === 0 ? (
-                  <div className="text-center py-8">
-                    <ShoppingCart className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-                    <p className="text-gray-500 text-sm">No items added</p>
+                  <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center dark:border-slate-700">
+                    <ShoppingCart className="mx-auto mb-2 h-8 w-8 text-slate-400 dark:text-slate-500" />
+                    <p className="text-sm text-slate-600 dark:text-slate-400">No items added</p>
                   </div>
                 ) : (
                   order.items.map((item) => (
                     <div
                       key={item.id}
-                      className="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200"
+                      className="flex items-center justify-between rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900"
                     >
                       <div className="flex-1">
-                        <p className="font-semibold text-gray-900">{item.name}</p>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{item.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {formatAmount(item.price)} each
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-8 w-8 p-0 border-gray-300"
+                          className="h-7 w-7 p-0"
                           onClick={() => updateItemQuantity(item.id, -1)}
                         >
                           <Minus className="h-3 w-3" />
                         </Button>
-                        <span className="w-8 text-center font-medium">{item.quantity}</span>
+                        <span className="w-7 text-center text-sm font-medium text-slate-900 dark:text-slate-100">{item.quantity}</span>
                         <Button
                           variant="outline"
                           size="sm"
-                          className="h-8 w-8 p-0 border-gray-300"
+                          className="h-7 w-7 p-0"
                           onClick={() => updateItemQuantity(item.id, 1)}
                         >
                           <Plus className="h-3 w-3" />
@@ -644,7 +730,7 @@ export default function POSPage() {
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-8 w-8 p-0 text-red-500 hover:text-red-600 hover:bg-red-50"
+                          className="h-7 w-7 p-0 text-rose-600 hover:bg-rose-50 hover:text-rose-700 dark:hover:bg-rose-950/40"
                           onClick={() => removeItem(item.id)}
                         >
                           <Trash2 className="h-3 w-3" />
@@ -658,26 +744,26 @@ export default function POSPage() {
               {/* Order Summary */}
               {order.items.length > 0 && (
                 <>
-                  <div className="border-t border-gray-200 pt-4 space-y-2 bg-gray-50 p-3 rounded-lg">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Subtotal</span>
-                      <span className="text-gray-900 font-medium">{formatAmount(order.subtotal)}</span>
+                  <div className="space-y-2 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/50">
+                    <div className="flex justify-between text-sm text-slate-700 dark:text-slate-300">
+                      <span>Subtotal</span>
+                      <span className="font-medium">{formatAmount(order.subtotal)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Tax (8%)</span>
-                      <span className="text-gray-900 font-medium">{formatAmount(order.taxAmount)}</span>
+                    <div className="flex justify-between text-sm text-slate-700 dark:text-slate-300">
+                      <span>Tax (8%)</span>
+                      <span className="font-medium">{formatAmount(order.taxAmount)}</span>
                     </div>
-                    <div className="flex justify-between text-lg font-bold text-green-600 pt-2 border-t border-gray-300">
+                    <div className="flex justify-between border-t border-slate-300 pt-2 text-base font-semibold text-slate-900 dark:border-slate-700 dark:text-slate-100">
                       <span>Total</span>
                       <span>{formatAmount(order.total)}</span>
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="space-y-2 pt-4">
+                  <div className="space-y-2">
                     <Button
                       variant="outline"
-                      className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 font-medium"
+                      className="w-full"
                       onClick={() => {
                         // Create a printable receipt
                         const receiptContent = `
@@ -737,7 +823,7 @@ export default function POSPage() {
                       Print Receipt
                     </Button>
                     <Button
-                      className="w-full bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold shadow-lg transition-all"
+                      className="w-full bg-emerald-600 text-white hover:bg-emerald-700"
                       onClick={() => setShowPayment(true)}
                     >
                       Complete Payment
@@ -752,17 +838,17 @@ export default function POSPage() {
 
       {/* Numpad Modal */}
       {showNumpad && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-          <Card className="w-full max-w-sm bg-white/70 dark:bg-slate-800/70 backdrop-blur-sm border-slate-200/60 dark:border-slate-700/60 shadow-2xl">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 rounded-t-lg border-b border-slate-200/60 dark:border-slate-700/60">
-              <CardTitle className="text-xl font-bold text-slate-900 dark:text-white">Enter Quantity</CardTitle>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <Card className="w-full max-w-sm border-slate-200 shadow-xl dark:border-slate-800">
+            <CardHeader className="border-b border-slate-200 dark:border-slate-800">
+              <CardTitle className="text-xl font-semibold text-slate-900 dark:text-slate-100">Enter Quantity</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 p-6">
               <Input
                 type="text"
                 value={quantityInput}
                 readOnly
-                className="text-center text-3xl font-bold h-16 bg-white/50 dark:bg-slate-700/50 border-slate-300 dark:border-slate-600"
+                className="h-16 text-center text-3xl font-bold"
                 placeholder="0"
               />
               <Numpad

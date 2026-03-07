@@ -318,7 +318,7 @@ export default function StaffAssignmentPage() {
     return (
       <div className="flex">
         <SidebarNavigation />
-        <main className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
+        <main className="flex-1 ml-0 lg:ml-64 bg-gray-50 min-h-screen transition-all duration-300">
           <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -333,10 +333,10 @@ export default function StaffAssignmentPage() {
   return (
     <div className="flex">
       <SidebarNavigation />
-      <main className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
+      <main className="flex-1 ml-0 lg:ml-64 bg-gray-50 min-h-screen transition-all duration-300">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <Button
               variant="ghost"
               onClick={() => router.push(`/dashboard/${selectedRestaurant}/orders`)}
@@ -345,14 +345,14 @@ export default function StaffAssignmentPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Orders
             </Button>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Staff Assignment</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Staff Assignment</h1>
                 <p className="text-gray-600 mt-1">Manage kitchen staff and order assignments</p>
               </div>
               <div className="flex items-center gap-3">
                 <Select value={selectedRestaurant || ''} onValueChange={setSelectedRestaurant}>
-                  <SelectTrigger className="w-64">
+                  <SelectTrigger className="w-48 sm:w-64">
                     <SelectValue placeholder="Select restaurant" />
                   </SelectTrigger>
                   <SelectContent>
@@ -380,7 +380,7 @@ export default function StaffAssignmentPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   {kitchenStaff.map(member => (
                     <Card 
                       key={member.id} 
@@ -448,13 +448,14 @@ export default function StaffAssignmentPage() {
                       <div className="space-y-2">
                         <div className="text-sm font-medium mb-2">Select orders to assign:</div>
                         {unassignedOrders.map(order => (
-                          <div key={order.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50">
+                          <div key={order.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border rounded-lg hover:bg-gray-50">
                             <Checkbox
                               checked={selectedOrders.includes(order.id)}
                               onCheckedChange={(checked) => handleOrderSelection(order.id, checked as boolean)}
+                              className="mt-0.5"
                             />
                             <div className="flex-1">
-                              <div className="flex items-center gap-2">
+                              <div className="flex flex-wrap items-center gap-2">
                                 <span className="font-medium">#{order.id?.substring(0, 6)}</span>
                                 <Badge variant="outline" className="text-xs">
                                   {order.items?.length || 0} items
@@ -471,11 +472,11 @@ export default function StaffAssignmentPage() {
                         ))}
                       </div>
                       
-                      <div className="flex items-center gap-3 pt-4 border-t">
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-4 border-t">
                         <Button
                           onClick={handleAssignOrders}
                           disabled={selectedOrders.length === 0}
-                          className="touch-target"
+                          className="w-full sm:w-auto touch-target"
                         >
                           <CheckCircle className="h-4 w-4 mr-2" />
                           Assign {selectedOrders.length} Order{selectedOrders.length !== 1 ? 's' : ''}
@@ -483,10 +484,11 @@ export default function StaffAssignmentPage() {
                         <Button
                           variant="outline"
                           onClick={() => setSelectedOrders([])}
+                          className="w-full sm:w-auto"
                         >
                           Clear Selection
                         </Button>
-                        <div className="ml-auto text-sm text-gray-500">
+                        <div className="text-sm text-gray-500 sm:ml-auto">
                           Staff capacity: {selectedStaffData?.currentOrders}/{selectedStaffData?.maxOrders}
                         </div>
                       </div>
@@ -536,7 +538,7 @@ export default function StaffAssignmentPage() {
                     </div>
                     
                     {/* Server Selection */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                       {serverStaff.map(server => (
                         <Card 
                           key={server.id} 
@@ -590,13 +592,14 @@ export default function StaffAssignmentPage() {
                         </div>
                         <div className="space-y-2">
                           {readyOrders.map(order => (
-                            <div key={order.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50">
+                            <div key={order.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border rounded-lg hover:bg-gray-50">
                               <Checkbox
                                 checked={selectedReadyOrders.includes(order.id)}
                                 onCheckedChange={(checked) => handleReadyOrderSelection(order.id, checked as boolean)}
+                                className="mt-0.5"
                               />
                               <div className="flex-1">
-                                <div className="flex items-center gap-2">
+                                <div className="flex flex-wrap items-center gap-2">
                                   <span className="font-medium">#{order.id?.substring(0, 6)}</span>
                                   <Badge variant="outline" className="text-xs bg-green-100 text-green-700">
                                     {order.items?.length || 0} items
@@ -613,7 +616,7 @@ export default function StaffAssignmentPage() {
                                 variant="outline"
                                 size="sm"
                                 onClick={() => handleCallServer(order.id, selectedServer)}
-                                className="touch-target"
+                                className="w-full sm:w-auto touch-target"
                               >
                                 <Volume2 className="h-4 w-4 mr-1" />
                                 Call
@@ -622,11 +625,11 @@ export default function StaffAssignmentPage() {
                           ))}
                         </div>
                         
-                        <div className="flex items-center gap-3 pt-4 border-t">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-4 border-t">
                           <Button
                             onClick={handleAssignServer}
                             disabled={selectedReadyOrders.length === 0}
-                            className="touch-target bg-green-600 hover:bg-green-700"
+                            className="w-full sm:w-auto touch-target bg-green-600 hover:bg-green-700"
                           >
                             <CheckCircle className="h-4 w-4 mr-2" />
                             Assign {selectedReadyOrders.length} Order{selectedReadyOrders.length !== 1 ? 's' : ''}
@@ -634,10 +637,11 @@ export default function StaffAssignmentPage() {
                           <Button
                             variant="outline"
                             onClick={() => setSelectedReadyOrders([])}
+                            className="w-full sm:w-auto"
                           >
                             Clear Selection
                           </Button>
-                          <div className="ml-auto text-sm text-gray-500">
+                          <div className="text-sm text-gray-500 sm:ml-auto">
                             Server capacity: {selectedServerData?.currentOrders}/{selectedServerData?.maxOrders}
                           </div>
                         </div>
@@ -667,9 +671,9 @@ export default function StaffAssignmentPage() {
                     {orders.filter(order => order.assigned_to).map(order => {
                       const staff = kitchenStaff.find(s => s.id === order.assigned_to)
                       return (
-                        <div key={order.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                        <div key={order.id} className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 border rounded-lg">
                           <div className="flex-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex flex-wrap items-center gap-2">
                               <span className="font-medium">#{order.id?.substring(0, 6)}</span>
                               <Badge variant="outline" className="text-xs">
                                 {order.items?.length || 0} items
@@ -686,6 +690,7 @@ export default function StaffAssignmentPage() {
                             variant="outline"
                             size="sm"
                             onClick={() => handleUnassignOrder(order.id)}
+                            className="w-full sm:w-auto"
                           >
                             Unassign
                           </Button>
@@ -711,7 +716,7 @@ export default function StaffAssignmentPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="text-center p-4 bg-green-50 rounded-lg">
                     <div className="text-2xl font-bold text-green-600">
                       {Math.round(kitchenStaff.reduce((sum, s) => sum + s.efficiency, 0) / kitchenStaff.length)}%

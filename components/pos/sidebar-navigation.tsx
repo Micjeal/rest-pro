@@ -175,7 +175,7 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
         bg-gradient-to-b from-slate-900 via-slate-900 to-slate-800 text-white h-screen fixed left-0 top-0 overflow-y-auto transition-all duration-300 z-40
         ${isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         shadow-2xl
-        hidden lg:block
+        lg:block
       `}>
         {/* Header */}
         <div className={`p-5 border-b border-white/10 transition-all duration-300 sticky top-0 bg-slate-900/95 backdrop-blur-sm z-10 ${

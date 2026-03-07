@@ -144,7 +144,7 @@ export default function OrderDetailPage() {
     return (
       <div className="flex">
         <SidebarNavigation />
-        <main id="main-content" className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
+        <main id="main-content" className="flex-1 ml-0 lg:ml-64 bg-gray-50 min-h-screen transition-all duration-300">
           <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
             <div className="text-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
@@ -160,7 +160,7 @@ export default function OrderDetailPage() {
     return (
       <div className="flex">
         <SidebarNavigation />
-        <main id="main-content" className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
+        <main id="main-content" className="flex-1 ml-0 lg:ml-64 bg-gray-50 min-h-screen transition-all duration-300">
           <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
             <div className="text-center py-8">
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Order Not Found</h2>
@@ -178,10 +178,10 @@ export default function OrderDetailPage() {
   return (
     <div className="flex">
       <SidebarNavigation />
-      <main id="main-content" className="flex-1 ml-64 bg-gray-50 min-h-screen transition-all duration-300">
+      <main id="main-content" className="flex-1 ml-0 lg:ml-64 bg-gray-50 min-h-screen transition-all duration-300">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:pr-8 lg:pl-0">
           {/* Header */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <Button
               variant="ghost"
               onClick={() => router.push(`/dashboard/${selectedRestaurant}/orders`)}
@@ -190,41 +190,41 @@ export default function OrderDetailPage() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back to Orders
             </Button>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Order Details</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Order Details</h1>
                 <p className="text-gray-600 mt-1">View and manage order information</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <Badge className={getStatusColor(order.status)}>
                   {order.status}
                 </Badge>
                 {order.status === 'ready' && (
-                  <>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                     <Button
                       onClick={handleAnnounceOrder}
                       disabled={isAnnouncing}
-                      className="bg-purple-500 hover:bg-purple-600 text-white"
+                      className="w-full sm:w-auto bg-purple-500 hover:bg-purple-600 text-white"
                     >
                       <Volume2 className="h-4 w-4 mr-2" />
                       {isAnnouncing ? 'Announcing...' : 'Announce Ready'}
                     </Button>
                     <Button
                       onClick={() => handleUpdateStatus('completed')}
-                      className="bg-green-500 hover:bg-green-600 text-white"
+                      className="w-full sm:w-auto bg-green-500 hover:bg-green-600 text-white"
                     >
                       <CheckCircle className="h-4 w-4 mr-2" />
                       Mark as Served
                     </Button>
-                  </>
+                  </div>
                 )}
               </div>
             </div>
           </div>
           
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
             {/* Customer Information */}
-            <div className="lg:col-span-2 space-y-6">
+            <div className="xl:col-span-2 space-y-6">
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -235,7 +235,7 @@ export default function OrderDetailPage() {
                 <CardContent className="space-y-4">
                   <div>
                     <h3 className="font-semibold text-lg">{order.customer_name}</h3>
-                    <div className="flex flex-wrap gap-4 mt-2 text-sm text-gray-600">
+                    <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-4 mt-2 text-sm text-gray-600">
                       {order.customer_phone && (
                         <div className="flex items-center gap-1">
                           <Phone className="h-4 w-4" />
@@ -262,14 +262,14 @@ export default function OrderDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div>
                       <p className="text-sm text-gray-600">Order ID</p>
                       <p className="font-medium">{order.id.slice(0, 8)}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Date & Time</p>
-                      <p className="font-medium">{formatDate(order.created_at)}</p>
+                      <p className="font-medium text-sm">{formatDate(order.created_at)}</p>
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Total Amount</p>
@@ -287,7 +287,7 @@ export default function OrderDetailPage() {
             </div>
             
             {/* Order Items */}
-            <div className="lg:col-span-1">
+            <div className="xl:col-span-1">
               <Card>
                 <CardHeader>
                   <CardTitle>Order Items</CardTitle>
@@ -296,7 +296,7 @@ export default function OrderDetailPage() {
                   {order.order_items && order.order_items.length > 0 ? (
                     <div className="space-y-3">
                       {order.order_items.map((item: OrderItem) => (
-                        <div key={item.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
                           <div className="flex-1">
                             <div>
                               <h4 className="font-semibold">{item.menu_item?.name}</h4>
@@ -305,7 +305,7 @@ export default function OrderDetailPage() {
                               )}
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right sm:text-left">
                             <div className="text-sm text-gray-600">Qty: {item.quantity}</div>
                             <div className="font-semibold">{formatAmount(item.unit_price)}</div>
                             <div className="text-sm text-gray-600">Subtotal: {formatAmount(item.subtotal)}</div>

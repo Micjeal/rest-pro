@@ -174,24 +174,24 @@ export function MobileBottomNav({ userRole: propUserRole }: MobileBottomNavProps
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 md:hidden">
-      <div className="flex items-center justify-around h-16 px-2">
+      <div className="flex items-center justify-around h-20 px-2 pb-safe">
         {limitedNavItems.map((item: any) => (
-          <TouchTarget key={item.href} size="sm">
+          <TouchTarget key={item.href} size="lg">
             <Link href={item.href}>
               <Button
                 variant={item.active ? 'default' : 'ghost'}
-                size="sm"
+                size="lg"
                 className={`
-                  flex flex-col items-center justify-center h-12 w-12 rounded-lg
-                  transition-all duration-200
+                  flex flex-col items-center justify-center h-16 w-16 rounded-xl
+                  transition-all duration-200 touch-manipulation
                   ${item.active 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
+                    ? 'bg-primary text-primary-foreground shadow-lg scale-105' 
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-slate-800'
                   }
                 `}
               >
-                <item.icon className="h-5 w-5 mb-1" />
-                <span className="text-xs font-medium">{item.label}</span>
+                <item.icon className="h-6 w-6 mb-1" />
+                <span className="text-xs font-medium leading-tight">{item.label}</span>
               </Button>
             </Link>
           </TouchTarget>
