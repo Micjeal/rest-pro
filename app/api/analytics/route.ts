@@ -7,6 +7,48 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 
+// Define semantic color schemes for better visual distinction
+const PAYMENT_METHOD_COLORS: { [key: string]: string } = {
+  'cash': '#10b981',      // Green for cash
+  'card': '#3b82f6',      // Blue for cards
+  'mobilemoney': '#f59e0b', // Orange for mobile money
+  'mobile': '#f59e0b',     // Orange for mobile (alternative)
+  'bank': '#8b5cf6',      // Purple for bank transfers
+  'banktransfer': '#8b5cf6', // Purple for bank transfers
+  'transfer': '#8b5cf6',   // Purple for transfers
+  'online': '#ec4899',     // Pink for online payments
+  'digital': '#ec4899',    // Pink for digital payments
+  'other': '#6b7280'       // Gray for other methods
+}
+
+const CATEGORY_COLORS: { [key: string]: string } = {
+  'food': '#f97316',        // Orange for food
+  'beverage': '#06b6d4',     // Cyan for beverages
+  'drinks': '#06b6d4',       // Cyan for drinks
+  'dessert': '#ec4899',      // Pink for desserts
+  'appetizer': '#8b5cf6',    // Purple for appetizers
+  'starter': '#8b5cf6',      // Purple for starters
+  'main': '#f97316',         // Orange for main courses
+  'side': '#10b981',         // Green for side dishes
+  'other': '#6b7280'         // Gray for other categories
+}
+
+const STATUS_COLORS: { [key: string]: string } = {
+  'completed': '#10b981',    // Green for completed
+  'paid': '#10b981',         // Green for paid
+  'pending': '#f59e0b',      // Yellow for pending
+  'processing': '#3b82f6',   // Blue for processing
+  'cancelled': '#ef4444',     // Red for cancelled
+  'refunded': '#6b7280',      // Gray for refunded
+  'failed': '#ef4444',        // Red for failed
+  'other': '#6b7280'          // Gray for other statuses
+}
+
+// Fallback color arrays for unmapped items
+const FALLBACK_PAYMENT_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316']
+const FALLBACK_CATEGORY_COLORS = ['#f97316', '#06b6d4', '#ec4899', '#8b5cf6', '#10b981', '#ef4444', '#3b82f6', '#6b7280']
+const FALLBACK_STATUS_COLORS = ['#10b981', '#f59e0b', '#ef4444', '#6b7280', '#3b82f6', '#8b5cf6', '#ec4899', '#06b6d4']
+
 export async function GET(request: NextRequest) {
   try {
     const supabase = await createClient()
@@ -117,8 +159,8 @@ export async function GET(request: NextRequest) {
       .or(dateFilter)
       .order('created_at', { ascending: true })
 
-    // Fetch only completed orders for revenue analytics
-    const { data: completedOrders, error: ordersError } = await supabase
+    // Process completed orders only for analytics
+    const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select(`
         *,
@@ -143,26 +185,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch analytics data' }, { status: 500 })
     }
 
+    // Get distinct payment methods from processed orders
+    const distinctPaymentMethods = new Set(orders.map((order: any) => order.payment_method?.toLowerCase()).filter(Boolean))
+
     // Process daily data with enhanced tracking
     const dailyMap = new Map()
     const paymentMap = new Map()
     const categoryMap = new Map()
     const hourlyMap = new Map()
     const weeklyTrend = new Map()
+    const monthlyRevenueMap = new Map()
 
-    completedOrders.forEach((order: any) => {
+    orders.forEach((order: any) => {
       const date = new Date(order.created_at)
       const dayKey = date.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 3)
       const hourKey = date.getHours()
       const weekStart = new Date(date.setDate(date.getDate() - date.getDay()))
       const weekKey = weekStart.toISOString().split('T')[0]
+      const monthKey = date.toLocaleDateString('en-US', { month: 'short' }).slice(0, 3)
+      const yearKey = date.getFullYear()
+      const monthYearKey = `${monthKey} ${yearKey}`
 
       // Daily sales and transactions
       if (!dailyMap.has(dayKey)) {
         dailyMap.set(dayKey, { sales: 0, transactions: 0, orders: [] })
       }
       const dayData = dailyMap.get(dayKey)
-      dayData.sales += parseFloat(order.total_amount)
+      const orderAmount = parseFloat(order.total_amount) || 0
+      // Ensure amounts are in UGX (no decimal conversion needed for UGX)
+      dayData.sales += orderAmount
       dayData.transactions += 1
       dayData.orders.push(order)
 
@@ -171,7 +222,7 @@ export async function GET(request: NextRequest) {
         hourlyMap.set(hourKey, { sales: 0, transactions: 0 })
       }
       const hourData = hourlyMap.get(hourKey)
-      hourData.sales += parseFloat(order.total_amount)
+      hourData.sales += orderAmount
       hourData.transactions += 1
 
       // Weekly trend
@@ -179,8 +230,16 @@ export async function GET(request: NextRequest) {
         weeklyTrend.set(weekKey, { sales: 0, transactions: 0 })
       }
       const weekData = weeklyTrend.get(weekKey)
-      weekData.sales += parseFloat(order.total_amount)
+      weekData.sales += orderAmount
       weekData.transactions += 1
+
+      // Monthly revenue tracking
+      if (!monthlyRevenueMap.has(monthYearKey)) {
+        monthlyRevenueMap.set(monthYearKey, { revenue: 0, orders: 0 })
+      }
+      const monthData = monthlyRevenueMap.get(monthYearKey)
+      monthData.revenue += orderAmount
+      monthData.orders += 1
 
       // Payment method breakdown
       const paymentMethod = order.payment_method || 'unknown'
@@ -188,7 +247,7 @@ export async function GET(request: NextRequest) {
         paymentMap.set(paymentMethod, { value: 0, count: 0 })
       }
       const paymentData = paymentMap.get(paymentMethod)
-      paymentData.value += parseFloat(order.total_amount)
+      paymentData.value += orderAmount
       paymentData.count += 1
 
       // Category breakdown
@@ -200,7 +259,8 @@ export async function GET(request: NextRequest) {
               categoryMap.set(category, { value: 0, items: 0, avgPrice: 0 })
             }
             const categoryData = categoryMap.get(category)
-            categoryData.value += parseFloat(item.subtotal)
+            const itemSubtotal = parseFloat(item.subtotal) || 0
+            categoryData.value += itemSubtotal
             categoryData.items += item.quantity
           }
         })
@@ -247,49 +307,93 @@ export async function GET(request: NextRequest) {
       transactions: data.transactions
     }))
 
-    const paymentData = Array.from(paymentMap.entries()).map(([method, data], index) => ({
-      method: method.charAt(0).toUpperCase() + method.slice(1),
-      value: Math.round(data.value * 100) / 100,
-      count: data.count,
-      avgTransaction: data.count > 0 ? Math.round((data.value / data.count) * 100) / 100 : 0,
-      color: ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][index % 5]
-    }))
+    // Monthly revenue data for dashboard charts
+    const monthlyRevenueData = Array.from(monthlyRevenueMap.entries()).map(([month, data]) => ({
+      month: month.split(' ')[0], // Extract month name only
+      revenue: Math.round(data.revenue * 100) / 100,
+      orders: data.orders
+    })).sort((a, b) => {
+      const monthOrder = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+      return monthOrder.indexOf(a.month) - monthOrder.indexOf(b.month)
+    })
+
+    const paymentData = Array.from(paymentMap.entries())
+      .filter(([method]) => distinctPaymentMethods.has(method.toLowerCase()))
+      .map(([method, data], index) => {
+        // Format payment method names properly
+        const formattedMethod = method.toLowerCase() === 'mobilemoney' ? 'Mobile Money' :
+                               method.toLowerCase() === 'cash' ? 'Cash' :
+                               method.toLowerCase() === 'card' ? 'Card' :
+                               method.charAt(0).toUpperCase() + method.slice(1)
+        
+        return {
+          method: formattedMethod,
+          value: Math.round(data.value * 100) / 100,
+          count: data.count,
+          avgTransaction: data.count > 0 ? Math.round((data.value / data.count) * 100) / 100 : 0,
+          color: PAYMENT_METHOD_COLORS[method.toLowerCase()] || 
+                  PAYMENT_METHOD_COLORS[method.toLowerCase().replace(/\s+/g, '')] ||
+                  FALLBACK_PAYMENT_COLORS[index % FALLBACK_PAYMENT_COLORS.length]
+        }
+      })
+      .sort((a, b) => b.count - a.count) // Sort by transaction count
 
     const categoryData = Array.from(categoryMap.entries()).map(([category, data], index) => ({
       category,
       value: Math.round(data.value * 100) / 100,
       items: data.items,
       avgPrice: Math.round(data.avgPrice * 100) / 100,
-      color: ['#8b5cf6', '#ec4899', '#06b6d4', '#f97316', '#10b981'][index % 5]
+      color: CATEGORY_COLORS[category.toLowerCase()] || 
+              CATEGORY_COLORS[category.toLowerCase().replace(/\s+/g, '')] ||
+              FALLBACK_CATEGORY_COLORS[index % FALLBACK_CATEGORY_COLORS.length]
     }))
 
     const statusData = Array.from(statusMap.entries()).map(([status, count], index) => ({
       status: status.charAt(0).toUpperCase() + status.slice(1),
       count,
       revenue: Math.round((statusRevenueMap.get(status) || 0) * 100) / 100,
-      color: ['#10b981', '#f59e0b', '#ef4444', '#6b7280', '#8b5cf6', '#3b82f6'][index % 6]
+      color: STATUS_COLORS[status.toLowerCase()] || 
+              STATUS_COLORS[status.toLowerCase().replace(/\s+/g, '')] ||
+              FALLBACK_STATUS_COLORS[index % FALLBACK_STATUS_COLORS.length]
     }))
 
-    // Calculate additional revenue metrics
-    const soldRevenue = statusRevenueMap.get('completed') || 0
-    const totalOrderRevenue = Array.from(statusRevenueMap.values()).reduce((sum: number, revenue: number) => sum + revenue, 0)
-    const averageOrderValue = allOrders.length > 0 ? totalOrderRevenue / allOrders.length : 0
+    // Calculate additional revenue metrics - ensure UGX formatting (no decimals)
+    const soldRevenue = Math.round((statusRevenueMap.get('completed') || 0))
+    const totalOrderRevenue = Math.round(Array.from(statusRevenueMap.values()).reduce((sum: number, revenue: number) => sum + revenue, 0))
+    const averageOrderValue = allOrders.length > 0 ? Math.round(totalOrderRevenue / allOrders.length) : 0
 
     const analyticsData = {
       dailyData,
       hourlyData,
       weeklyData,
+      monthlyRevenueData,
       paymentData,
       categoryData,
       statusData,
       totalOrders: allOrders.length,
-      soldOrders: completedOrders.length,
+      soldOrders: orders.length,
       clearedOrders: allOrders.length,
-      soldRevenue: Math.round(soldRevenue * 100) / 100,
-      totalOrderRevenue: Math.round(totalOrderRevenue * 100) / 100,
-      averageOrderValue: Math.round(averageOrderValue * 100) / 100,
-      totalRevenue: completedOrders.reduce((sum: number, order: any) => sum + parseFloat(order.total_amount), 0)
+      soldRevenue: soldRevenue,
+      totalOrderRevenue: totalOrderRevenue,
+      averageOrderValue: averageOrderValue,
+      totalRevenue: Math.round(orders.reduce((sum: number, order: any) => sum + (parseFloat(order.total_amount) || 0), 0))
     }
+
+    // Debug logging for KPICards empty issue
+    console.log('[Analytics API] Full Response:', {
+      dailyDataCount: dailyData.length,
+      hourlyDataCount: hourlyData.length,
+      weeklyDataCount: weeklyData.length,
+      paymentDataCount: paymentData.length,
+      categoryDataCount: categoryData.length,
+      statusDataCount: statusData.length,
+      totalOrders: allOrders.length,
+      soldOrders: orders.length,
+      totalRevenue: analyticsData.totalRevenue,
+      averageOrderValue: analyticsData.averageOrderValue,
+      sampleDailyData: dailyData.slice(0, 2),
+      sampleOrders: orders.slice(0, 2)
+    })
 
     return NextResponse.json(analyticsData)
   } catch (error) {

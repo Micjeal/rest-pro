@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
     .from('orders')
     .select(`
       *, 
-      order_items(*, menu_items(name)),
+      order_items(*, menu_items(name, image_url, description)),
       users!orders_staff_id_fkey(id, name, email, role)
     `)
     .eq('restaurant_id', restaurantId)

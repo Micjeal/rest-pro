@@ -27,7 +27,8 @@ import { createClient } from '@/lib/supabase/server'
  *     quantity: 45,
  *     unit: "lbs",
  *     reorder_level: 20,
- *     last_updated: "2024-01-01T12:00:00Z"
+ *     last_updated: "2024-01-01T12:00:00Z",
+ *     image_url: "/uploads/filename.jpg"
  *   }
  * ]
  * 

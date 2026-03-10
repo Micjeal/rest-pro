@@ -17,6 +17,7 @@ import { useCurrency } from '@/hooks/use-currency'
 import { useCurrencyEvents } from '@/hooks/use-currency-context'
 import { useCurrentUser } from '@/hooks/use-current-user'
 import { EnhancedToggleGroup, EnhancedToggleGroupItem } from '@/components/ui/enhanced-toggle'
+import { ImagePreview } from '@/components/ui/image-preview'
 
 interface OrderItem {
   id: string
@@ -25,6 +26,8 @@ interface OrderItem {
   quantity: number
   subtotal: number
   menuItemId?: string
+  description?: string
+  image_url?: string
 }
 
 interface Customer {
@@ -186,6 +189,8 @@ export default function POSPage() {
                 quantity,
                 subtotal: quantity * item.price,
                 menuItemId: item.id,
+                description: item.description,
+                image_url: item.image_url,
               },
             ]
           }
@@ -327,7 +332,9 @@ export default function POSPage() {
             menu_item_id: item.menuItemId || item.id,
             quantity: item.quantity,
             unit_price: item.price,
-            subtotal: item.price * item.quantity
+            subtotal: item.price * item.quantity,
+            description: item.description,
+            image_url: item.image_url
           }
           console.log('[POS] Creating item:', itemData)
 
@@ -608,20 +615,43 @@ export default function POSPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
                   {filteredMenuItems.map((item: any) => (
-                    <Card key={item.id} className="cursor-pointer border-slate-200 bg-white shadow-sm transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900">
-                      <CardContent className="p-4">
-                        <div className="space-y-3">
-                          <div>
-                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{item.name}</h3>
-                            <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{formatAmount(item.price)}</p>
+                    <Card key={item.id} className="cursor-pointer border-slate-200 bg-white shadow-sm transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
+                      <CardContent className="p-0">
+                        {/* Image Area */}
+                        <div className="aspect-[4/3] w-full bg-gray-50 border-b">
+                          {item.image_url ? (
+                            <ImagePreview
+                              src={item.image_url}
+                              alt={item.name}
+                              size="md"
+                              fullWidth={true}
+                              className="w-full h-full"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-400">
+                              <div className="text-center">
+                                <div className="text-2xl mb-1">🍽️</div>
+                                <p className="text-xs">No image</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Content Area */}
+                        <div className="p-4">
+                          <div className="space-y-3">
+                            <div>
+                              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{item.name}</h3>
+                              <p className="text-xl font-bold text-slate-900 dark:text-slate-100">{formatAmount(item.price)}</p>
+                            </div>
+                            <Button
+                              className="w-full bg-slate-900 font-semibold text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
+                              onClick={() => addItemToOrder(item)}
+                              disabled={isLoading}
+                            >
+                              Add to Order
+                            </Button>
                           </div>
-                          <Button
-                            className="w-full bg-slate-900 font-semibold text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-                            onClick={() => addItemToOrder(item)}
-                            disabled={isLoading}
-                          >
-                            Add to Order
-                          </Button>
                         </div>
                       </CardContent>
                     </Card>

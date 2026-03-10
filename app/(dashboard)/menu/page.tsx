@@ -13,6 +13,8 @@ import { useRestaurants } from '@/hooks/use-restaurants'
 import { useMenus } from '@/hooks/use-menus'
 import { useMenuItems } from '@/hooks/use-menu-items'
 import { useCurrency } from '@/hooks/use-currency'
+import { ImagePreview } from '@/components/ui/image-preview'
+import { ImageUpload } from '@/components/ui/image-upload'
 
 interface MenuItem {
   id: string
@@ -21,6 +23,7 @@ interface MenuItem {
   description: string
   price: number
   availability: boolean
+  image_url?: string
   created_at: string
   updated_at: string
 }
@@ -39,7 +42,7 @@ export default function MenuManagementPage() {
   const [selectedRestaurant, setSelectedRestaurant] = useState<string | undefined>(undefined)
   const [selectedMenu, setSelectedMenu] = useState<string | null>(null)
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
-  const [editForm, setEditForm] = useState({ name: '', description: '', price: '', availability: true })
+  const [editForm, setEditForm] = useState({ name: '', description: '', price: '', availability: true, image_url: '' })
   const [isLoading, setIsLoading] = useState(false)
   
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
@@ -68,13 +71,14 @@ export default function MenuManagementPage() {
       name: item.name,
       description: item.description,
       price: item.price.toString(),
-      availability: item.availability
+      availability: item.availability,
+      image_url: item.image_url || ''
     })
   }
 
   const cancelEdit = () => {
     setEditingItem(null)
-    setEditForm({ name: '', description: '', price: '', availability: true })
+    setEditForm({ name: '', description: '', price: '', availability: true, image_url: '' })
   }
 
   const saveEdit = async () => {
@@ -93,7 +97,8 @@ export default function MenuManagementPage() {
           name: editForm.name,
           description: editForm.description,
           price: parseFloat(editForm.price),
-          availability: editForm.availability
+          availability: editForm.availability,
+          image_url: editForm.image_url
         })
       })
 
@@ -126,7 +131,8 @@ export default function MenuManagementPage() {
           name: item.name,
           description: item.description,
           price: item.price,
-          availability: !item.availability
+          availability: !item.availability,
+          image_url: item.image_url || ''
         })
       })
 
@@ -199,10 +205,19 @@ export default function MenuManagementPage() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6">
           {items.map((item: MenuItem) => (
-            <Card key={item.id} className="relative">
-              <CardContent className="p-4">
+            <Card key={item.id} className="relative overflow-hidden">
+              <CardContent className="p-0">
                 {editingItem?.id === item.id ? (
-                  <div className="space-y-4">
+                  <div className="p-4 space-y-4">
+                    <div>
+                      <Label>Item Image</Label>
+                      <ImageUpload
+                        value={editForm.image_url}
+                        onChange={(url) => setEditForm(prev => ({ ...prev, image_url: url }))}
+                        onRemove={() => setEditForm(prev => ({ ...prev, image_url: '' }))}
+                        className="mt-1"
+                      />
+                    </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <Label htmlFor={`name-${item.id}`}>Item Name</Label>
@@ -263,41 +278,66 @@ export default function MenuManagementPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-semibold text-base lg:text-lg truncate">{item.name}</h3>
-                        <Badge variant={item.availability ? "default" : "secondary"} className="text-xs">
-                          {item.availability ? "Available" : "Unavailable"}
-                        </Badge>
-                      </div>
-                      <p className="text-sm lg:text-base text-gray-600 mb-2 line-clamp-2">{item.description}</p>
-                      <div className="text-xl lg:text-2xl font-bold text-green-600">
-                        {formatAmount(item.price)}
-                      </div>
+                  <div>
+                    {/* Image Area */}
+                    <div className="aspect-[4/3] w-full bg-gray-50 border-b">
+                      {item.image_url ? (
+                        <ImagePreview
+                          src={item.image_url}
+                          alt={item.name}
+                          size="lg"
+                          fullWidth={true}
+                          className="w-full h-full"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <div className="text-center">
+                            <div className="text-4xl mb-2">🍽️</div>
+                            <p className="text-sm">No image</p>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     
-<div className="flex flex-col gap-2">
-                      {canEditMenu && (
-                        <div className="flex gap-2">
-                          <Button
-                            onClick={() => toggleAvailability(item)}
-                            variant={item.availability ? "outline" : "default"}
-                            size="sm"
-                            className="h-8 px-3 text-xs"
-                          >
-                            {item.availability ? "Disable" : "Enable"}
-                          </Button>
-                          <Button onClick={() => startEdit(item)} size="sm" className="h-8">
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                    {/* Content Area */}
+                    <div className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-2">
+                            <h3 className="font-semibold text-base lg:text-lg truncate">{item.name}</h3>
+                            <Badge variant={item.availability ? "default" : "secondary"} className="text-xs">
+                              {item.availability ? "Available" : "Unavailable"}
+                            </Badge>
+                          </div>
+                          <p className="text-sm lg:text-base text-gray-600 mb-2 line-clamp-2">{item.description}</p>
+                          <div className="text-xl lg:text-2xl font-bold text-green-600">
+                            {formatAmount(item.price)}
+                          </div>
                         </div>
-                      )}
-                      {!canEditMenu && (
-                        <div className="text-xs text-gray-500 italic">
-                          View-only
+                        
+                        <div className="flex flex-col gap-2">
+                          {canEditMenu && (
+                            <div className="flex gap-2">
+                              <Button
+                                onClick={() => toggleAvailability(item)}
+                                variant={item.availability ? "outline" : "default"}
+                                size="sm"
+                                className="h-8 px-3 text-xs"
+                              >
+                                {item.availability ? "Disable" : "Enable"}
+                              </Button>
+                              <Button onClick={() => startEdit(item)} size="sm" className="h-8">
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                          {!canEditMenu && (
+                            <div className="text-xs text-gray-500 italic">
+                              View-only
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </div>
                   </div>
                 )}

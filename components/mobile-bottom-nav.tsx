@@ -169,14 +169,19 @@ export function MobileBottomNav({ userRole: propUserRole }: MobileBottomNavProps
     }] : [])
   ].filter(Boolean)
 
+  // Create unique keys by combining href and label
+  const getUniqueKey = (item: any, index: number) => {
+    return `${item.href}-${item.label}-${index}`
+  }
+
   // Limit to 5 items for mobile bottom nav
   const limitedNavItems = navItems.slice(0, 5)
 
   return (
     <div className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-slate-900 border-t border-gray-200 dark:border-slate-700 md:hidden">
       <div className="flex items-center justify-around h-20 px-2 pb-safe">
-        {limitedNavItems.map((item: any) => (
-          <TouchTarget key={item.href} size="lg">
+        {limitedNavItems.map((item: any, index: number) => (
+          <TouchTarget key={getUniqueKey(item, index)} size="lg">
             <Link href={item.href}>
               <Button
                 variant={item.active ? 'default' : 'ghost'}

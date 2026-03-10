@@ -13,6 +13,7 @@ export interface KitchenOrder extends Order {
     price: number
     notes?: string
     description?: string
+    image_url?: string
   }>
 }
 
