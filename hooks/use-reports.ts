@@ -14,6 +14,7 @@ interface UseReportsReturn {
   reports: Report[]
   isLoading: boolean
   error: string | null
+  setupRequired: boolean
   refetch: () => void
   createReport: (reportData: Partial<Report>) => Promise<Report | null>
   deleteReport: (reportId: string) => Promise<boolean>
@@ -29,6 +30,7 @@ export function useReports({
   const [reports, setReports] = useState<Report[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [setupRequired, setSetupRequired] = useState(false)
 
   const fetchReports = useCallback(async () => {
     if (!enabled) return
@@ -45,11 +47,20 @@ export function useReports({
       const response = await fetch(`/api/reports?${params.toString()}`)
       
       if (!response.ok) {
+        const errorData = await response.json()
+        
+        // Check if setup is required
+        if (errorData.setup_required) {
+          setSetupRequired(true)
+          return
+        }
+        
         throw new Error(`Failed to fetch reports: ${response.statusText}`)
       }
 
       const data = await response.json()
       setReports(data.reports || [])
+      setSetupRequired(false)
       
       console.log('[Reports Hook] Fetched reports:', data.reports?.length || 0)
     } catch (err) {
@@ -194,6 +205,7 @@ export function useReports({
     reports,
     isLoading,
     error,
+    setupRequired,
     refetch: fetchReports,
     createReport,
     deleteReport,

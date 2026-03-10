@@ -23,7 +23,7 @@ export default function CreateReportPage() {
   const router = useRouter()
   const { user: currentUser } = useCurrentUser()
   const { restaurants } = useRestaurants()
-  const { createReport } = useReports()
+  const { createReport, setupRequired } = useReports()
   
   const [isCreating, setIsCreating] = useState(false)
   const [isPreviewing, setIsPreviewing] = useState(false)
@@ -37,6 +37,27 @@ export default function CreateReportPage() {
   })
 
   const selectedRestaurant = restaurants?.[0]?.id || ''
+
+  // Redirect to setup if reports table doesn't exist
+  if (setupRequired) {
+    return (
+      <div className="container mx-auto py-8">
+        <Card className="max-w-md mx-auto">
+          <CardHeader>
+            <CardTitle>Setup Required</CardTitle>
+            <CardDescription>
+              The reports table needs to be created before you can create reports.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => router.push('/reports/setup')} className="w-full">
+              Setup Reports Table
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

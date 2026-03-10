@@ -43,8 +43,9 @@ export async function GET(request: NextRequest) {
 
     console.log('[Reports API] Fetching reports:', { reportId, restaurantId, limit, type })
 
-    // Test database connection
+    // Test database connection and table existence
     try {
+      // First test basic connection
       const { data: testData, error: testError } = await supabase
         .from('restaurants')
         .select('id')
@@ -56,6 +57,22 @@ export async function GET(request: NextRequest) {
           { error: 'Database connection failed', details: testError.message },
           { status: 500 }
         )
+      }
+      
+      // Test if reports table exists
+      const { data: tableTest, error: tableError } = await supabase
+        .from('reports')
+        .select('id')
+        .limit(1)
+      
+      if (tableError && tableError.code === '42P01') {
+        console.log('[Reports API] Reports table does not exist')
+        return NextResponse.json({
+          error: 'Reports table not found',
+          details: 'The reports table has not been created yet. Please run the setup script.',
+          setup_required: true,
+          setup_url: '/api/setup-reports'
+        }, { status: 400 })
       }
       
       console.log('[Reports API] Database connection OK')
