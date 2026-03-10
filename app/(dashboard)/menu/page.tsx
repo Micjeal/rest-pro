@@ -15,6 +15,7 @@ import { useMenuItems } from '@/hooks/use-menu-items'
 import { useCurrency } from '@/hooks/use-currency'
 import { ImagePreview } from '@/components/ui/image-preview'
 import { ImageUpload } from '@/components/ui/image-upload'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 interface MenuItem {
   id: string
@@ -44,6 +45,8 @@ export default function MenuManagementPage() {
   const [editingItem, setEditingItem] = useState<MenuItem | null>(null)
   const [editForm, setEditForm] = useState({ name: '', description: '', price: '', availability: true, image_url: '' })
   const [isLoading, setIsLoading] = useState(false)
+  const [showAddMenuDialog, setShowAddMenuDialog] = useState(false)
+  const [newMenuForm, setNewMenuForm] = useState({ name: '', description: '' })
   
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
   const { menus, isLoading: menusLoading } = useMenus(selectedRestaurant)
@@ -102,17 +105,56 @@ export default function MenuManagementPage() {
         })
       })
 
-      if (response.ok) {
-        toast.success('Menu item updated successfully')
-        cancelEdit()
-        mutate() // Refresh the menu items list
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to update menu item')
+      if (!response.ok) {
+        throw new Error('Failed to update menu item')
       }
+
+      await mutate()
+      cancelEdit()
+      toast.success('Menu item updated successfully')
     } catch (error) {
-      console.error('Error updating menu item:', error)
+      console.error('[Menu] Error updating item:', error)
       toast.error('Failed to update menu item')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleCreateMenu = async () => {
+    if (!selectedRestaurant || !newMenuForm.name.trim()) {
+      toast.error('Please provide a menu name')
+      return
+    }
+
+    setIsLoading(true)
+    try {
+      const response = await fetch('/api/menus', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        },
+        body: JSON.stringify({
+          restaurant_id: selectedRestaurant,
+          name: newMenuForm.name.trim(),
+          description: newMenuForm.description.trim()
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create menu')
+      }
+
+      const newMenu = await response.json()
+      setShowAddMenuDialog(false)
+      setNewMenuForm({ name: '', description: '' })
+      toast.success('Menu created successfully')
+      
+      // Select the newly created menu
+      setSelectedMenu(newMenu.id)
+    } catch (error) {
+      console.error('[Menu] Error creating menu:', error)
+      toast.error('Failed to create menu')
     } finally {
       setIsLoading(false)
     }
@@ -189,6 +231,15 @@ export default function MenuManagementPage() {
               ))}
             </SelectContent>
           </Select>
+
+          <Button
+            onClick={() => setShowAddMenuDialog(true)}
+            className="bg-green-600 hover:bg-green-700 text-white"
+            disabled={!selectedRestaurant}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add Menu
+          </Button>
         </div>
       </div>
 
@@ -346,6 +397,52 @@ export default function MenuManagementPage() {
           ))}
         </div>
       )}
+
+      {/* Add Menu Dialog */}
+      <Dialog open={showAddMenuDialog} onOpenChange={setShowAddMenuDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Menu</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div>
+              <Label htmlFor="menuName">Menu Name</Label>
+              <Input
+                id="menuName"
+                value={newMenuForm.name}
+                onChange={(e) => setNewMenuForm(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter menu name"
+                className="h-11"
+              />
+            </div>
+            <div>
+              <Label htmlFor="menuDescription">Description (Optional)</Label>
+              <Input
+                id="menuDescription"
+                value={newMenuForm.description}
+                onChange={(e) => setNewMenuForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Enter menu description"
+                className="h-11"
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-4 border-t">
+            <Button variant="outline" onClick={() => {
+              setShowAddMenuDialog(false)
+              setNewMenuForm({ name: '', description: '' })
+            }}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateMenu}
+              disabled={isLoading || !newMenuForm.name.trim()}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isLoading ? 'Creating...' : 'Create Menu'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

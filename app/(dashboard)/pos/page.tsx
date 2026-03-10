@@ -432,47 +432,109 @@ export default function POSPage() {
                 </Select>
               </div>
 
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
-                <div className="mb-2">
-                  <Label className="text-xs font-medium uppercase tracking-wide text-slate-500">Order Type</Label>
-                </div>
-                <EnhancedToggleGroup
-                  value={orderType}
-                  onValueChange={(value) => setOrderType(value as 'dine-in' | 'takeaway' | 'delivery')}
-                  className="w-full"
-                >
-                  <EnhancedToggleGroupItem value="dine-in" icon={<Store className="h-4 w-4" />}>
-                    Dine-In
-                  </EnhancedToggleGroupItem>
-                  <EnhancedToggleGroupItem value="takeaway">
-                    Takeaway
-                  </EnhancedToggleGroupItem>
-                  <EnhancedToggleGroupItem value="delivery" icon={<MapPin className="h-4 w-4" />}>
-                    Delivery
-                  </EnhancedToggleGroupItem>
-                </EnhancedToggleGroup>
-              </div>
+              {/* Order Type Section */}
+              <Card className="border-slate-200 bg-white shadow-sm overflow-hidden">
+                <CardHeader className="border-b border-slate-200 bg-gradient-to-r from-blue-50 to-indigo-50 py-4">
+                  <CardTitle className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                    <div className="flex h-5 w-5 items-center justify-center rounded-lg bg-blue-100">
+                      <Store className="h-3 w-3 text-blue-600" />
+                    </div>
+                    Order Type
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <div className="grid grid-cols-3 gap-2">
+                    <Button
+                      variant={orderType === 'dine-in' ? 'default' : 'outline'}
+                      onClick={() => setOrderType('dine-in')}
+                      className={`flex flex-col items-center justify-center gap-2 h-auto py-4 px-3 transition-all duration-200 ${
+                        orderType === 'dine-in'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-600 shadow-md'
+                          : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400'
+                      }`}
+                    >
+                      <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                        orderType === 'dine-in' ? 'bg-white/20' : 'bg-slate-100'
+                      }`}>
+                        <Store className={`h-4 w-4 ${orderType === 'dine-in' ? 'text-white' : 'text-slate-600'}`} />
+                      </div>
+                      <span className="text-xs font-medium leading-tight">Dine-In</span>
+                    </Button>
+                    
+                    <Button
+                      variant={orderType === 'takeaway' ? 'default' : 'outline'}
+                      onClick={() => setOrderType('takeaway')}
+                      className={`flex flex-col items-center justify-center gap-2 h-auto py-4 px-3 transition-all duration-200 ${
+                        orderType === 'takeaway'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-600 shadow-md'
+                          : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400'
+                      }`}
+                    >
+                      <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                        orderType === 'takeaway' ? 'bg-white/20' : 'bg-slate-100'
+                      }`}>
+                        <ShoppingCart className={`h-4 w-4 ${orderType === 'takeaway' ? 'text-white' : 'text-slate-600'}`} />
+                      </div>
+                      <span className="text-xs font-medium leading-tight">Takeaway</span>
+                    </Button>
+                    
+                    <Button
+                      variant={orderType === 'delivery' ? 'default' : 'outline'}
+                      onClick={() => setOrderType('delivery')}
+                      className={`flex flex-col items-center justify-center gap-2 h-auto py-4 px-3 transition-all duration-200 ${
+                        orderType === 'delivery'
+                          ? 'bg-blue-600 text-white hover:bg-blue-700 border-blue-600 shadow-md'
+                          : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50 hover:border-slate-400'
+                      }`}
+                    >
+                      <div className={`flex h-8 w-8 items-center justify-center rounded-lg ${
+                        orderType === 'delivery' ? 'bg-white/20' : 'bg-slate-100'
+                      }`}>
+                        <MapPin className={`h-4 w-4 ${orderType === 'delivery' ? 'text-white' : 'text-slate-600'}`} />
+                      </div>
+                      <span className="text-xs font-medium leading-tight">Delivery</span>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
               
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-2">
-                <div className="mb-2">
-                  <Label className="text-xs font-medium uppercase tracking-wide text-slate-500">Payment</Label>
-                </div>
-                <EnhancedToggleGroup
-                  value={paymentMethod}
-                  onValueChange={(value) => setPaymentMethod(value as 'cash' | 'card' | 'mobile')}
-                  className="w-full"
-                >
-                  <EnhancedToggleGroupItem value="cash">
-                    Cash
-                  </EnhancedToggleGroupItem>
-                  <EnhancedToggleGroupItem value="card">
-                    Card
-                  </EnhancedToggleGroupItem>
-                  <EnhancedToggleGroupItem value="mobile">
-                    Mobile
-                  </EnhancedToggleGroupItem>
-                </EnhancedToggleGroup>
-              </div>
+              {/* Payment Method Section */}
+              <Card className="border-slate-200 bg-white shadow-sm">
+                <CardHeader className="border-b border-slate-200 bg-gradient-to-r from-green-50 to-emerald-50 py-3">
+                  <CardTitle className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                    <div className="p-1 bg-green-100 rounded">
+                      <div className="w-3 h-3 bg-green-600 rounded-full"></div>
+                    </div>
+                    Payment Method
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-3">
+                  <EnhancedToggleGroup
+                    value={paymentMethod}
+                    onValueChange={(value) => setPaymentMethod(value as 'cash' | 'card' | 'mobile')}
+                    className="w-full"
+                  >
+                    <EnhancedToggleGroupItem 
+                      value="cash"
+                      className="flex-1 justify-center py-2 px-3 text-sm font-medium"
+                    >
+                      Cash
+                    </EnhancedToggleGroupItem>
+                    <EnhancedToggleGroupItem 
+                      value="card"
+                      className="flex-1 justify-center py-2 px-3 text-sm font-medium"
+                    >
+                      Card
+                    </EnhancedToggleGroupItem>
+                    <EnhancedToggleGroupItem 
+                      value="mobile"
+                      className="flex-1 justify-center py-2 px-3 text-sm font-medium"
+                    >
+                      Mobile
+                    </EnhancedToggleGroupItem>
+                  </EnhancedToggleGroup>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

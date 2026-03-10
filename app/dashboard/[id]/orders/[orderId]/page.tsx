@@ -54,7 +54,30 @@ export default function OrderDetailPage() {
   // Use real data from hooks
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
   const { order, isLoading: orderLoading } = useOrderDetails(orderId)
-  const { formatAmount } = useCurrency({ restaurantId })
+  const { formatAmount, currency, getCurrencyCode } = useCurrency({ restaurantId: selectedRestaurant || restaurantId })
+  
+  // Create a debug format function to see what's happening
+  const debugFormatAmount = (amount: number) => {
+    const result = formatAmount(amount)
+    console.log('[OrderDetailPage] debugFormatAmount:', {
+      amount,
+      result,
+      currency: currency?.code,
+      currencySymbol: currency?.symbol,
+      getCurrencyCode: getCurrencyCode()
+    })
+    return result
+  }
+  
+  // Debug currency information
+  useEffect(() => {
+    console.log('[OrderDetailPage] Currency info:', {
+      restaurantId,
+      currency: currency?.code,
+      currencySymbol: currency?.symbol,
+      getCurrencyCode: getCurrencyCode()
+    })
+  }, [restaurantId, currency, getCurrencyCode])
   
   // Set default restaurant when data loads
   useEffect(() => {
@@ -196,6 +219,13 @@ export default function OrderDetailPage() {
               <div>
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Order Details</h1>
                 <p className="text-gray-600 mt-1">View and manage order information</p>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="text-sm text-gray-500">Order #{order.id.slice(0, 8)}</span>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-sm text-gray-500">{formatDate(order.created_at)}</span>
+                  <span className="text-gray-300">•</span>
+                  <span className="text-sm font-semibold text-green-600">Currency: {getCurrencyCode()}</span>
+                </div>
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <Badge className={getStatusColor(order.status)}>
@@ -275,7 +305,7 @@ export default function OrderDetailPage() {
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Total Amount</p>
-                      <p className="font-medium text-lg">{formatAmount(order.total_amount)}</p>
+                      <p className="font-medium text-lg">{debugFormatAmount(order.total_amount)}</p>
                     </div>
                   </div>
                   {order.notes && (
@@ -289,74 +319,39 @@ export default function OrderDetailPage() {
             </div>
             
             {/* Order Items */}
-            <div className="xl:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Order Items</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {order.order_items && order.order_items.length > 0 ? (
-                    <div className="space-y-3">
-                      {order.order_items.map((item: OrderItem) => (
-                        <div key={item.id} className="flex flex-col gap-3 p-4 border rounded-lg">
-                          <div className="flex flex-col sm:flex-row sm:items-start gap-3">
-                            {/* Image Area */}
-                            <div className="flex-shrink-0">
-                              {item.menu_item?.image_url ? (
-                                <div className="h-20 w-20 rounded-lg border border-gray-200 overflow-hidden">
-                                  <ImagePreview
-                                    src={item.menu_item.image_url}
-                                    alt={item.menu_item.name}
-                                    size="md"
-                                    fullWidth={true}
-                                    className="w-full h-full"
-                                  />
-                                </div>
-                              ) : (
-                                <div className="h-20 w-20 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center">
-                                  <div className="text-center">
-                                    <div className="text-2xl mb-1">🍽️</div>
-                                    <p className="text-xs text-gray-400">No image</p>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                            
-                            {/* Content Area */}
-                            <div className="flex-1 min-w-0">
-                              <div>
-                                <h4 className="font-semibold">{item.menu_item?.name}</h4>
-                                {item.menu_item?.description && (
-                                  <p className="text-sm text-gray-600 mt-1">{item.menu_item.description}</p>
-                                )}
-                              </div>
-                              
-                              {/* Price and Quantity Info */}
-                              <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-                                <div>
-                                  <span className="text-gray-600">Qty: {item.quantity}</span>
-                                </div>
-                                <div>
-                                  <span className="font-semibold">{formatAmount(item.unit_price)}</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-600">Subtotal: {formatAmount(item.subtotal)}</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
+            <Card className="xl:col-span-1">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Order Items
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {order.order_items && order.order_items.length > 0 ? (
+                  <div className="space-y-4">
+                    {order.order_items.map((item: OrderItem) => (
+                      <div key={item.id} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="flex-1">
+                          <h4 className="font-medium">{item.menu_item?.name}</h4>
+                          <p className="text-sm text-gray-600">{item.quantity} × {debugFormatAmount(item.unit_price)}</p>
                         </div>
-                      ))}
+                        <div className="text-right">
+                          <p className="font-medium">{debugFormatAmount(item.subtotal)}</p>
+                        </div>
+                      </div>
+                    ))}
+                    <div className="border-t pt-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">Total</span>
+                        <span className="font-bold text-lg">{debugFormatAmount(order.total_amount)}</span>
+                      </div>
                     </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p>No items in this order</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
+                  </div>
+                ) : (
+                  <p className="text-gray-500">No items in this order</p>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </main>

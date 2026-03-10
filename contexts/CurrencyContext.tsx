@@ -31,6 +31,13 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
       const effectiveRestaurantId = targetRestaurantId || restaurantId || 
         (restaurants.length > 0 ? restaurants[0].id : null)
       
+      console.log('[CurrencyContext] loadCurrency called:', { 
+        targetRestaurantId, 
+        restaurantId, 
+        effectiveRestaurantId,
+        restaurantsCount: restaurants.length 
+      })
+      
       if (!effectiveRestaurantId) {
         console.log('[CurrencyContext] No restaurant available, using default')
         setCurrency(getCurrency('UGX') || null)
@@ -39,12 +46,18 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
       }
 
       // Fetch settings for the restaurant
+      console.log('[CurrencyContext] Fetching settings for restaurant:', effectiveRestaurantId)
       const response = await fetch(`/api/settings?restaurantId=${effectiveRestaurantId}`)
 
       if (response.ok) {
         const settings = await response.json()
         const currencyCode = settings.restaurant?.currency || 'UGX'
         const currencyData = getCurrency(currencyCode)
+        console.log('[CurrencyContext] Settings loaded:', { 
+          currencyCode, 
+          currencyData: currencyData?.code,
+          restaurantName: settings.restaurant?.name 
+        })
         setCurrency(currencyData || getCurrency('UGX') || null)
         console.log('[CurrencyContext] Loaded currency:', currencyCode)
       } else {
@@ -73,7 +86,15 @@ export function CurrencyProvider({ children }: { children: React.ReactNode }) {
 
   const formatAmount = (amount: number, currencyCode?: string) => {
     const targetCurrency = currencyCode ? getCurrency(currencyCode) : currency
+    console.log('[CurrencyContext] formatAmount called:', {
+      amount,
+      currencyCode,
+      targetCurrency: targetCurrency?.code,
+      currentCurrency: currency?.code
+    })
+    
     if (!targetCurrency) {
+      console.log('[CurrencyContext] No target currency, using UGX fallback')
       return formatCurrency(amount, 'UGX')
     }
     return formatCurrency(amount, targetCurrency.code)

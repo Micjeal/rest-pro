@@ -11,9 +11,10 @@ import { CustomerMetrics } from '@/components/dashboard/CustomerMetrics'
 import { RecentOrders } from '@/components/dashboard/RecentOrders'
 import { FilterModal } from '@/components/dashboard/FilterModal'
 import { Utensils, ShoppingCart, DollarSign, TrendingUp } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRestaurants } from '@/hooks/use-restaurants'
 import { useCurrency } from '@/hooks/use-currency'
+import { useCurrentUser } from '@/hooks/use-current-user'
 
 /**
  * Main Dashboard Page
@@ -52,27 +53,9 @@ export default function DashboardPage() {
   // Use real data from hooks
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
   const { formatAmount } = useCurrency()
+  const { user: currentUser } = useCurrentUser()
 
-  useEffect(() => {
-    console.log('[Dashboard] Page loaded - displaying all restaurants')
-    loadDashboardData()
-  }, [restaurants])
-
-  useEffect(() => {
-    console.log('[Dashboard] Filters changed - reloading data')
-    loadDashboardData()
-  }, [activeTab, selectedDate, appliedFilters])
-
-  useEffect(() => {
-    console.log('[Dashboard] Revenue period changed - reloading analytics')
-    loadDashboardData()
-  }, [revenuePeriod])
-
-  const handleApplyFilter = (filters: any) => {
-    setAppliedFilters(filters)
-  }
-
-  const loadDashboardData = async () => {
+  const loadDashboardData = useCallback(async () => {
     try {
       setIsLoading(true)
       
@@ -126,6 +109,8 @@ export default function DashboardPage() {
           ordersParams.set('endDate', isoDate)
         }
       }
+      
+      console.log('[Dashboard] Loading data with params:', { analyticsParams: analyticsParams.toString(), ordersParams: ordersParams.toString() })
       
       // Fetch comprehensive data from APIs
       const [analyticsResponse, ordersResponse, usersResponse, recentOrdersResponse] = await Promise.all([
@@ -206,6 +191,35 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false)
     }
+  }, [restaurants, revenuePeriod, activeTab, selectedDate, appliedFilters])
+
+  useEffect(() => {
+    console.log('[Dashboard] Page loaded - displaying all restaurants')
+    loadDashboardData()
+  }, [])
+
+  useEffect(() => {
+    console.log('[Dashboard] Filters changed - reloading data')
+    loadDashboardData()
+  }, [appliedFilters])
+
+  useEffect(() => {
+    console.log('[Dashboard] Revenue period changed - reloading analytics')
+    loadDashboardData()
+  }, [revenuePeriod])
+
+  useEffect(() => {
+    console.log('[Dashboard] Active tab changed - reloading data')
+    loadDashboardData()
+  }, [activeTab])
+
+  useEffect(() => {
+    console.log('[Dashboard] Selected date changed - reloading data')
+    loadDashboardData()
+  }, [selectedDate])
+
+  const handleApplyFilter = (filters: any) => {
+    setAppliedFilters(filters)
   }
 
   const fetchAvailableDishesCount = async (restaurantId: string) => {
@@ -386,9 +400,11 @@ export default function DashboardPage() {
                   year: 'numeric' 
                 }),
                 status: order.status || 'pending',
+                created_at: order.created_at,
                 image: '/placeholder.jpg'
               }))} 
-              isLoading={isLoading} 
+              isLoading={isLoading}
+              currentUser={currentUser || undefined}
             />
           </div>
         </div>

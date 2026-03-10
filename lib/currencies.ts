@@ -353,8 +353,11 @@ export function getCurrency(code: string): Currency | undefined {
 
 // Format currency amount
 export function formatCurrency(amount: number, currencyCode: string = 'UGX'): string {
+  console.log('[formatCurrency] Formatting:', { amount, currencyCode })
+  
   const currency = getCurrency(currencyCode)
   if (!currency) {
+    console.log('[formatCurrency] Currency not found, using UGX fallback')
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'UGX'
@@ -364,19 +367,25 @@ export function formatCurrency(amount: number, currencyCode: string = 'UGX'): st
   try {
     // For UGX, use custom formatting to avoid decimal places
     if (currencyCode === 'UGX') {
-      return `${currency.symbol}${amount.toLocaleString('en-US', {
+      const formatted = `${currency.symbol}${amount.toLocaleString('en-US', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
       })}`
+      console.log('[formatCurrency] UGX formatted:', formatted)
+      return formatted
     }
 
-    return new Intl.NumberFormat('en-US', {
+    const formatted = new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currencyCode,
       minimumFractionDigits: currency.decimalDigits,
       maximumFractionDigits: currency.decimalDigits
     }).format(amount)
+    
+    console.log('[formatCurrency] Intl formatted:', formatted)
+    return formatted
   } catch (error) {
+    console.log('[formatCurrency] Error, using fallback:', error)
     // Fallback for unsupported currencies
     return `${currency.symbol}${amount.toFixed(currency.decimalDigits)}`
   }
