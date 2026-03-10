@@ -448,6 +448,7 @@ export default function DashboardPage() {
         </div>
         </>
         )}
+      </div>
       
       {/* Filter Modal */}
       <FilterModal
