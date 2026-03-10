@@ -77,7 +77,7 @@ export function EnhancedToggle({
       onMouseDown={handleMouseDown}
       onMouseUp={handleMouseUp}
       onMouseLeave={handleMouseLeave}
-      aria-pressed={checked ? 'true' : 'false'}
+      aria-checked={checked}
       role="switch"
     >
       {/* Ripple effect */}
@@ -238,7 +238,7 @@ export function EnhancedSwitch({
       <button
         type="button"
         role="switch"
-        aria-checked={!!checked}
+        aria-checked={String(checked) as "true" | "false"}
         aria-label={label}
         disabled={disabled}
         className={cn(
@@ -258,7 +258,6 @@ export function EnhancedSwitch({
           )}
         />
       </button>
-      
       {(label || description) && (
         <div className="flex flex-col">
           {label && (

@@ -14,7 +14,7 @@ import { useCurrency } from '@/hooks/use-currency'
 const KPICards = lazy(() => import('./components/KPICards').then(module => ({ default: module.KPICards })))
 const ProductStats = lazy(() => import('./components/ProductStats').then(module => ({ default: module.ProductStats })))
 const CustomerHabits = lazy(() => import('./components/CustomerHabits').then(module => ({ default: module.CustomerHabits })))
-const CustomerGrowth = lazy(() => import('./components/CustomerGrowth').then(module => ({ default: module.CustomerGrowth })))
+const CustomerGrowth = lazy(() => import('./components/CustomerGrowth').then(module => ({ default: module.default })))
 
 /**
  * Optimized Reports Page
@@ -24,6 +24,8 @@ const CustomerGrowth = lazy(() => import('./components/CustomerGrowth').then(mod
 export default function OptimizedReportsPage() {
   const [dailyData, setDailyData] = useState<any[]>([])
   const [categoryData, setCategoryData] = useState<any[]>([])
+  const [paymentData, setPaymentData] = useState<any[]>([])
+  const [statusData, setStatusData] = useState<any[]>([])
   const [dateRange, setDateRange] = useState('week')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -34,15 +36,26 @@ export default function OptimizedReportsPage() {
   const router = useRouter()
   const { toast } = useToast()
   const { restaurants, isLoading: restaurantsLoading } = useRestaurants()
-  const { formatAmount, getCurrencySymbol } = useCurrency({ restaurantId: selectedRestaurant || undefined })
+  const { formatAmount, getCurrencySymbol, getCurrencyCode } = useCurrency({ restaurantId: selectedRestaurant || undefined })
 
   // Memoized processed data for performance
   const processedData = useMemo(() => {
-    if (!Array.isArray(dailyData)) return {
-      totalRevenue: 0,
-      totalOrders: 0,
-      totalTransactions: 0,
-      averageTransaction: 0
+    // Debug logging for data flow
+    console.log('[Reports] Processing data:', {
+      dailyDataLength: dailyData?.length || 0,
+      dailyDataType: typeof dailyData,
+      isArray: Array.isArray(dailyData),
+      sampleDailyData: dailyData?.slice(0, 2)
+    })
+
+    if (!Array.isArray(dailyData) || dailyData.length === 0) {
+      console.log('[Reports] No dailyData available, returning zeros')
+      return {
+        totalRevenue: 0,
+        totalOrders: 0,
+        totalTransactions: 0,
+        averageTransaction: 0
+      }
     }
 
     const totalRevenue = dailyData.reduce((sum, day) => {
@@ -58,13 +71,23 @@ export default function OptimizedReportsPage() {
     const averageTransaction = totalTransactions > 0 ? totalRevenue / totalTransactions : 0
     const totalOrders = totalTransactions // Simplified for demo
 
+    // Debug logging for currency issues
+    console.log('[Reports] Processed Data:', {
+      totalRevenue,
+      totalOrders,
+      totalTransactions,
+      averageTransaction,
+      currencyCode: getCurrencyCode(),
+      sampleDailyData: dailyData.slice(0, 2)
+    })
+
     return {
       totalRevenue,
       totalOrders,
       totalTransactions,
       averageTransaction
     }
-  }, [dailyData])
+  }, [dailyData, getCurrencyCode])
 
   const { totalRevenue, totalOrders, totalTransactions, averageTransaction } = processedData
 
@@ -126,11 +149,15 @@ export default function OptimizedReportsPage() {
       
       setDailyData(analyticsData.dailyData || [])
       setCategoryData(analyticsData.categoryData || [])
+      setPaymentData(analyticsData.paymentData || [])
+      setStatusData(analyticsData.statusData || [])
     } catch (error) {
       console.error('[Reports] Error loading data:', error)
       // Set empty data on error
       setDailyData([])
       setCategoryData([])
+      setPaymentData([])
+      setStatusData([])
     } finally {
       setIsLoading(false)
     }
@@ -386,6 +413,8 @@ export default function OptimizedReportsPage() {
 
             <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded-lg"></div>}>
               <CustomerGrowth
+                paymentData={paymentData}
+                statusData={statusData}
                 isLoading={isLoading}
               />
             </Suspense>

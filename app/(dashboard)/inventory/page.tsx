@@ -23,6 +23,7 @@ import { toast } from 'sonner'
 import { useInventory } from '@/hooks/use-inventory'
 import { useRestaurants } from '@/hooks/use-restaurants'
 import { Store } from 'lucide-react'
+import { ImagePreview } from '@/components/ui/image-preview'
 
 interface InventoryItem {
   id: string
@@ -31,6 +32,7 @@ interface InventoryItem {
   unit: string
   reorder_level: number
   last_updated: string
+  image_url?: string
 }
 
 /**
@@ -50,7 +52,8 @@ export default function InventoryPage() {
     item_name: '',
     quantity: 0,
     unit: 'pcs',
-    reorder_level: 10
+    reorder_level: 10,
+    image_url: ''
   })
   
   const router = useRouter()
@@ -124,7 +127,7 @@ export default function InventoryPage() {
         throw new Error('Failed to add inventory item')
       }
 
-      setNewItem({ item_name: '', quantity: 0, unit: 'pcs', reorder_level: 10 })
+      setNewItem({ item_name: '', quantity: 0, unit: 'pcs', reorder_level: 10, image_url: '' })
       setShowAddDialog(false)
       mutate() // Refresh inventory data
       toast.success('Item added to inventory')
@@ -140,7 +143,8 @@ export default function InventoryPage() {
       item_name: item.item_name,
       quantity: item.quantity,
       unit: item.unit,
-      reorder_level: item.reorder_level
+      reorder_level: item.reorder_level,
+      image_url: item.image_url || ''
     })
     setShowAddDialog(true)
   }
@@ -173,7 +177,7 @@ export default function InventoryPage() {
       }
 
       setEditingItem(null)
-      setNewItem({ item_name: '', quantity: 0, unit: 'pcs', reorder_level: 10 })
+      setNewItem({ item_name: '', quantity: 0, unit: 'pcs', reorder_level: 10, image_url: '' })
       setShowAddDialog(false)
       mutate() // Refresh inventory data
       toast.success('Item updated successfully')
@@ -408,6 +412,7 @@ export default function InventoryPage() {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-gray-50 dark:bg-slate-700/50">
+                    <TableHead className="font-semibold text-gray-900 dark:text-white text-xs lg:text-sm">Image</TableHead>
                     <TableHead className="font-semibold text-gray-900 dark:text-white text-xs lg:text-sm">Item Name</TableHead>
                     <TableHead className="text-right font-semibold text-gray-900 dark:text-white text-xs lg:text-sm">Quantity</TableHead>
                     <TableHead className="text-right font-semibold text-gray-900 dark:text-white text-xs lg:text-sm hidden sm:table-cell">Reorder Level</TableHead>
@@ -422,6 +427,33 @@ export default function InventoryPage() {
                       key={item.id}
                       className={`hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors ${isLowStock(item) ? 'bg-amber-50/50 dark:bg-amber-900/10' : ''}`}
                     >
+                      <TableCell className="w-20">
+                        {item.image_url ? (
+                          <div className="group relative">
+                            <div className="h-14 w-14 rounded-xl border-2 border-gray-200 overflow-hidden bg-white shadow-sm hover:shadow-md transition-all duration-200 hover:border-blue-300 hover:scale-105">
+                              <ImagePreview
+                                src={item.image_url}
+                                alt={item.item_name}
+                                size="sm"
+                                fullWidth={true}
+                                className="w-full h-full object-cover"
+                              />
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                              <div className="h-4 w-4 rounded-full bg-blue-500 flex items-center justify-center">
+                                <div className="w-2 h-2 rounded-full bg-white"></div>
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="h-14 w-14 rounded-xl border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center hover:border-gray-400 hover:from-gray-100 hover:to-gray-200 transition-all duration-200">
+                            <div className="text-center">
+                              <div className="text-xl mb-1">📦</div>
+                              <p className="text-xs text-gray-500 font-medium">No image</p>
+                            </div>
+                          </div>
+                        )}
+                      </TableCell>
                       <TableCell className="font-semibold text-gray-900 dark:text-white text-xs lg:text-sm">{item.item_name}</TableCell>
                       <TableCell className="text-right text-gray-700 dark:text-gray-300 text-xs lg:text-sm">
                         {item.quantity} {item.unit}
@@ -524,6 +556,49 @@ export default function InventoryPage() {
                   placeholder="10"
                   className="h-11"
                 />
+              </div>
+            </div>
+            {/* Image Upload Section */}
+            <div className="space-y-3">
+              <Label htmlFor="image" className="text-sm font-medium text-gray-700 dark:text-gray-300">Item Image</Label>
+              <div className="flex items-start gap-4">
+                <div className="flex-1">
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0]
+                      if (file) {
+                        const imageUrl = `/uploads/inventory/${file.name}`
+                        setNewItem({ ...newItem, image_url: imageUrl })
+                      }
+                    }}
+                    className="h-10 file:cursor-pointer file:mr-3 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Upload an image of the inventory item (JPEG, PNG, GIF, WebP)</p>
+                </div>
+                {newItem.image_url && (
+                  <div className="flex-shrink-0">
+                    <div className="relative group">
+                      <div className="h-20 w-20 rounded-xl border-2 border-gray-200 overflow-hidden bg-white shadow-sm">
+                        <img
+                          src={newItem.image_url}
+                          alt={newItem.item_name}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.src = '/placeholder.jpg'
+                          }}
+                        />
+                      </div>
+                      <div className="absolute -top-2 -right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                        <div className="h-6 w-6 rounded-full bg-green-500 flex items-center justify-center">
+                          <div className="w-3 h-3 rounded-full bg-white"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="flex justify-end gap-3 pt-4 border-t">

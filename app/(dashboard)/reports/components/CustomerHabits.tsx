@@ -72,32 +72,68 @@ export const CustomerHabits = memo(({ dailyData, isLoading = false }: CustomerHa
         
         <div className="h-64 lg:h-80">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.1)" />
+            <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+              <defs>
+                <linearGradient id="seenProductsGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.3}/>
+                </linearGradient>
+                <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#10b981" stopOpacity={0.3}/>
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148, 163, 184, 0.15)" />
               <XAxis 
                 dataKey="date" 
-                stroke="#64748b" 
+                stroke="#94a3b8" 
                 fontSize={12}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 11, fill: '#64748b' }}
+                tickLine={false}
+                axisLine={false}
               />
               <YAxis 
-                stroke="#64748b" 
+                stroke="#94a3b8" 
                 fontSize={12}
-                tick={{ fontSize: 10 }}
+                tick={{ fontSize: 11, fill: '#64748b' }}
+                tickLine={false}
+                axisLine={false}
               />
               <Tooltip 
                 contentStyle={{ 
-                  backgroundColor: 'rgba(255,255,255,0.95)', 
-                  border: '1px solid rgba(0,0,0,0.1)',
-                  borderRadius: '8px'
+                  backgroundColor: 'rgba(15, 23, 42, 0.95)', 
+                  border: '1px solid rgba(148, 163, 184, 0.2)',
+                  borderRadius: '16px',
+                  boxShadow: '0 10px 25px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.1)',
+                  fontSize: '13px',
+                  padding: '12px 16px',
+                  backdropFilter: 'blur(8px)'
                 }}
+                labelStyle={{ color: '#e2e8f0', fontWeight: 500 }}
+                itemStyle={{ color: '#cbd5e1' }}
                 formatter={(value: any, name: any) => [
                   value.toLocaleString(), 
-                  name === 'seenProducts' ? 'Seen Products' : 'Sales'
+                  name === 'seenProducts' ? 'Products Viewed' : 'Sales Made'
                 ]}
               />
-              <Bar dataKey="seenProducts" fill="#3b82f6" radius={[8, 8, 4, 4]} />
-              <Bar dataKey="sales" fill="#10b981" radius={[8, 8, 4, 4]} />
+              <Bar 
+                dataKey="seenProducts" 
+                fill="url(#seenProductsGradient)"
+                radius={[16, 16, 8, 8]}
+                maxBarSize={65}
+                animationBegin={0}
+                animationDuration={1500}
+                animationEasing="ease-out"
+              />
+              <Bar 
+                dataKey="sales" 
+                fill="url(#salesGradient)"
+                radius={[16, 16, 8, 8]}
+                maxBarSize={65}
+                animationBegin={300}
+                animationDuration={1500}
+                animationEasing="ease-out"
+              />
             </BarChart>
           </ResponsiveContainer>
         </div>

@@ -3,6 +3,7 @@
 import { useMenuItems } from '@/hooks/use-menu-items'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { ImagePreview } from '@/components/ui/image-preview'
 import Link from 'next/link'
 import { Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
@@ -59,22 +60,36 @@ export function MenuItemsList({ restaurantId, menuId }: MenuItemsListProps) {
             <Card key={item.id}>
               <CardContent className="pt-6">
                 <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h5 className="font-medium text-gray-900">{item.name}</h5>
-                    {item.description && (
-                      <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                  <div className="flex items-start gap-4 flex-1">
+                    {item.image_url ? (
+                      <ImagePreview
+                        src={item.image_url}
+                        alt={item.name}
+                        size="sm"
+                        className="flex-shrink-0"
+                      />
+                    ) : (
+                      <div className="h-16 w-16 border-2 border-dashed border-muted-foreground/25 rounded-md flex items-center justify-center flex-shrink-0">
+                        <span className="text-xs text-muted-foreground">No image</span>
+                      </div>
                     )}
-                    <div className="flex items-center gap-4 mt-2">
-                      <span className="text-sm font-semibold text-gray-900">
-                        {formatAmount(item.price)}
-                      </span>
-                      <span className={`text-xs px-2 py-1 rounded-full ${
-                        item.availability
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {item.availability ? 'Available' : 'Unavailable'}
-                      </span>
+                    <div className="flex-1">
+                      <h5 className="font-medium text-gray-900">{item.name}</h5>
+                      {item.description && (
+                        <p className="text-sm text-gray-600 mt-1">{item.description}</p>
+                      )}
+                      <div className="flex items-center gap-4 mt-2">
+                        <span className="text-sm font-semibold text-gray-900">
+                          {formatAmount(item.price)}
+                        </span>
+                        <span className={`text-xs px-2 py-1 rounded-full ${
+                          item.availability
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {item.availability ? 'Available' : 'Unavailable'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   <Button

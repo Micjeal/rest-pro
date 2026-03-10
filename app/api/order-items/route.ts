@@ -101,11 +101,21 @@ export async function GET(request: NextRequest) {
  * 
  * @param request - NextJS request with JSON body:
  *   {
+ *     id: string (uuid, required),
+ *     name?: string,
+ *     description?: string,
+ *     price?: number,
+ *     availability?: boolean,
+ *     image_url?: string
+ *   }
+ *   {
  *     order_id: string (uuid, required),
  *     menu_item_id: string (uuid, required),
  *     quantity: number (required),
  *     unit_price: number (required),
- *     subtotal: number (required)
+ *     subtotal: number (required),
+ *     description?: string,
+ *     image_url?: string
  *   }
  * 
  * @returns Created order item object (201) or error
@@ -118,6 +128,8 @@ export async function GET(request: NextRequest) {
  *   quantity: 2,
  *   unit_price: "12.99",
  *   subtotal: "25.98",
+ *   description: "Extra sauce on the side",
+ *   image_url: "/uploads/filename.jpg",
  *   created_at: "2024-01-01T00:00:00Z"
  * }
  * 

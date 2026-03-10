@@ -21,6 +21,38 @@ export const KPICards = memo(({
   formatAmount,
   isLoading = false 
 }: KPICardsProps) => {
+  // Debug logging to investigate empty data issue
+  console.log('[KPICards] Props received:', {
+    totalRevenue,
+    totalOrders,
+    totalTransactions,
+    averageTransaction,
+    isLoading,
+    totalRevenueType: typeof totalRevenue,
+    totalOrdersType: typeof totalOrders,
+    formatAmountFunction: typeof formatAmount
+  })
+  
+  // Validate formatAmount function
+  const safeFormatAmount = (amount: number) => {
+    try {
+      if (typeof formatAmount === 'function') {
+        return formatAmount(amount)
+      }
+      return `USh ${amount.toLocaleString()}`
+    } catch (error) {
+      console.error('[KPICards] Format amount error:', error)
+      return `USh ${amount.toLocaleString()}`
+    }
+  }
+  
+  console.log('[KPICards] Formatted values:', {
+    formattedRevenue: safeFormatAmount(totalRevenue),
+    formattedOrders: totalOrders?.toLocaleString?.() || '0',
+    formattedTransactions: totalTransactions?.toLocaleString?.() || '0',
+    formattedAverageTransaction: safeFormatAmount(averageTransaction)
+  })
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -37,10 +69,26 @@ export const KPICards = memo(({
     )
   }
 
+  // Fallback data if all values are zero
+  const hasValidData = totalRevenue > 0 || totalOrders > 0 || totalTransactions > 0 || averageTransaction > 0
+  
+  if (!hasValidData) {
+    console.log('[KPICards] No valid data available, showing empty state')
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
+        <Card className="bg-gray-50 border-gray-200">
+          <CardContent className="p-6 text-center">
+            <div className="text-gray-500 text-sm">No data available</div>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   const kpiData = [
     {
       title: 'Total Sales',
-      value: formatAmount(totalRevenue),
+      value: safeFormatAmount(totalRevenue),
       subtitle: 'All sales',
       icon: DollarSign,
       color: 'from-blue-500/10 to-blue-600/5 border-blue-200/50 dark:border-blue-800/30',
@@ -50,7 +98,7 @@ export const KPICards = memo(({
     },
     {
       title: 'Total Orders',
-      value: totalOrders.toLocaleString(),
+      value: totalOrders?.toLocaleString?.() || '0',
       subtitle: 'Completed orders',
       icon: ShoppingCart,
       color: 'from-emerald-500/10 to-emerald-600/5 border-emerald-200/50 dark:border-emerald-800/30',
@@ -60,7 +108,7 @@ export const KPICards = memo(({
     },
     {
       title: 'Visitors',
-      value: totalTransactions.toLocaleString(),
+      value: totalTransactions?.toLocaleString?.() || '0',
       subtitle: 'Unique customers',
       icon: Users,
       color: 'from-orange-500/10 to-orange-600/5 border-orange-200/50 dark:border-orange-800/30',
@@ -70,7 +118,7 @@ export const KPICards = memo(({
     },
     {
       title: 'Avg Order Value',
-      value: formatAmount(averageTransaction),
+      value: safeFormatAmount(averageTransaction),
       subtitle: 'Per transaction',
       icon: TrendingUp,
       color: 'from-purple-500/10 to-purple-600/5 border-purple-200/50 dark:border-purple-800/30',
@@ -79,6 +127,8 @@ export const KPICards = memo(({
       change: '+12.1%'
     }
   ]
+
+  console.log('[KPICards] KPI Data:', kpiData)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
@@ -106,7 +156,7 @@ export const KPICards = memo(({
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <p className={`text-2xl lg:text-3xl font-bold ${kpi.textColor}`}>
+                <p className={`text-xl lg:text-2xl font-bold ${kpi.textColor} break-words`}>
                   {kpi.value}
                 </p>
                 <p className="text-xs opacity-70">

@@ -32,6 +32,7 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
   const [userRole, setUserRole] = useState<string>('')
   const [restaurants, setRestaurants] = useState<any[]>([])
   const [isMounted, setIsMounted] = useState(false)
+  const [isFetching, setIsFetching] = useState(false)
   const { isMobileOpen, toggleMobileSidebar, closeMobileSidebar, isDesktopCollapsed } = useSidebar()
 
   // Prevent hydration mismatch
@@ -41,6 +42,9 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
 
   // Memoized restaurant fetching
   const fetchRestaurants = useCallback(async () => {
+    if (isFetching) return // Prevent multiple simultaneous fetches
+    
+    setIsFetching(true)
     try {
       const token = localStorage.getItem('auth_token')
       if (!token) {
@@ -61,8 +65,10 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
       }
     } catch (error) {
       console.error('[SidebarNavigation] Error fetching restaurants:', error)
+    } finally {
+      setIsFetching(false)
     }
-  }, [])
+  }, []) // Remove isFetching dependency to prevent recreation
 
   // Memoized first restaurant ID
   const firstRestaurantId = useMemo(() => {
@@ -81,22 +87,22 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
   }, [restaurants])
   const ordersHref = firstRestaurantId ? `/dashboard/${firstRestaurantId}/orders` : '/dashboard'
 
-  // Fetch restaurants on mount and when user role changes
+  // Fetch restaurants on mount only
   useEffect(() => {
     const role = localStorage.getItem('userRole') || 'cashier'
     setUserRole(role)
     
-    // Only fetch if we haven't fetched yet or if restaurants is empty
-    if (restaurants.length === 0) {
+    // Only fetch on initial mount when restaurants is empty and not already fetching
+    if (restaurants.length === 0 && !isFetching) {
       fetchRestaurants()
     }
-  }, [fetchRestaurants, restaurants.length])
+  }, []) // Remove dependencies to prevent infinite loop
 
-  // Get role categories
-  const kitchenRoles = getRolesByCategory('Kitchen').map(r => r.value)
-  const managementRoles = getRolesByCategory('Management').map(r => r.value)
-  const frontOfHouseRoles = getRolesByCategory('Front of House').map(r => r.value)
-  const supportRoles = getRolesByCategory('Support').map(r => r.value)
+  // Get role categories - memoized to prevent recreation on every render
+  const kitchenRoles = useMemo(() => getRolesByCategory('Kitchen').map(r => r.value), [])
+  const managementRoles = useMemo(() => getRolesByCategory('Management').map(r => r.value), [])
+  const frontOfHouseRoles = useMemo(() => getRolesByCategory('Front of House').map(r => r.value), [])
+  const supportRoles = useMemo(() => getRolesByCategory('Support').map(r => r.value), [])
   const isCashier = userRole === 'cashier'
 
   // Notify parent if callback provided (for backwards compatibility)
@@ -119,8 +125,8 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
 
   const isActive = (path: string) => pathname === path
 
-  // Helper function to create navigation items with tooltips
-  const createNavItem = (href: string, icon: React.ReactNode, label: string, isActive: boolean) => {
+  // Helper function to create navigation items with tooltips - memoized
+  const createNavItem = useCallback((href: string, icon: React.ReactNode, label: string, isActive: boolean) => {
     const button = (
       <Button
         variant={isActive ? 'default' : 'ghost'}
@@ -147,7 +153,7 @@ export function SidebarNavigation({ onWidthChange }: SidebarNavigationProps = {}
     }
 
     return <Link href={href}>{button}</Link>
-  }
+  }, [isDesktopCollapsed, isMounted])
 
   return (
     <>

@@ -12,6 +12,7 @@ import { useRestaurants } from '@/hooks/use-restaurants'
 import { useOrderDetails } from '@/hooks/use-order-details'
 import { announceOrderReady } from '@/lib/text-to-speech'
 import { useCurrency } from '@/hooks/use-currency'
+import { ImagePreview } from '@/components/ui/image-preview'
 
 interface OrderItem {
   id: string
@@ -23,6 +24,7 @@ interface OrderItem {
     name: string
     description: string
     price: number
+    image_url?: string
   }
 }
 
@@ -296,19 +298,52 @@ export default function OrderDetailPage() {
                   {order.order_items && order.order_items.length > 0 ? (
                     <div className="space-y-3">
                       {order.order_items.map((item: OrderItem) => (
-                        <div key={item.id} className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-lg gap-3">
-                          <div className="flex-1">
-                            <div>
-                              <h4 className="font-semibold">{item.menu_item?.name}</h4>
-                              {item.menu_item?.description && (
-                                <p className="text-sm text-gray-600 mt-1">{item.menu_item?.description}</p>
+                        <div key={item.id} className="flex flex-col gap-3 p-4 border rounded-lg">
+                          <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+                            {/* Image Area */}
+                            <div className="flex-shrink-0">
+                              {item.menu_item?.image_url ? (
+                                <div className="h-20 w-20 rounded-lg border border-gray-200 overflow-hidden">
+                                  <ImagePreview
+                                    src={item.menu_item.image_url}
+                                    alt={item.menu_item.name}
+                                    size="md"
+                                    fullWidth={true}
+                                    className="w-full h-full"
+                                  />
+                                </div>
+                              ) : (
+                                <div className="h-20 w-20 rounded-lg border border-gray-200 bg-gray-50 flex items-center justify-center">
+                                  <div className="text-center">
+                                    <div className="text-2xl mb-1">🍽️</div>
+                                    <p className="text-xs text-gray-400">No image</p>
+                                  </div>
+                                </div>
                               )}
                             </div>
-                          </div>
-                          <div className="text-right sm:text-left">
-                            <div className="text-sm text-gray-600">Qty: {item.quantity}</div>
-                            <div className="font-semibold">{formatAmount(item.unit_price)}</div>
-                            <div className="text-sm text-gray-600">Subtotal: {formatAmount(item.subtotal)}</div>
+                            
+                            {/* Content Area */}
+                            <div className="flex-1 min-w-0">
+                              <div>
+                                <h4 className="font-semibold">{item.menu_item?.name}</h4>
+                                {item.menu_item?.description && (
+                                  <p className="text-sm text-gray-600 mt-1">{item.menu_item.description}</p>
+                                )}
+                              </div>
+                              
+                              {/* Price and Quantity Info */}
+                              <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+                                <div>
+                                  <span className="text-gray-600">Qty: {item.quantity}</span>
+                                </div>
+                                <div>
+                                  <span className="font-semibold">{formatAmount(item.unit_price)}</span>
+                                </div>
+                                <div>
+                                  <span className="text-gray-600">Subtotal: {formatAmount(item.subtotal)}</span>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       ))}

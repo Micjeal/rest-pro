@@ -11,7 +11,8 @@ interface CustomerGrowthProps {
   isLoading?: boolean
 }
 
-const COUNTRY_COLORS = ['#3b82f6', '#10b981', '#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4']
+// Define semantic colors for customer growth visualization
+const CUSTOMER_GROWTH_COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316']
 
 const CustomerGrowth = memo(({ paymentData, statusData, isLoading = false }: CustomerGrowthProps) => {
   // Calculate customer metrics from real data
@@ -20,12 +21,9 @@ const CustomerGrowth = memo(({ paymentData, statusData, isLoading = false }: Cus
   
   // Transform payment data into customer-like data for visualization
   const customerData = paymentData.slice(0, 4).map((payment: any, index: number) => ({
-    name: payment.method === 'cash' ? 'Cash' : 
-           payment.method === 'card' ? 'Card' :
-           payment.method === 'mobile' ? 'Mobile' :
-           payment.method === 'bank' ? 'Bank' :
-           `Payment ${index + 1}`,
+    name: payment.method || `Payment ${index + 1}`,
     value: payment.count,
+    color: payment.color, // Include the color from API data
     growth: index === 0 ? '+12.3%' : index === 1 ? '+8.7%' : index === 2 ? '+15.2%' : '+5.4%'
   }))
 
@@ -68,6 +66,11 @@ const CustomerGrowth = memo(({ paymentData, statusData, isLoading = false }: Cus
           <div className="flex items-center justify-center">
             <ResponsiveContainer width="100%" height={250}>
               <PieChart>
+                <defs>
+                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.2"/>
+                  </filter>
+                </defs>
                 <Pie
                   data={customerData}
                   cx="50%"
@@ -76,17 +79,30 @@ const CustomerGrowth = memo(({ paymentData, statusData, isLoading = false }: Cus
                   outerRadius={80}
                   paddingAngle={2}
                   dataKey="value"
+                  animationBegin={0}
+                  animationDuration={1500}
+                  animationEasing="ease-out"
                 >
                   {customerData.map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={COUNTRY_COLORS[index % COUNTRY_COLORS.length]} />
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.color || CUSTOMER_GROWTH_COLORS[index % CUSTOMER_GROWTH_COLORS.length]}
+                      filter="url(#shadow)"
+                    />
                   ))}
                 </Pie>
                 <Tooltip 
                   contentStyle={{ 
-                    backgroundColor: 'rgba(255,255,255,0.95)', 
-                    border: '1px solid rgba(0,0,0,0.1)',
-                    borderRadius: '8px'
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)', 
+                    border: '1px solid rgba(148, 163, 184, 0.2)',
+                    borderRadius: '16px',
+                    boxShadow: '0 10px 25px rgba(0,0,0,0.15), 0 4px 10px rgba(0,0,0,0.1)',
+                    fontSize: '13px',
+                    padding: '12px 16px',
+                    backdropFilter: 'blur(8px)'
                   }}
+                  labelStyle={{ color: '#e2e8f0', fontWeight: 500 }}
+                  itemStyle={{ color: '#cbd5e1' }}
                   formatter={(value: any) => [value.toLocaleString(), 'Customers']}
                 />
               </PieChart>
@@ -103,20 +119,45 @@ const CustomerGrowth = memo(({ paymentData, statusData, isLoading = false }: Cus
             
             <div className="space-y-3">
               {customerData.map((entry: any, index: number) => (
-                <div key={entry.name} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-blue-500" />
-                    <span className="text-sm font-medium">{entry.name}</span>
+                <div 
+                  key={entry.name} 
+                  className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800/70 transition-all duration-200 hover:shadow-md"
+                  style={{
+                    animation: `slideIn 0.5s ease-out ${index * 100}ms both`
+                  }}
+                >
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-4 h-4 rounded-full shadow-sm" 
+                      style={{ 
+                        backgroundColor: entry.color || CUSTOMER_GROWTH_COLORS[index % CUSTOMER_GROWTH_COLORS.length],
+                        boxShadow: `0 2px 4px ${entry.color || CUSTOMER_GROWTH_COLORS[index % CUSTOMER_GROWTH_COLORS.length]}40`
+                      }}
+                    />
+                    <span className="text-sm font-medium text-gray-900 dark:text-gray-100">{entry.name}</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-sm font-bold">{entry.value.toLocaleString()}</div>
-                    <div className="text-xs text-green-600">{entry.growth}</div>
+                    <div className="text-sm font-bold text-gray-900 dark:text-gray-100">{entry.value.toLocaleString()}</div>
+                    <div className="text-xs font-medium text-green-600 dark:text-green-400">{entry.growth}</div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
+        
+        <style jsx>{`
+          @keyframes slideIn {
+            from {
+              opacity: 0;
+              transform: translateX(-20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          }
+        `}</style>
       </CardContent>
     </Card>
   )

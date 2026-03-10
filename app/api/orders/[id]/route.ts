@@ -82,7 +82,8 @@ export async function GET(
           menu_items (
             name,
             description,
-            price
+            price,
+            image_url
           )
         )
       `)

@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
+import { ImageUpload } from '@/components/ui/image-upload'
 import { toast } from 'sonner'
 
 interface MenuItemFormProps {
@@ -23,6 +24,7 @@ export function MenuItemForm({ restaurantId, menuId }: MenuItemFormProps) {
     description: '',
     price: '',
     availability: true,
+    image_url: '',
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -35,6 +37,14 @@ export function MenuItemForm({ restaurantId, menuId }: MenuItemFormProps) {
 
   const handleCheckboxChange = () => {
     setFormData((prev) => ({ ...prev, availability: !prev.availability }))
+  }
+
+  const handleImageChange = (url: string) => {
+    setFormData((prev) => ({ ...prev, image_url: url }))
+  }
+
+  const handleImageRemove = () => {
+    setFormData((prev) => ({ ...prev, image_url: '' }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -109,6 +119,15 @@ export function MenuItemForm({ restaurantId, menuId }: MenuItemFormProps) {
               value={formData.price}
               onChange={handleChange}
               required
+              className="mt-1"
+            />
+          </div>
+          <div>
+            <Label>Item Image</Label>
+            <ImageUpload
+              value={formData.image_url}
+              onChange={handleImageChange}
+              onRemove={handleImageRemove}
               className="mt-1"
             />
           </div>

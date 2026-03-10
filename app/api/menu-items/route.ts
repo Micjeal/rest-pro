@@ -26,6 +26,7 @@ import { createClient } from '@/lib/supabase/server'
  *     description: "Fresh greens with parmesan",
  *     price: "12.99",
  *     availability: true,
+ *     image_url: "/uploads/filename.jpg",
  *     created_at: "2024-01-01T00:00:00Z",
  *     updated_at: "2024-01-01T00:00:00Z"
  *   }
@@ -85,7 +86,7 @@ export async function GET(request: NextRequest) {
 
   const { data: items, error } = await supabase
     .from('menu_items')
-    .select('*')
+    .select('id, menu_id, name, description, price, availability, image_url, created_at, updated_at')
     .eq('menu_id', menuId)
 
   if (error) {
@@ -106,7 +107,8 @@ export async function GET(request: NextRequest) {
  *     name: string (required),
  *     description?: string,
  *     price: number (required),
- *     availability?: boolean
+ *     availability?: boolean,
+ *     image_url?: string
  *   }
  * 
  * @returns Created menu item object (201) or error
@@ -119,6 +121,7 @@ export async function GET(request: NextRequest) {
  *   description: "Fresh greens with parmesan",
  *   price: "12.99",
  *   availability: true,
+ *   image_url: "/uploads/filename.jpg",
  *   created_at: "2024-01-01T00:00:00Z",
  *   updated_at: "2024-01-01T00:00:00Z"
  * }
@@ -159,7 +162,8 @@ export async function POST(request: NextRequest) {
  *     name?: string,
  *     description?: string,
  *     price?: number,
- *     availability?: boolean
+ *     availability?: boolean,
+ *     image_url?: string
  *   }
  * 
  * @returns Updated menu item object (200) or error
@@ -172,6 +176,7 @@ export async function POST(request: NextRequest) {
  *   description: "Updated description",
  *   price: "13.99",
  *   availability: true,
+ *   image_url: "/uploads/filename.jpg",
  *   created_at: "2024-01-01T00:00:00Z",
  *   updated_at: "2024-01-01T12:00:00Z"
  * }

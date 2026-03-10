@@ -15,7 +15,7 @@ import { useReportsData } from '@/hooks/use-reports-data'
 const KPICards = lazy(() => import('./components/KPICards').then(module => ({ default: module.KPICards })))
 const ProductStats = lazy(() => import('./components/ProductStats').then(module => ({ default: module.ProductStats })))
 const CustomerHabits = lazy(() => import('./components/CustomerHabits').then(module => ({ default: module.CustomerHabits })))
-const CustomerGrowth = lazy(() => import('./components/CustomerGrowth').then(module => ({ default: module.CustomerGrowth })))
+const CustomerGrowth = lazy(() => import('./components/CustomerGrowth'))
 
 /**
  * Optimized Reports Page

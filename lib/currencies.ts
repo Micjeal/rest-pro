@@ -362,6 +362,14 @@ export function formatCurrency(amount: number, currencyCode: string = 'UGX'): st
   }
 
   try {
+    // For UGX, use custom formatting to avoid decimal places
+    if (currencyCode === 'UGX') {
+      return `${currency.symbol}${amount.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+      })}`
+    }
+
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: currencyCode,

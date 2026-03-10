@@ -3,6 +3,7 @@
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { ImagePreview } from '@/components/ui/image-preview'
 import { Clock, ChefHat, CheckCircle, XCircle, Volume2, Timer, AlertTriangle } from 'lucide-react'
 import type { KitchenOrder } from '@/hooks/use-kitchen-orders'
 import { announceOrderReady } from '@/lib/text-to-speech'
@@ -323,6 +324,25 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
         </div>
       </CardHeader>
 
+      {/* Order Notes Section */}
+      {order.notes && (
+        <div className="mx-4 mb-4 rounded-lg border-2 border-amber-200 bg-amber-50 p-3 dark:border-amber-800 dark:bg-amber-900/20">
+          <div className="flex items-start gap-2">
+            <div className="h-5 w-5 rounded-full bg-amber-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <span className="text-xs font-bold text-amber-800 dark:text-amber-200">!</span>
+            </div>
+            <div className="flex-1">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.12em] text-amber-800 dark:text-amber-200 mb-1">
+                Order Instructions
+              </h4>
+              <p className="text-sm text-amber-900 dark:text-amber-100 font-medium">
+                {order.notes}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <CardContent className="p-4 lg:p-5">
         <div className="space-y-5">
           <div className="space-y-3">
@@ -331,9 +351,26 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
               {order.items?.map((item, index) => (
                 <div key={index} className="rounded-lg border border-slate-200 bg-slate-50/70 p-3 dark:border-slate-700 dark:bg-slate-800/50">
                   <div className="flex items-start gap-3">
-                    <div className="h-10 w-10 shrink-0 rounded-full border border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 flex items-center justify-center text-sm font-semibold">
-                      {item.quantity}
+                    {/* Image Area */}
+                    <div className="h-16 w-16 shrink-0 rounded-lg border border-slate-300 bg-gray-50 overflow-hidden">
+                      {item.image_url ? (
+                        <ImagePreview
+                          src={item.image_url}
+                          alt={item.name}
+                          size="sm"
+                          fullWidth={true}
+                          className="w-full h-full"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          <div className="text-center">
+                            <div className="text-lg mb-1">🍽️</div>
+                          </div>
+                        </div>
+                      )}
                     </div>
+                    
+                    {/* Content Area */}
                     <div className="flex-1 min-w-0">
                       <p className="font-semibold text-base leading-tight text-slate-900 dark:text-slate-100">
                         {item.name}
@@ -348,6 +385,11 @@ export function OrderCard({ order, onStatusUpdate, isSelected = false, onToggleS
                           Note: {item.notes}
                         </p>
                       )}
+                    </div>
+                    
+                    {/* Quantity Badge */}
+                    <div className="h-10 w-10 shrink-0 rounded-full border border-slate-300 bg-slate-100 text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 flex items-center justify-center text-sm font-semibold">
+                      {item.quantity}
                     </div>
                   </div>
                 </div>
