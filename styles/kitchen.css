@@ -30,3 +30,9 @@
 .progress-bar {
   width: calc(var(--progress) * 1%);
 }
+
+/* Progress bar variants for different percentages */
+.progress-25 { --progress: 25; }
+.progress-50 { --progress: 50; }
+.progress-75 { --progress: 75; }
+.progress-100 { --progress: 100; }

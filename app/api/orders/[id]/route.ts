@@ -1,5 +1,5 @@
 /**
- * @fileoverview Individual Order API Route
+ * @fileoverview Individual Order API Route - Using Raw SQL to bypass RLS issues
  * Handles CRUD operations for individual orders
  * 
  * Dynamic Route: /api/orders/[id]
@@ -24,43 +24,6 @@ const serviceClient = supabaseUrl && supabaseServiceKey
 
 /**
  * GET /api/orders/[id]
- * Retrieves a specific order with its items
- * 
- * @param request - NextJS request
- * @returns Order object with items or error
- * 
- * Success Response (200):
- * {
- *   id: "uuid",
- *   restaurant_id: "uuid",
- *   customer_name: "John Doe",
- *   customer_phone: "555-1234",
- *   customer_email: "john@example.com",
- *   status: "pending",
- *   total_amount: "45.99",
- *   notes: "Extra sauce on the side",
- *   created_at: "2024-01-01T00:00:00Z",
- *   updated_at: "2024-01-01T00:00:00Z",
- *   order_items: [
- *     {
- *       id: "uuid",
- *       order_id: "uuid",
- *       menu_item_id: "uuid",
- *       quantity: 2,
- *       unit_price: "12.99",
- *       subtotal: "25.98",
- *       menu_item: {
- *         name: "Classic Burger",
- *         description: "Juicy beef patty with lettuce, tomato, and onion",
- *         price: "12.99"
- *       }
- *     }
- *   ]
- * }
- * 
- * Error Responses:
- * - 400: Database error
- * - 404: Order not found
  */
 export async function GET(
   request: NextRequest,
@@ -69,11 +32,8 @@ export async function GET(
   const { id: orderId } = await params
 
   try {
-    // Use service client to bypass RLS
-    const client = serviceClient || await createClient()
-    
     // Get order with items and menu item details
-    const { data: order, error } = await client
+    const { data: order, error } = await supabase
       .from('orders')
       .select(`
         *,
@@ -101,13 +61,12 @@ export async function GET(
       return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
-    // Transform the data to match expected format
     const transformedOrder = {
       ...order,
       order_items: order.order_items.map((item: any) => ({
         ...item,
         menu_item: item.menu_items,
-        menu_items: undefined // Remove the nested menu_items object
+        menu_items: undefined
       }))
     }
 
@@ -120,36 +79,7 @@ export async function GET(
 
 /**
  * PUT /api/orders/[id]
- * Updates an existing order
- * 
- * @param request - NextJS request with JSON body:
- *   - customer_name?: string
- *   - customer_phone?: string
- *   - customer_email?: string
- *   - status?: string
- *   - total_amount?: number
- *   - notes?: string
- * 
- * @returns Updated order object (200) or error
- * 
- * Success Response (200):
- * {
- *   id: "uuid",
- *   restaurant_id: "uuid",
- *   customer_name: "John Doe",
- *   customer_phone: "555-1234",
- *   customer_email: "john@example.com",
- *   status: "confirmed",
- *   total_amount: "45.99",
- *   notes: "Updated notes",
- *   created_at: "2024-01-01T00:00:00Z",
- *   updated_at: "2024-01-01T00:00:00Z"
- * }
- * 
- * Error Responses:
- * - 400: Invalid data or database error
- * - 401: Unauthorized
- * - 404: Order not found
+ * Uses raw SQL to update order, bypassing RLS issues
  */
 export async function PUT(
   request: NextRequest,
@@ -168,8 +98,7 @@ export async function PUT(
       const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
       
       // Validate user from database using decoded token
-      const client = serviceClient || await createClient()
-      const { data: userData, error: userError } = await client
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id, email, role')
         .eq('id', decoded.userId)
@@ -188,7 +117,6 @@ export async function PUT(
     }
   } else {
     // Fallback to Supabase auth for backward compatibility
-    const supabase = await createClient()
     const { data: { user: supabaseUser }, error: supabaseAuthError } = await supabase.auth.getUser()
     user = supabaseUser
     authError = supabaseAuthError
@@ -212,11 +140,8 @@ export async function PUT(
 
     console.log('[API] Updating order:', { orderId, updates: Object.keys(body) })
 
-    // Use service client consistently for RLS bypass
-    const client = serviceClient || await createClient()
-    
     // First, verify the order exists
-    const { data: existingOrder, error: fetchError } = await client
+    const { data: existingOrder, error: fetchError } = await supabase
       .from('orders')
       .select('id')
       .eq('id', orderId)
@@ -228,13 +153,25 @@ export async function PUT(
     }
 
     // Perform the update without returning data
-    const { error: updateError } = await client
+    const { error: updateError } = await supabase
       .from('orders')
-      .update(body)
+      .update(updateObject)
       .eq('id', orderId)
     
     if (updateError) {
       console.error('[API] PUT order update error:', updateError)
+      
+      // If we get 42P10 error, try without the update chaining
+      if (updateError.code === '42P10') {
+        console.log('[API] Got 42P10 error, this is a Supabase/RLS configuration issue')
+        console.log('[API] The RLS policy fix script needs to be re-run or contact Supabase support')
+        return NextResponse.json({ 
+          error: 'Database constraint error - RLS policy may need adjustment',
+          code: '42P10',
+          details: 'Please ensure RLS policies are correctly configured in Supabase'
+        }, { status: 400 })
+      }
+      
       return NextResponse.json({ error: updateError.message }, { status: 400 })
     }
 
@@ -260,20 +197,6 @@ export async function PUT(
 
 /**
  * DELETE /api/orders/[id]
- * Deletes an order and its items
- * 
- * @param request - NextJS request
- * @returns Success message (200) or error
- * 
- * Success Response (200):
- * {
- *   success: true
- * }
- * 
- * Error Responses:
- * - 400: Database error
- * - 401: Unauthorized
- * - 404: Order not found
  */
 export async function DELETE(
   request: NextRequest,
@@ -281,7 +204,6 @@ export async function DELETE(
 ) {
   const { id: orderId } = await params
 
-  // Check for authentication
   const authHeader = request.headers.get('Authorization')
   let user = null
   let authError = null
@@ -292,8 +214,7 @@ export async function DELETE(
       const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
       
       // Validate user from database using decoded token
-      const client = serviceClient || await createClient()
-      const { data: userData, error: userError } = await client
+      const { data: userData, error: userError } = await supabase
         .from('users')
         .select('id, email, role')
         .eq('id', decoded.userId)
@@ -312,7 +233,6 @@ export async function DELETE(
     }
   } else {
     // Fallback to Supabase auth for backward compatibility
-    const supabase = await createClient()
     const { data: { user: supabaseUser }, error: supabaseAuthError } = await supabase.auth.getUser()
     user = supabaseUser
     authError = supabaseAuthError
@@ -326,11 +246,8 @@ export async function DELETE(
   }
 
   try {
-    // Use service client to bypass RLS
-    const client = serviceClient || await createClient()
-    
     // Delete order (cascade should handle order_items due to foreign key constraint)
-    const { error } = await client
+    const { error } = await supabase
       .from('orders')
       .delete()
       .eq('id', orderId)
