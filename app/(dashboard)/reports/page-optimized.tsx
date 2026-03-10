@@ -334,6 +334,8 @@ export default function OptimizedReportsPage() {
 
             <Suspense fallback={<div className="animate-pulse h-64 bg-gray-200 rounded-lg"></div>}>
               <CustomerGrowth
+                paymentData={data?.paymentData || []}
+                statusData={data?.statusData || []}
                 isLoading={isLoading}
               />
             </Suspense>
