@@ -8,17 +8,26 @@ import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('[API] Restaurants GET request received')
+    console.log('[API] Request headers:', Object.fromEntries(request.headers.entries()))
+    
     const supabase = await createClient()
 
     // Check for custom token in Authorization header
     const authHeader = request.headers.get('Authorization')
+    console.log('[API] Auth header:', authHeader ? 'present' : 'missing')
+    
     let user = null
     let authError = null
 
     if (authHeader && authHeader.startsWith('Bearer ')) {
       try {
         const token = authHeader.substring(7)
+        console.log('[API] Token length:', token.length)
+        console.log('[API] Token preview:', token.substring(0, 50) + '...')
+        
         const decoded = JSON.parse(Buffer.from(token, 'base64').toString())
+        console.log('[API] Decoded token:', decoded)
         
         // Validate user from database using decoded token
         const { data: userData, error: userError } = await supabase
@@ -28,25 +37,30 @@ export async function GET(request: NextRequest) {
           .eq('email', decoded.email)
           .single()
         
+        console.log('[API] User lookup result:', { userData, userError })
+        
         if (!userError && userData) {
           user = userData
           console.log('[API] Authenticated user via custom token:', user.email)
         } else {
           authError = userError
+          console.log('[API] User validation failed:', userError)
         }
       } catch (tokenError) {
         console.error('[API] Invalid token format:', tokenError)
         authError = new Error('Invalid token format')
       }
     } else {
+      console.log('[API] No Bearer token found, trying Supabase auth')
       // Fallback to Supabase auth for backward compatibility
       const { data: { user: supabaseUser }, error: supabaseAuthError } = await supabase.auth.getUser()
       user = supabaseUser
       authError = supabaseAuthError
+      console.log('[API] Supabase auth result:', { user: supabaseUser, error: supabaseAuthError })
     }
 
     if (authError || !user) {
-      console.log('[API] No authenticated user found')
+      console.log('[API] No authenticated user found, returning 401')
       return NextResponse.json({ error: 'Unauthorized - Please login' }, { status: 401 })
     }
 
@@ -59,12 +73,17 @@ export async function GET(request: NextRequest) {
       .select('*')
       .order('created_at', { ascending: false })
 
+    console.log('[API] Database query result:', { restaurants, error })
+
     if (error) {
       console.error('[API] Database error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     console.log('[API] Found restaurants:', restaurants?.length || 0)
+    if (restaurants && restaurants.length > 0) {
+      console.log('[API] First restaurant:', restaurants[0])
+    }
 
     return NextResponse.json(restaurants || [])
   } catch (error) {

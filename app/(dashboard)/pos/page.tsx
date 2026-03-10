@@ -321,9 +321,11 @@ export default function POSPage() {
 
       const createdOrder = await response.json()
       console.log('[POS] Order created:', createdOrder)
+      console.log('[POS] Order ID:', createdOrder.id)
 
       // Step 2: Add items to the order
       if (order.items.length > 0) {
+        console.log('[POS] Adding items to order:', order.items.length, 'items')
         const itemPromises = order.items.map(item => {
           const itemData = {
             order_id: createdOrder.id,
@@ -334,6 +336,7 @@ export default function POSPage() {
             description: item.description,
             image_url: item.image_url
           }
+          console.log('[POS] Creating item:', itemData)
 
           return fetch('/api/order-items', {
             method: 'POST',
@@ -351,9 +354,16 @@ export default function POSPage() {
         const failedItems = itemResponses.filter(res => !res.ok)
         if (failedItems.length > 0) {
           console.error('[POS] Failed to add some items:', failedItems)
-          // Don't throw error here, order was created successfully
+          failedItems.forEach(async (res, index) => {
+            const errorData = await res.json().catch(() => ({}))
+            console.error(`[POS] Item ${index} error:`, errorData)
+          })
         } else {
           console.log('[POS] All items added successfully')
+          itemResponses.forEach(async (res, index) => {
+            const itemData = await res.json().catch(() => ({}))
+            console.log(`[POS] Item ${index} created:`, itemData)
+          })
         }
       }
 
