@@ -1,6 +1,8 @@
 'use client'
 
 import { DashboardLayout } from '@/components/dashboard-layout'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader'
 import { MetricCard } from '@/components/dashboard/MetricCard'
 import { RevenueChart } from '@/components/dashboard/RevenueChart'
@@ -58,6 +60,7 @@ export default function DashboardPage() {
   const loadDashboardData = useCallback(async () => {
     try {
       setIsLoading(true)
+      console.log('[Dashboard] Loading data, restaurants count:', restaurants?.length || 0)
       
       if (!restaurants || restaurants.length === 0) {
         console.log('[Dashboard] No restaurants found, using fallback data')
@@ -67,6 +70,7 @@ export default function DashboardPage() {
 
       // Get first restaurant ID for analytics
       const restaurantId = restaurants[0].id
+      console.log('[Dashboard] Using restaurant ID:', restaurantId)
       
       // Build API parameters based on filters
       const analyticsParams = new URLSearchParams({ 
@@ -195,8 +199,13 @@ export default function DashboardPage() {
 
   useEffect(() => {
     console.log('[Dashboard] Page loaded - displaying all restaurants')
-    loadDashboardData()
-  }, [])
+    console.log('[Dashboard] Restaurants loading:', restaurantsLoading)
+    console.log('[Dashboard] Restaurants data:', restaurants)
+    
+    if (!restaurantsLoading) {
+      loadDashboardData()
+    }
+  }, [restaurantsLoading, restaurants])
 
   useEffect(() => {
     console.log('[Dashboard] Filters changed - reloading data')
@@ -266,6 +275,7 @@ export default function DashboardPage() {
   }
 
   const setFallbackData = () => {
+    console.log('[Dashboard] Setting fallback data with', restaurants.length, 'restaurants')
     setStats({
       totalRestaurants: restaurants.length,
       totalOrders: 0,
@@ -287,18 +297,46 @@ export default function DashboardPage() {
 
   return (
     <DashboardLayout 
-      title="" 
-      subtitle=""
+      title="Dashboard Overview" 
+      subtitle="Monitor your restaurant performance and analytics"
     >
       <div className="space-y-8">
-        {/* Dashboard Header */}
-        <DashboardHeader 
-          onTabChange={setActiveTab}
-          onDateChange={setSelectedDate}
-          onFilterClick={() => setShowFilterModal(true)}
-          activeTab={activeTab}
-          selectedDate={selectedDate}
-        />
+        {/* Show loading state */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading dashboard data...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Show no restaurants state */}
+        {!isLoading && restaurants && restaurants.length === 0 && (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center max-w-md">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No Restaurants Found</h3>
+              <p className="text-gray-600 mb-4">
+                You don't have any restaurants yet. Create your first restaurant to start seeing dashboard data.
+              </p>
+              <Button onClick={() => window.location.href = '/dashboard/new-restaurant'}>
+                Create Restaurant
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Show dashboard content when data is ready */}
+        {!isLoading && restaurants && restaurants.length > 0 && (
+          <>
+            {/* Dashboard Header */}
+            <DashboardHeader 
+              onTabChange={setActiveTab}
+              onDateChange={setSelectedDate}
+              onFilterClick={() => setShowFilterModal(true)}
+              activeTab={activeTab}
+              selectedDate={selectedDate}
+            />
 
         {/* Key Metrics Cards - First Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -408,7 +446,8 @@ export default function DashboardPage() {
             />
           </div>
         </div>
-      </div>
+        </>
+        )}
       
       {/* Filter Modal */}
       <FilterModal
