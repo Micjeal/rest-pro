@@ -30,7 +30,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: orderId } = await params
-
+  const supabase = await createClient()
   try {
     // Get order with items and menu item details
     const { data: order, error } = await supabase
@@ -87,8 +87,7 @@ export async function PUT(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: orderId } = await params
-
-  // Check for authentication
+  const supabase = await createClient()
   const authHeader = request.headers.get('Authorization')
   let user = null
   let authError = null
@@ -156,7 +155,7 @@ export async function PUT(
     // Perform the update without returning data
     const { error: updateError } = await supabase
       .from('orders')
-      .update(updateObject)
+      .update(body)
       .eq('id', orderId)
     
     if (updateError) {
@@ -177,7 +176,7 @@ export async function PUT(
     }
 
     // Fetch the updated order
-    const { data: updatedOrder, error: selectError } = await client
+    const { data: updatedOrder, error: selectError } = await supabase
       .from('orders')
       .select('id, restaurant_id, customer_name, customer_phone, customer_email, status, total_amount, notes, created_at, updated_at')
       .eq('id', orderId)
@@ -204,7 +203,8 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id: orderId } = await params
-
+  const supabase = await createClient()
+  
   const authHeader = request.headers.get('Authorization')
   let user = null
   let authError = null
